@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TrueTrend AI — Learn your money. Earn your money. Own your money.</title>
+<meta name="description" content="A simple, powerful AI financial tool for everyone. No webapps to install, no Telegrams, no gurus—just straight AI helping you learn, plan, and act. 3-day free trial on all plans."/>
+<style>
+  :root{
+    --bg:#070a11; --ink:#e8eef6; --muted:#9fb0c7;
+    --brand:#6cf0b2; --brand2:#6aa8ff; --accent:#ffd166;
+    --card:#0b121d; --glass:#0d1526; --border:#15243a;
+    --red:#ff6b6b; --green:#58d68d;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial}
+  a{color:var(--brand2);text-decoration:none}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .col{flex:1 1 0;min-width:260px}
+  .glass{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid var(--border);border-radius:16px;backdrop-filter:saturate(110%) blur(6px)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+  .badge{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0e1627;color:var(--muted);font-size:12px}
+  .btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;border:none;border-radius:12px;font-weight:800;padding:12px 18px;cursor:pointer}
+  .btn.brand{background:var(--brand);color:#03170f}
+  .btn.brand2{background:var(--brand2);color:#04101a}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--border)}
+  .sticky{position:sticky;top:0;z-index:20;background:rgba(7,10,17,.7);backdrop-filter:blur(6px)}
+  .hero{
+    position:relative;overflow:hidden;border-radius:24px;padding:56px 28px;margin-top:12px;
+    background:
+      radial-gradient(800px 500px at 0% 0%, rgba(108,240,178,.13), transparent 60%),
+      radial-gradient(800px 500px at 100% 10%, rgba(106,168,255,.16), transparent 60%),
+      linear-gradient(180deg,#0a1423,#08101b 60%, #070a11);
+    border:1px solid var(--border);
+  }
+  .hero h1{font-size:42px;line-height:1.1;margin:0 0 10px}
+  .hero p.lead{font-size:18px;color:var(--muted);margin:0 0 16px}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:12px 0}
+  .brandRow{display:flex;align-items:center;gap:10px}
+  .dot{width:12px;height:12px;border-radius:50%;background:var(--brand)}
+  .grid{display:grid;gap:16px}
+  .g-3{grid-template-columns:repeat(3,1fr)}
+  .g-4{grid-template-columns:repeat(4,1fr)}
+  .center{text-align:center}
+  .muted{color:var(--muted)}
+  h2{margin:0 0 10px}
+  /* Pricing */
+  .price{font-size:30px;font-weight:900;margin:6px 0}
+  ul.clean{list-style:none;padding:0;margin:0}
+  ul.clean li{padding:6px 0;color:var(--muted)}
+  ul.clean li::before{content:"✔";color:var(--brand);margin-right:8px}
+  .popular{position:relative}
+  .popular::after{content:"MOST POPULAR";position:absolute;top:12px;right:-28px;transform:rotate(35deg);background:var(--accent);color:#1a1200;font-weight:900;padding:4px 48px;font-size:12px}
+  /* App view */
+  .hidden{display:none}
+  input,select,textarea{background:#0e1627;color:var(--ink);border:1px solid var(--border);padding:10px;border-radius:12px;width:100%}
+  table{width:100%;border-collapse:collapse} th,td{padding:8px 0} th{color:var(--muted);font-size:12px;text-align:left}
+</style>
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <div class="container sticky">
+    <div class="nav">
+      <div class="brandRow">
+        <div class="dot"></div><strong>TrueTrend&nbsp;AI</strong>
+        <span class="badge">3-Day Trial on all plans</span>
+      </div>
+      <div class="row" style="gap:10px">
+        <a href="#pricing" class="btn ghost">Pricing</a>
+        <button class="btn brand2" id="launchAppTop">Launch Demo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Marketing Site -->
+  <main id="siteView">
+    <div class="container">
+      <!-- HERO -->
+      <section class="hero">
+        <div class="row">
+          <div class="col">
+            <span class="badge">New</span>
+            <h1>Learn your money. Earn your money. Own your money.</h1>
+            <p class="lead">
+              Meet the AI financial tool built for <b>everyone</b> — from first-time investors to active traders.
+              No Telegrams. No gurus. No confusing “webapps” to install. Just straight AI that helps you
+              understand markets, practice smart decisions, and build strategies you actually trust.
+            </p>
+            <div class="row" style="gap:10px;margin:10px 0 4px">
+              <a class="btn brand" href="#pricing">Start Free Trial</a>
+              <button class="btn ghost" id="seeHow">See how it works</button>
+            </div>
+            <div class="row" style="gap:12px;margin-top:8px;flex-wrap:wrap">
+              <span class="badge">Budgeting & goals</span>
+              <span class="badge">Portfolio & ETFs</span>
+              <span class="badge">Stocks & options</span>
+              <span class="badge">Crypto & weekends</span>
+            </div>
+          </div>
+          <div class="col glass" style="padding:18px">
+            <div class="muted">What you’ll see</div>
+            <div class="card" style="margin-top:10px">
+              <div class="muted">AI Summary</div>
+              <div style="font-weight:900;font-size:18px;margin-top:6px">Your month at a glance</div>
+              <ul class="clean" style="margin-top:6px">
+                <li>Saving rate trending <b style="color:var(--green)">up</b> 6%</li>
+                <li>Tech sector showing momentum — consider <b>XLK</b></li>
+                <li>Practice strategy: <b>RSI Reversal</b> on watchlist stocks</li>
+              </ul>
+            </div>
+            <div class="card" style="margin-top:10px">
+              <div class="muted">Voice</div>
+              <div>“<i>Alexa, ask TrueTrend what direction is gold.</i>”</div>
+              <div class="muted" style="margin-top:4px">Alexa: “Gold bias is <b>up</b>. Consider waiting for a pullback to support.”</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROOF STRIP -->
+      <section style="margin:22px 0">
+        <div class="glass" style="padding:12px">
+          <div class="row" style="align-items:center;justify-content:space-between">
+            <div class="muted">Built for everyday finances & markets alike</div>
+            <div class="row" style="gap:10px">
+              <span class="badge">Learn</span>
+              <span class="badge">Plan</span>
+              <span class="badge">Invest</span>
+              <span class="badge">Trade</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BENEFITS -->
+      <section>
+        <h2 class="center">One tool to grow confident with money</h2>
+        <p class="center muted" style="margin-top:-6px">Clarity today. Better decisions tomorrow.</p>
+        <div class="grid g-4" style="margin-top:16px">
+          <div class="card"><h3>Guided learning</h3><p class="muted">Plain-English lessons and checklists tailored to your goals and risk.</p></div>
+          <div class="card"><h3>Strategy library</h3><p class="muted">Built-in approaches for portfolios and trading — or make your own.</p></div>
+          <div class="card"><h3>Portfolio mode</h3><p class="muted">See strengths/weaknesses by sector; tilt using simple ETF ideas.</p></div>
+          <div class="card"><h3>Signals (optional)</h3><p class="muted">When you’re ready, enable real-time market reads with explanations.</p></div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section id="how" style="margin-top:24px">
+        <div class="row">
+          <div class="col card"><h3>1) Tell us your goal</h3><p class="muted">Build savings, invest monthly, learn to trade — your choice.</p></div>
+          <div class="col card"><h3>2) Pick a strategy</h3><p class="muted">From budgeting rules to market setups. We explain the why.</p></div>
+          <div class="col card"><h3>3) Practice & act</h3><p class="muted">Use simulations, journaling, alerts, and voice to keep you honest.</p></div>
+        </div>
+      </section>
+
+      <!-- PRICING -->
+      <section id="pricing" style="margin-top:28px">
+        <h2 class="center">Start free — keep what works</h2>
+        <p class="center muted" style="margin-top:-6px">All plans include a 3-day free trial. Cancel anytime.</p>
+        <div class="grid g-3" style="margin-top:16px">
+          <div class="card">
+            <h3>Starter</h3>
+            <div class="price">$59.99<span class="muted">/mo</span></div>
+            <ul class="clean">
+              <li>Financial basics + habit tracker</li>
+              <li>Beginner strategy library</li>
+              <li>Practice mode & coaching tips</li>
+              <li>Journaling & review prompts</li>
+            </ul>
+            <a class="btn brand" style="margin-top:12px" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401">Start Free Trial</a>
+          </div>
+
+          <div class="card popular" style="border-color:var(--accent)">
+            <h3>Pro</h3>
+            <div class="price">$99.99<span class="muted">/mo</span></div>
+            <ul class="clean">
+              <li>Everything in Starter</li>
+              <li>Sector tilt & ETF ideas</li>
+              <li>Advanced signals + explanations</li>
+              <li>Priority support</li>
+            </ul>
+            <a class="btn brand2" style="margin-top:12px" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start Free Trial</a>
+          </div>
+
+          <div class="card">
+            <h3>Elite Lifetime</h3>
+            <div class="price">$999<span class="muted">/one-time</span></div>
+            <ul class="clean">
+              <li>Lifetime access & upgrades</li>
+              <li>Alexa “TrueTrend” voice Q&A</li>
+              <li>VIP onboarding session</li>
+              <li>Early feature access</li>
+            </ul>
+            <a class="btn brand" style="margin-top:12px" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406">Start Free Trial</a>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <p class="muted">Secret: Press <b>Ctrl/⌘ + F</b> and search <code>Family Free Version</code> to reveal an internal test plan.</p>
+          <details><summary>Family Free Version</summary>
+            <a class="btn ghost" href="https://buy.stripe.com/eVq7sLgmN33edzv2ya38404">Access Family Plan</a>
+          </details>
+        </div>
+
+        <div class="row" style="gap:10px;justify-content:center;margin-top:14px">
+          <span class="badge">Secure Stripe checkout</span>
+          <span class="badge">Cancel anytime</span>
+          <span class="badge">No lock-ins</span>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS -->
+      <section style="margin-top:28px">
+        <h2 class="center">Real people, real progress</h2>
+        <div class="grid g-3" style="margin-top:16px">
+          <div class="card">“Finally a tool that explains money & markets without the hype.” <div class="muted" style="margin-top:6px">— Jordan P.</div></div>
+          <div class="card">“I used the budgeting prompts + ETF tilt and stuck with it.” <div class="muted" style="margin-top:6px">— Amira L.</div></div>
+          <div class="card">“Signals + the ‘why’ notes are game-changers.” <div class="muted" style="margin-top:6px">— Chris T.</div></div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section style="margin:24px 0">
+        <h2 class="center">FAQ</h2>
+        <div class="grid g-3" style="margin-top:16px">
+          <div class="card"><h3>Do I need experience?</h3><p class="muted">No. We start with plain-English coaching for anyone.</p></div>
+          <div class="card"><h3>Is this only for traders?</h3><p class="muted">No. It’s a financial tool first — budgeting, investing, and (optionally) trading.</p></div>
+          <div class="card"><h3>How does the trial work?</h3><p class="muted">Try everything for 3 days. Cancel anytime — zero pressure.</p></div>
+        </div>
+      </section>
+
+      <div class="center" style="margin:22px 0">
+        <a class="btn brand" href="#pricing">Start Your Free Trial</a>
+        <button class="btn ghost" id="launchAppBottom">Launch Demo</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Live “App” Demo (still inside this one file) -->
+  <section id="appView" class="hidden">
+    <div class="container">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div class="brandRow"><div class="dot"></div><strong>TrueTrend — Demo</strong></div>
+        <button class="btn ghost" id="backToSite">← Back to Site</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div class="col card">
+          <h3>Strategy Coach</h3>
+          <div class="row" style="grid-template-columns:160px 1fr auto">
+            <input id="sym" placeholder="Symbol (SPY, GLD, BTC)" value="SPY"/>
+            <select id="strat"><option value="learn">Budget/Invest Tips</option><option value="rsi">RSI Reversal</option><option value="sma" selected>SMA Trend</option><option value="breakout">Breakout</option></select>
+            <button class="btn brand2" id="btnAnalyze">Analyze</button>
+          </div>
+          <div id="adviceBox" class="card" style="margin-top:12px;background:var(--glass);display:none"></div>
+        </div>
+
+        <div class="col card">
+          <h3>Quick Screener</h3>
+          <table>
+            <thead><tr><th>Symbol</th><th>Bias</th><th>Note</th></tr></thead>
+            <tbody id="screenerBody"><tr><td colspan="3" class="muted">Loaded demo ideas for AAPL / NVDA / TSLA</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <div class="col card">
+          <h3>Money Journal</h3>
+          <div class="row" style="grid-template-columns:140px 1fr auto">
+            <input id="jTopic" placeholder="Topic (e.g., Budget, AAPL, Rent)"/>
+            <input id="jNotes" placeholder="What happened? What did you learn?"/>
+            <button class="btn brand" id="jAdd">Add</button>
+          </div>
+          <div id="jList" class="muted" style="margin-top:10px"></div>
+        </div>
+
+        <div class="col card">
+          <h3>Sector Pulse (demo)</h3>
+          <div id="sectors" class="grid g-3"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="container" style="margin:26px 0">
+    <div class="glass" style="padding:14px;text-align:center">
+      <div class="muted">© <span id="y"></span> TrueTrend Trading LLC • Secure Stripe checkout • All rights reserved</div>
+      <div class="muted" style="margin-top:6px">Tip: to reveal a private test plan, press <b>Ctrl/⌘ + F</b> and search <code>Family Free Version</code>.</div>
+    </div>
+  </footer>
+
+<script>
+  // ===== View toggles
+  const siteView=document.getElementById('siteView');
+  const appView=document.getElementById('appView');
+  const launchTop=document.getElementById('launchAppTop');
+  const launchBottom=document.getElementById('launchAppBottom');
+  const backToSite=document.getElementById('backToSite');
+  const seeHow=document.getElementById('seeHow');
+  document.getElementById('y').textContent=new Date().getFullYear();
+
+  function showApp(){ siteView.classList.add('hidden'); appView.classList.remove('hidden'); window.scrollTo(0,0); bootDemo(); }
+  function showSite(){ appView.classList.add('hidden'); siteView.classList.remove('hidden'); window.scrollTo(0,0); }
+  launchTop.onclick=launchBottom?()=>showApp():()=>showApp();
+  if(launchBottom) launchBottom.onclick=showApp;
+  if(backToSite) backToSite.onclick=showSite;
+  if(seeHow) seeHow.onclick=()=>document.getElementById('how').scrollIntoView({behavior:'smooth'});
+
+  // ===== Demo logic (client-side only so this single file stays functional)
+  function analyzeLocal(symbol, mode){
+    if(mode==='learn'){
+      return {
+        title:'Budget & Invest',
+        direction:'Start with yourself',
+        rationale:`Set a monthly save % target. Automate a transfer to a broad ETF (e.g., S&P 500). Track spending categories and reduce one by 10% this month.`,
+        improvement:'Use sector “tilt” only after 3 consistent months of savings.'
+      };
+    }
+    const up=Math.random()>0.5;
+    const dir= up?'Long (Uptrend)':'Short (Downtrend)';
+    const names={rsi:'RSI Reversal',sma:'SMA Trend',breakout:'Breakout'};
+    const rationale= up
+      ? `${symbol} shows higher highs and supported pullbacks. ${names[mode]} aligns.`
+      : `${symbol} is making lower lows. ${names[mode]} suggests patience or shorts.`;
+    const improvement= up
+      ? 'Enter on pullbacks to support with volume confirmation.'
+      : 'Wait for a lower-high near resistance; avoid front-running reversals.';
+    return { title:names[mode], direction:dir, rationale, improvement };
+  }
+
+  function bootDemo(){
+    // screener demo rows
+    const ideas=[
+      {sym:'AAPL',bias:'Up',note:'Momentum with shallow pullbacks'},
+      {sym:'NVDA',bias:'Up',note:'Breakout watch on consolidation'},
+      {sym:'TSLA',bias:'Down',note:'Lower-highs under 50SMA'}
+    ];
+    const tbody=document.getElementById('screenerBody');
+    if(tbody) tbody.innerHTML = ideas.map(i=>`<tr><td>${i.sym}</td><td>${i.bias}</td><td>${i.note}</td></tr>`).join('');
+
+    // sectors demo
+    const sectors=[{n:'Tech',p:+1.2,etf:'XLK'},{n:'Energy',p:+0.4,etf:'XLE'},{n:'Financials',p:-0.6,etf:'XLF'},{n:'Healthcare',p:+0.9,etf:'XLV'},{n:'Utilities',p:+0.2,etf:'XLU'},{n:'Materials',p:-0.3,etf:'XLB'}];
+    const wrap=document.getElementById('sectors');
+    if(wrap) wrap.innerHTML = sectors.map(s=>`
+      <div class="card" style="border-color:${s.p>=0?'var(--green)':'var(--red)'}">
+        <b>${s.n}</b>
+        <div class="muted">${s.etf}</div>
+        <div style="margin-top:6px;color:${s.p>=0?'var(--green)':'var(--red)'}">${s.p>0?'+':''}${s.p}%</div>
+      </div>`).join('');
+
+    // journal render
+    renderJournal();
+  }
+
+  // Strategy analyze button
+  const adviceBox=document.getElementById('adviceBox');
+  const btnAnalyze=document.getElementById('btnAnalyze');
+  if(btnAnalyze) btnAnalyze.onclick=()=>{
+    const symbol=(document.getElementById('sym').value||'SPY').toUpperCase().trim();
+    const mode=document.getElementById('strat').value;
+    const res=analyzeLocal(symbol,mode);
+    adviceBox.style.display='block';
+    adviceBox.innerHTML = `
+      <div class="badge">${res.title}</div>
+      <div style="font-size:18px;font-weight:900;margin-top:6px">${res.direction}</div>
+      <div class="muted" style="margin-top:6px">${res.rationale}</div>
+      <div class="muted" style="margin-top:8px;color:#ffd166"><b>Improve:</b> ${res.improvement}</div>`;
+  };
+
+  // Journal (local only so single file works)
+  const jList=document.getElementById('jList');
+  function renderJournal(){
+    const items=JSON.parse(localStorage.getItem('tt_journal')||'[]');
+    jList.innerHTML = items.length? items.map(e=>`
+      <div class="glass" style="padding:12px;border-radius:12px;margin-bottom:8px">
+        <b>${e.topic}</b> • <span style="color:${e.outcome==='Win'?'var(--green)':'var(--red)'}">${e.outcome}</span>
+        <div class="muted" style="margin-top:6px">${e.notes||''}</div>
+        <div class="muted" style="margin-top:6px"><b>Why:</b> ${e.why}</div>
+      </div>`).join('') : '<div class="muted">No entries yet.</div>';
+  }
+  const jAdd=document.getElementById('jAdd');
+  if(jAdd) jAdd.onclick=()=>{
+    const topic=(document.getElementById('jTopic').value||'General').trim();
+    const notes=(document.getElementById('jNotes').value||'').trim();
+    if(!topic) return;
+    const outcome=Math.random()>0.5?'Win':'Loss';
+    const why= outcome==='Win'
+      ? 'You followed the plan and waited for confirmation.'
+      : 'You rushed. Next time, wait for retests or better confluence.';
+    const items=JSON.parse(localStorage.getItem('tt_journal')||'[]');
+    items.unshift({topic,notes,outcome,why,t:Date.now()});
+    localStorage.setItem('tt_journal',JSON.stringify(items));
+    document.getElementById('jTopic').value=''; document.getElementById('jNotes').value='';
+    renderJournal();
+  };
+
+  // Footer year
+  // Family plan hint already in copy above
+</script>
+</body>
+</html>
