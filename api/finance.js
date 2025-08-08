@@ -1,76 +1,157 @@
 // /api/finance.js
-// Serverless endpoint for quotes + simple signal using Finnhub.
-// GET /api/finance?symbol=AAPL&timeframe=D|60|15
-// Response: { symbol, quote, signal, comment }
+// Usage: /api/finance?symbol=NVDA&resolution=60&days=7
+// Env: FINNHUB_API_KEY
 
-const FINNHUB = 'https://finnhub.io/api/v1';
-
-function cors(res){
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-}
-
-export default async function handler(req, res){
-  cors(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
-  try{
-    const { symbol = 'AAPL', timeframe = 'D' } = req.query;
+export default async function handler(req, res) {
+  try {
     const token = process.env.FINNHUB_API_KEY;
-    if(!token) return res.status(500).json({ error: 'FINNHUB_API_KEY missing' });
+    if (!token) {
+      return res.status(500).json({ error: 'Missing FINNHUB_API_KEY' });
+    }
 
-    // 1) Quote
-    const q = await fetch(`${FINNHUB}/quote?symbol=${encodeURIComponent(symbol)}&token=${token}`);
-    if(!q.ok) throw new Error('quote fetch failed');
-    const quote = await q.json(); // { c, h, l, o, pc, t }
+    const { symbol = 'NVDA', resolution = '60', days = '5' } = req.query;
 
-    // 2) Candles
-    const now = Math.floor(Date.now()/1000);
-    const from = timeframe === 'D' ? now - 86400*200
-              : timeframe === '60' ? now - 3600*500
-              : now - 900*1000; // 15m fallback
-    const resolution = timeframe === 'D' ? 'D' : timeframe; // 'D','60','15'
-    const cRes = await fetch(`${FINNHUB}/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${from}&to=${now}&token=${token}`);
-    const candles = await cRes.json(); // { s:'ok', c:[], h:[], l:[], o:[], t:[] }
-    if(candles.s !== 'ok') throw new Error('no candle data');
+    // time window
+    const nowSec = Math.floor(Date.now() / 1000);
+    const fromSec = nowSec - Number(days) * 24 * 60 * 60;
 
-    // 3) Simple signal: EMA cross + momentum
-    const closes = candles.c || [];
-    const ema = (arr,len)=>{
-      const k = 2/(len+1);
-      let ema=arr[0];
-      for(let i=1;i<arr.length;i++) ema = arr[i]*k + ema*(1-k);
-      return ema;
+    // Helper to try stock -> forex -> crypto
+    const fetchCandles = async () => {
+      // stock
+      let url = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${fromSec}&to=${nowSec}&token=${token}`;
+      let r = await fetch(url);
+      let j = await r.json();
+      if (j && j.s === 'ok') return j;
+
+      // forex
+      url = `https://finnhub.io/api/v1/forex/candle?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${fromSec}&to=${nowSec}&token=${token}`;
+      r = await fetch(url);
+      j = await r.json();
+      if (j && j.s === 'ok') return j;
+
+      // crypto
+      url = `https://finnhub.io/api/v1/crypto/candle?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${fromSec}&to=${nowSec}&token=${token}`;
+      r = await fetch(url);
+      j = await r.json();
+      if (j && j.s === 'ok') return j;
+
+      throw new Error('No candles returned for symbol');
     };
-    const last50  = closes.slice(-50);
-    const last200 = closes.slice(-200);
-    const ema50   = last50.length ? ema(last50, 20) : null;
-    const ema200  = last200.length ? ema(last200, 50) : null;
 
-    let direction='neutral', reason='Not enough data';
-    if(ema50 && ema200){
-      if (ema50 > ema200) { direction='long';  reason='Short EMA above long EMA'; }
-      if (ema50 < ema200) { direction='short'; reason='Short EMA below long EMA'; }
+    const candles = await fetchCandles();
+
+    // get latest quote if available (stocks only, ok if it fails)
+    let price = null;
+    try {
+      const qr = await fetch(
+        `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${token}`
+      );
+      const qj = await qr.json();
+      if (qj && typeof qj.c === 'number') price = qj.c;
+    } catch (_) {}
+
+    // --- Technical helpers ---
+    const close = candles.c || [];
+    const high = candles.h || [];
+    const low = candles.l || [];
+
+    const SMA = (arr, len) => {
+      if (arr.length < len) return [];
+      const out = [];
+      let sum = 0;
+      for (let i = 0; i < arr.length; i++) {
+        sum += arr[i];
+        if (i >= len) sum -= arr[i - len];
+        if (i >= len - 1) out.push(sum / len);
+      }
+      return out;
+    };
+
+    const RSI = (arr, period = 14) => {
+      if (arr.length < period + 1) return null;
+      let gains = 0, losses = 0;
+      for (let i = 1; i <= period; i++) {
+        const diff = arr[i] - arr[i - 1];
+        if (diff >= 0) gains += diff; else losses -= diff;
+      }
+      let rs = gains / (losses || 1e-9);
+      let rsi = 100 - 100 / (1 + rs);
+
+      // Wilder
+      for (let i = period + 1; i < arr.length; i++) {
+        const diff = arr[i] - arr[i - 1];
+        const gain = diff > 0 ? diff : 0;
+        const loss = diff < 0 ? -diff : 0;
+        gains = (gains * (period - 1) + gain) / period;
+        losses = (losses * (period - 1) + loss) / period;
+        rs = gains / (losses || 1e-9);
+        rsi = 100 - 100 / (1 + rs);
+      }
+      return Math.round(rsi * 10) / 10;
+    };
+
+    const sma20 = SMA(close, 20);
+    const sma50 = SMA(close, 50);
+    const rsi14 = RSI(close, 14);
+
+    // simple bias / confidence
+    const last = close[close.length - 1];
+    const prev = close[close.length - 2];
+
+    let bias = 'neutral';
+    let confidence = 50;
+
+    const slope20 = sma20.length >= 2 ? sma20[sma20.length - 1] - sma20[sma20.length - 2] : 0;
+    const slope50 = sma50.length >= 2 ? sma50[sma50.length - 1] - sma50[sma50.length - 2] : 0;
+
+    if (sma20.length && sma50.length) {
+      const above = last > sma20[sma20.length - 1] && last > sma50[sma50.length - 1];
+      const crossUp = sma20[sma20.length - 1] > sma50[sma50.length - 1];
+      const upward = slope20 > 0 && slope50 >= 0;
+
+      const below = last < sma20[sma20.length - 1] && last < sma50[sma50.length - 1];
+      const crossDn = sma20[sma20.length - 1] < sma50[sma50.length - 1];
+      const downward = slope20 < 0 && slope50 <= 0;
+
+      if (above && crossUp && upward) {
+        bias = 'long'; confidence = 70 + Math.min(20, Math.round((slope20 + slope50) * 100));
+      } else if (below && crossDn && downward) {
+        bias = 'short'; confidence = 70 + Math.min(20, Math.round(Math.abs(slope20 + slope50) * 100));
+      } else {
+        bias = 'neutral'; confidence = 50;
+      }
     }
 
-    // Momentum check using last 10 bars
-    const last10 = closes.slice(-10);
-    if(last10.length >= 2){
-      const chg = (last10.at(-1) - last10[0]) / last10[0];
-      if (chg > 0.02 && direction==='neutral') { direction='long';  reason='Recent momentum positive'; }
-      if (chg < -0.02 && direction==='neutral'){ direction='short'; reason='Recent momentum negative'; }
-    }
+    // quick S/R from last 20 bars
+    const window = Math.min(20, high.length);
+    const recentHigh = Math.max(...high.slice(-window));
+    const recentLow = Math.min(...low.slice(-window));
+    const support = Math.round(recentLow * 100) / 100;
+    const resistance = Math.round(recentHigh * 100) / 100;
 
-    const comment = `Timeframe ${resolution}. EMA(20/50) heuristic + momentum. This is an educational signal, not financial advice.`;
+    const notes = [];
+    if (rsi14 != null) {
+      if (rsi14 > 70) notes.push('RSI overbought');
+      else if (rsi14 < 30) notes.push('RSI oversold');
+      else notes.push('RSI neutral');
+    }
+    if (bias !== 'neutral') notes.push(`Trend ${bias} via 20/50 SMA`);
+
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=600');
 
     return res.status(200).json({
-      symbol: symbol.toUpperCase(),
-      quote,
-      signal: { direction, reason },
-      comment
+      symbol,
+      timeframe: resolution,
+      price: price ?? last ?? null,
+      bias,
+      confidence,
+      rsi: rsi14,
+      levels: { support, resistance },
+      notes,
+      meta: { source: 'finnhub', days: Number(days) }
     });
-  }catch(err){
-    return res.status(500).json({ error: err.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Finance endpoint failed', details: err.message });
   }
 }
