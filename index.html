@@ -2,239 +2,213 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TrueTrend AI — Learn. Earn. Own.</title>
-  <meta name="description" content="TrueTrend AI — a real-time chart-reading financial assistant with built-in strategies, portfolio tools, and Alexa voice signals (Elite). Try any plan free for 3 days." />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TrueTrend — Learn your money. Earn your money. Own your money.</title>
+  <meta name="description" content="TrueTrend: an AI financial assistant that reads charts, explains wins and losses, and coaches you to build strategies. No gurus. No Telegrams. Just AI." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0b1020;--card:#111730;--muted:#8aa0bf;--primary:#3ee6a1;--accent:#5aa3ff;--danger:#ff6b6b;
-      --text:#eaf0ff;--text-soft:#c9d6f5;--ring:rgba(94,155,255,.35)
+      --bg:#0b0f14; --panel:#0f151c; --ink:#eaf2ff; --muted:#9db0c9; --brand:#4be1a0; --accent:#7aa2ff; --danger:#ff6b7a;
+      --ring: 0 0 0 .25rem rgba(123, 168, 255, .35);
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
     a{color:inherit;text-decoration:none}
-    .container{max-width:1200px;margin:0 auto;padding:28px}
-    .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-    .logo{display:flex;gap:10px;align-items:center;font-weight:800;letter-spacing:.3px}
-    .logo-badge{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7ad1ff)}
-    .cta{padding:10px 16px;border-radius:10px;background:var(--accent);color:#061025;font-weight:700;border:1px solid rgba(255,255,255,.08)}
-    .cta:hover{filter:brightness(1.05)}
-
-    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:36px;margin-top:26px}
-    @media (max-width:980px){.hero{grid-template-columns:1fr}}
-    .hero h1{font-size:44px;line-height:1.05;margin:10px 0 12px}
-    .hero p{color:var(--text-soft);font-size:18px;max-width:56ch}
-    .hero .bullets{display:grid;gap:10px;margin:20px 0}
-    .hero .bullets span{display:inline-flex;gap:10px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);padding:8px 12px;border-radius:12px;width:max-content}
-    .hero-card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:18px}
-
-    .try{display:grid;gap:10px}
-    .try input{width:100%;padding:14px 14px;border-radius:12px;background:#0c1330;border:1px solid rgba(255,255,255,.1);color:var(--text);outline:none}
-    .try input:focus{box-shadow:0 0 0 6px var(--ring);border-color:#7db3ff}
-    .try button{padding:12px;border-radius:12px;background:var(--primary);color:#042012;font-weight:800;border:none;cursor:pointer}
-    .try button:hover{filter:brightness(1.07)}
-    .quote{display:grid;gap:6px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.12);border-radius:12px;padding:12px}
-    .dir-up{color:#37ffb0}.dir-down{color:#ff7b7b}
-
-    .section{margin-top:54px}
-    .section h2{font-size:30px;margin-bottom:10px}
-    .muted{color:var(--muted)}
-
-    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-    @media (max-width:980px){.cards{grid-template-columns:1fr}}
-    .card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:18px;display:grid;gap:12px}
-    .price{font-size:28px;font-weight:800}
-    .badge{font-size:12px;color:#061025;background:#cbe2ff;width:max-content;border-radius:999px;padding:6px 10px;font-weight:800;letter-spacing:.3px}
-    .note{font-size:13px;color:var(--muted)}
-    .btn{padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,#eafffb,var(--primary));color:#031c12;font-weight:800;cursor:pointer;text-align:center}
-    .btn.secondary{background:transparent;color:var(--text);border-color:rgba(255,255,255,.14)}
-    .tiny{font-size:12px;color:var(--muted)}
-    footer{margin:50px 0 10px;color:var(--muted);font-size:13px;text-align:center}
+    .wrap{max-width:1200px;margin:0 auto;padding:28px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .logo{display:flex;gap:10px;align-items:center;font-weight:800;letter-spacing:.2px}
+    .badge{padding:.2rem .5rem;border:1px solid #263245;border-radius:6px;color:var(--muted);font-size:.8rem}
+    .cta{background:var(--accent);color:#0b0f14;padding:.8rem 1.1rem;border-radius:10px;font-weight:700;box-shadow:0 6px 24px rgba(122,162,255,.35)}
+    .cta:hover{transform:translateY(-1px)}
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center;margin:28px 0}
+    .card{background:var(--panel);border:1px solid #1a2330;border-radius:16px;padding:22px}
+    h1{font-size:clamp(28px,5vw,48px);line-height:1.05;margin:10px 0 6px}
+    .sub{color:var(--muted);font-size:1.05rem}
+    .bullets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+    .chip{display:flex;gap:10px;align-items:flex-start;background:#0c1219;border:1px solid #1b2735;padding:10px 12px;border-radius:12px}
+    .chip b{color:var(--brand)}
+    .panelTitle{font-weight:700;margin-bottom:8px}
+    .demoRow{display:flex;gap:10px}
+    input,select,button{border:1px solid #263245;background:#0c1219;color:var(--ink);padding:.8rem 1rem;border-radius:12px;outline:none}
+    input:focus,select:focus,button:focus{box-shadow:var(--ring);border-color:#2d54ff}
+    button{cursor:pointer}
+    .priceGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:10px 0}
+    .price{padding:20px;display:flex;flex-direction:column;gap:10px;border-radius:16px;border:1px solid #1a2330;background:linear-gradient(180deg,#0f151c, #0b0f14)}
+    .price .tag{color:#8fb3ff;font-size:.85rem}
+    .price .amt{font-size:34px;font-weight:800}
+    .price ul{margin:8px 0 16px;padding-left:18px;color:var(--muted)}
+    .price li{margin:.45rem 0}
+    .price .btn{background:var(--brand);color:#04271a;text-align:center;padding:.8rem 1rem;border-radius:12px;font-weight:800}
+    .price .btn:hover{filter:brightness(1.07)}
+    .pro{border:1px solid #29406a;box-shadow:0 20px 50px rgba(64,109,199,.25)}
+    .annual{border:1px solid #2b3b2f}
+    footer{margin:40px 0 10px;color:#7990ad;font-size:.9rem}
+    .fine{color:#5f789a}
     .hidden{display:none}
+    .ok{color:#4be1a0}
+    .bad{color:#ff6b7a}
+    @media(max-width:960px){
+      .hero{grid-template-columns:1fr}
+      .priceGrid{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- NAV -->
-    <nav class="nav">
+  <div class="wrap">
+    <header>
       <div class="logo">
-        <div class="logo-badge"></div>
-        <div>TrueTrend <span style="opacity:.75">AI</span></div>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 18L10.5 7l3 5L20 4" stroke="#4be1a0" stroke-width="2" stroke-linecap="round"/><path d="M3 21h18" stroke="#7aa2ff" stroke-opacity=".65"/></svg>
+        TrueTrend <span class="badge">AI Assistant</span>
       </div>
       <a class="cta" href="#pricing">Start Free Trial</a>
-    </nav>
+    </header>
 
-    <!-- HERO -->
     <section class="hero">
-      <div>
+      <div class="card">
         <h1>Learn your money. Earn your money. <br/>Own your money.</h1>
-        <p>
-          TrueTrend AI is your **real-time chart-reader** and financial co-pilot.  
-          No webapps to chase, no Telegram “signals”, no gurus — just **straight AI** that reads any ticker, 
-          surfaces direction, and helps you build your own strategy while offering proven built-in approaches.
-        </p>
-
+        <p class="sub">TrueTrend is your **AI financial co-pilot**. It reads the chart for you (any stock, crypto, ETF, or commodity), explains why a trade wins or loses, and coaches you to build strategies you trust — no gurus, no Telegrams.</p>
         <div class="bullets">
-          <span>📈 Live chart-reading signals</span>
-          <span>🧠 Built-in & custom strategies</span>
-          <span>📊 Portfolio & sector rotation tools</span>
-          <span>🎙️ Alexa voice signals (Elite)</span>
-          <span>📝 Trade journal & “why I won/lost” feedback</span>
+          <div class="chip"><b>Live chart reading</b> with clear long/short bias and momentum context.</div>
+          <div class="chip"><b>Strategy coach</b> — select built-ins or design your own rules, then improve with feedback.</div>
+          <div class="chip"><b>Trade journal</b> that auto-explains results and suggests upgrades next time.</div>
+          <div class="chip"><b>Alexa voice</b> (Pro): “Alexa, ask TrueTrend what’s AAPL doing?”</div>
         </div>
-
-        <a class="cta" href="#try">Try it live ↓</a>
       </div>
 
-      <div class="hero-card" id="try">
-        <h3 style="margin:0 0 8px">Try it right now</h3>
-        <p class="muted tiny" style="margin:0 0 10px">
-          Ask TrueTrend about any stock/ETF/commodity. We’ll fetch live data and give a quick directional read.  
-          (Uses your <code>/api/finance</code> endpoint + Finnhub.)
-        </p>
-
-        <div class="try">
-          <input id="symbol" placeholder="e.g. AAPL, TSLA, GLD, SPY, EURUSD" />
-          <button id="fetchBtn">Get Live Read</button>
-          <div id="quoteBox" class="quote hidden">
-            <div><strong>Symbol:</strong> <span id="qSymbol"></span></div>
-            <div><strong>Price:</strong> $<span id="qPrice"></span> <span id="qChange"></span></div>
-            <div><strong>Direction:</strong> <span id="qDir"></span></div>
-            <div class="tiny">*Quick read only. Full signal set & journaling inside TrueTrend.</div>
-          </div>
+      <!-- Live micro demo -->
+      <div class="card">
+        <div class="panelTitle">Try a quick look-up</div>
+        <p class="sub">Enter a symbol (e.g., <b>AAPL, TSLA, GLD, BTCUSD</b>). This calls <code>/api/finance</code> with your data feed.</p>
+        <div class="demoRow">
+          <input id="sym" placeholder="Symbol (e.g., AAPL)" />
+          <select id="tf">
+            <option value="D">Daily</option>
+            <option value="60">Hourly</option>
+            <option value="15">15-min</option>
+          </select>
+          <button id="go">Analyze</button>
         </div>
+        <pre id="out" style="margin-top:12px;white-space:pre-wrap"></pre>
       </div>
     </section>
 
-    <!-- SALES SECTION -->
-    <section class="section">
-      <h2>Built for anyone who manages money</h2>
-      <p class="muted">
-        Investors. Options traders. Crypto weekend warriors. Retirement savers.  
-        TrueTrend helps you see **what’s moving and why** — and records every trade’s story so you improve faster.
-      </p>
-    </section>
-
-    <!-- PRICING -->
-    <section id="pricing" class="section">
-      <h2>Choose your plan — <span class="muted">all include a 3-day free trial</span></h2>
-      <div class="cards" style="margin-top:14px">
-
+    <section id="pricing" class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <h2 style="margin:0">Choose your plan — <span class="fine">3-day free trial included</span></h2>
+        <span class="fine">Powered by Stripe • Cancel anytime</span>
+      </div>
+      <div class="priceGrid">
         <!-- Starter -->
-        <div class="card">
-          <div class="badge">Starter</div>
-          <div class="price">$59.99<span class="tiny">/mo</span></div>
-          <div class="muted">
-            Core features, beginner strategies, practice mode, daily overtrading warnings, built-in trade log.
-          </div>
-          <a class="btn" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401" target="_blank" rel="noopener">Start Free Trial</a>
-          <div class="note">3-day trial • cancel anytime</div>
+        <div class="price">
+          <div class="tag">Starter</div>
+          <div class="amt">$59.99<span class="fine">/mo</span></div>
+          <ul>
+            <li>Access to core strategies</li>
+            <li>Practice mode & alerts</li>
+            <li>Built-in trade journal</li>
+            <li>Email support</li>
+          </ul>
+          <a class="btn" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401">Start 3-Day Trial</a>
         </div>
 
         <!-- Pro -->
-        <div class="card">
-          <div class="badge" style="background:#b4ffc9">Pro</div>
-          <div class="price">$99.99<span class="tiny">/mo</span></div>
-          <div class="muted">
-            Everything in Starter, plus advanced strategies (ORB, Break of Structure, Support/Resistance),  
-            portfolio mode (401k, ETFs), stock options tools, unlimited sessions, session reviews.
-          </div>
-          <a class="btn" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener">Start Free Trial</a>
-          <div class="note">3-day trial • cancel anytime</div>
+        <div class="price pro">
+          <div class="tag">Pro</div>
+          <div class="amt">$99.99<span class="fine">/mo</span></div>
+          <ul>
+            <li>Everything in Starter</li>
+            <li>Advanced strategies & options tools</li>
+            <li>Portfolio mode (401k/ETFs)</li>
+            <li><b>Alexa voice assistant</b></li>
+          </ul>
+          <a class="btn" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start 3-Day Trial</a>
         </div>
 
-        <!-- Elite Lifetime -->
-        <div class="card">
-          <div class="badge" style="background:#ffe4a6">Elite Lifetime</div>
-          <div class="price">$999<span class="tiny"> one-time</span></div>
-          <div class="muted">
-            Lifetime access to all Pro features + upgrades, early beta access,  
-            VIP onboarding, and **Alexa voice signals** (“Alexa, ask TrueTrend what direction GLD is heading”).  
-            Hook into brokers (Schwab, Fidelity) for portfolio heatmaps & sector rotation insights.
-          </div>
-          <a class="btn" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406" target="_blank" rel="noopener">Start Free Trial</a>
-          <div class="note">3-day trial before one-time purchase</div>
-        </div>
-
-        <!-- Family Free (hidden until "family" typed or ?family=true) -->
-        <div id="familyCard" class="card hidden">
-          <div class="badge" style="background:#fff">Family Free</div>
-          <div class="price">$0<span class="tiny">/mo</span></div>
-          <div class="muted">
-            Family-only access for internal evaluation and onboarding.  
-            Limited features, but full look at the workflow and live data demo.
-          </div>
-          <a class="btn secondary" href="https://buy.stripe.com/eVq7sLgmN33edzv2ya38404" target="_blank" rel="noopener">Activate Family Access</a>
-          <div class="note">Hidden plan — invitation only</div>
+        <!-- Lifetime -->
+        <div class="price annual">
+          <div class="tag">Elite Lifetime</div>
+          <div class="amt">$999<span class="fine"> one-time</span></div>
+          <ul>
+            <li>Lifetime upgrades included</li>
+            <li>All Pro features forever</li>
+            <li>VIP onboarding session</li>
+            <li>Direct Alexa portfolio skills</li>
+          </ul>
+          <a class="btn" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406">Start 3-Day Trial</a>
         </div>
       </div>
-      <div class="tiny" style="margin-top:8px">**All plans include journaling with automatic explanations of why a trade won/lost and suggested improvements.**</div>
+
+      <!-- Hidden family plan -->
+      <div id="family" class="price hidden" style="margin-top:14px">
+        <div class="tag">Family Free (Hidden)</div>
+        <div class="amt">$0<span class="fine">/mo</span></div>
+        <ul>
+          <li>Limited access for friends & family</li>
+          <li>Great for trying the basics</li>
+        </ul>
+        <a class="btn" href="https://buy.stripe.com/eVq7sLgmN33edzv2ya38404">Activate Family Free</a>
+      </div>
+      <p class="fine" style="margin-top:10px">💡 Type <b>family</b> anywhere on this page to reveal the hidden Family plan.</p>
     </section>
 
-    <footer>© <span id="year"></span> TrueTrend AI • Learn • Earn • Own</footer>
+    <section class="card" style="margin-top:16px">
+      <h3 style="margin:0 0 10px">How TrueTrend helps</h3>
+      <ul class="sub">
+        <li>Explains every trade — win or lose — with human language feedback.</li>
+        <li>Rank sectors & ETFs to keep long-term portfolios pointed in the right direction.</li>
+        <li>Use our rules or craft your own; TrueTrend will stress-test and suggest tweaks.</li>
+        <li>Ask by voice (Pro): “Alexa, ask TrueTrend what direction is gold?”</li>
+      </ul>
+    </section>
+
+    <footer>
+      © <span id="y"></span> TrueTrend AI • Secure payments by Stripe • Not financial advice.  
+      <div class="fine">Made with love for builders & investors who want clarity, not hype.</div>
+    </footer>
   </div>
 
   <script>
-    // ---- Live Quote Demo (uses /api/finance?symbol=XXX) ----
-    const fetchBtn = document.getElementById('fetchBtn');
-    const symbolInput = document.getElementById('symbol');
-    const box = document.getElementById('quoteBox');
-    const qSymbol = document.getElementById('qSymbol');
-    const qPrice  = document.getElementById('qPrice');
-    const qChange = document.getElementById('qChange');
-    const qDir    = document.getElementById('qDir');
+    // Year
+    document.getElementById('y').textContent = new Date().getFullYear();
 
-    async function fetchQuote() {
-      const s = (symbolInput.value || 'AAPL').trim().toUpperCase();
-      try {
-        const res = await fetch(`/api/finance?symbol=${encodeURIComponent(s)}`);
-        const data = await res.json();
+    // Reveal hidden family plan when user types 'family'
+    (function(){
+      let buffer='';
+      window.addEventListener('keydown', e=>{
+        if (e.key.length === 1) buffer = (buffer + e.key).slice(-6).toLowerCase();
+        if (buffer.endsWith('family')) {
+          document.getElementById('family').classList.remove('hidden');
+        }
+      });
+    })();
 
-        if (data.error) throw new Error(data.error);
+    // Demo fetch
+    async function analyze(){
+      const sym = document.getElementById('sym').value.trim().toUpperCase();
+      const tf  = document.getElementById('tf').value;
+      const out = document.getElementById('out');
+      if(!sym){ out.textContent='Enter a symbol first.'; return; }
+      out.textContent='Analyzing…';
+      try{
+        const res = await fetch(`/api/finance?symbol=${encodeURIComponent(sym)}&timeframe=${encodeURIComponent(tf)}`);
+        const json = await res.json();
+        if(!res.ok) throw new Error(json.error || res.statusText);
+        const dir  = json.signal?.direction === 'long' ? '↑ LONG' :
+                     json.signal?.direction === 'short' ? '↓ SHORT' : '— NEUTRAL';
+        out.innerHTML = `
+Symbol: <b>${json.symbol}</b>
+Price: $${json.quote?.c ?? '?'}
+Bias: <b class="${json.signal?.direction==='long'?'ok':json.signal?.direction==='short'?'bad':''}">${dir}</b>
+Why: ${json.signal?.reason || 'n/a'}
 
-        const price = Number(data.c || 0).toFixed(2);
-        const prev  = Number(data.pc || 0);
-        const change = prev ? (((data.c - prev) / prev) * 100).toFixed(2) : "0.00";
-        const dirUp = Number(change) >= 0;
-
-        qSymbol.textContent = s;
-        qPrice.textContent  = price;
-        qChange.textContent = `(${dirUp?'+':''}${change}%)`;
-        qChange.style.color = dirUp ? '#37ffb0' : '#ff7b7b';
-        qDir.textContent    = dirUp ? 'Bias Up (momentum building)' : 'Bias Down (watch resistance)';
-        qDir.className      = dirUp ? 'dir-up' : 'dir-down';
-
-        box.classList.remove('hidden');
-      } catch (e) {
-        qSymbol.textContent = s;
-        qPrice.textContent = '--';
-        qChange.textContent = '';
-        qDir.textContent = 'No data (check symbol or retry).';
-        qDir.className = '';
-        box.classList.remove('hidden');
+${json.comment || ''}
+`.trim();
+      }catch(err){
+        out.textContent = 'Error: ' + err.message;
       }
     }
-    fetchBtn.addEventListener('click', fetchQuote);
-    symbolInput.addEventListener('keydown', e => { if(e.key==='Enter') fetchQuote(); });
-
-    // ---- Hidden Family Plan: show if type "family" or URL has ?family=true ----
-    const familyCard = document.getElementById('familyCard');
-    const params = new URLSearchParams(location.search);
-    if (params.get('family') === 'true') familyCard.classList.remove('hidden');
-
-    let secret = '';
-    window.addEventListener('keypress', (e) => {
-      secret += e.key.toLowerCase();
-      if (secret.length > 20) secret = secret.slice(-20);
-      if (secret.includes('family')) {
-        familyCard.classList.remove('hidden');
-      }
-    });
-
-    // year
-    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('go').addEventListener('click', analyze);
   </script>
 </body>
 </html>
