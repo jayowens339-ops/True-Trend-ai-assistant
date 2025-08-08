@@ -1,56 +1,104 @@
 // /api/alexa.js
-// Minimal Alexa-compatible response that reuses finance logic.
+// Minimal voice webhook that fetches our finance analysis and returns speech.
+// Works as: 
+//  - GET /api/alexa?symbol=NVDA (simple test)
+//  - POST Alexa JSON with intent GetDirectionIntent { symbol }
 
-function cors(res){
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-}
-
-async function analyze(symbol, timeframe='D'){
-  const base = new URL(`${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : ''}/api/finance`, 'http://localhost');
-  base.searchParams.set('symbol', symbol);
-  base.searchParams.set('timeframe', timeframe);
-  const r = await fetch(base.toString());
-  if(!r.ok) throw new Error('finance endpoint error');
-  return r.json();
-}
-
-function buildAlexaSpeech(text){
-  return {
-    version: '1.0',
-    response: {
-      outputSpeech: { type: 'PlainText', text },
-      shouldEndSession: true
-    }
-  };
-}
-
-export default async function handler(req, res){
-  cors(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
-  try{
-    let utterance = (req.method === 'POST' ? (req.body?.utterance || '') : (req.query?.utterance || '')).toString();
-    if (!utterance) utterance = (req.query?.symbol || '').toString();
-
-    // naive parsing for a symbol/commodity
-    let symbol = (utterance.match(/[A-Za-z]{2,6}/g) || ['AAPL'])[0].toUpperCase();
-    // common aliases
-    if (symbol === 'GOLD') symbol = 'XAUUSD';
-    if (symbol === 'SILVER') symbol = 'XAGUSD';
-    if (symbol === 'OIL') symbol = 'USO'; // ETF proxy
-
-    const data = await analyze(symbol);
-    const dir = data?.signal?.direction;
-    const reason = data?.signal?.reason || 'no reason available';
-    let say;
-    if (dir === 'long')  say = `${symbol} looks biased long. ${reason}. Last price ${data?.quote?.c ?? 'unknown'}.`;
-    else if (dir === 'short') say = `${symbol} looks biased short. ${reason}. Last price ${data?.quote?.c ?? 'unknown'}.`;
-    else say = `I am neutral on ${symbol}. ${reason}.`;
-
-    return res.status(200).json(buildAlexaSpeech(say));
-  }catch(err){
-    return res.status(500).json(buildAlexaSpeech(`Sorry, I hit a snag: ${err.message}`));
+const alexaResponse = (text, shouldEndSession = true) => ({
+  version: '1.0',
+  response: {
+    outputSpeech: { type: 'PlainText', text },
+    shouldEndSession
   }
+});
+
+export default async function handler(req, res) {
+  try {
+    // Allow simple test via GET
+    if (req.method === 'GET') {
+      const symbol = (req.query.symbol || 'NVDA').toUpperCase();
+      const data = await fetch(`${originFromReq(req)}/api/finance?symbol=${encodeURIComponent(symbol)}&resolution=60&days=5`).then(r => r.json());
+      const speech = buildSpeech(symbol, data);
+      res.setHeader('Cache-Control', 's-maxage=30');
+      return res.status(200).json({ speech, data });
+    }
+
+    // Alexa POST
+    if (req.method === 'POST') {
+      const body = req.body || (await readBody(req));
+      const intentName = body?.request?.intent?.name;
+      let symbol = (
+        body?.request?.intent?.slots?.symbol?.value ||
+        body?.request?.intent?.slots?.Symbol?.value ||
+        'NVDA'
+      ).toUpperCase();
+
+      if (intentName !== 'GetDirectionIntent') {
+        return res.status(200).json(
+          alexaResponse("Try asking: what's the direction on NVDA?")
+        );
+      }
+
+      const data = await fetch(`${originFromReq(req)}/api/finance?symbol=${encodeURIComponent(symbol)}&resolution=60&days=5`).then(r => r.json());
+      const speech = buildSpeech(symbol, data);
+      res.setHeader('Cache-Control', 's-maxage=30');
+      return res.status(200).json(alexaResponse(speech));
+    }
+
+    res.setHeader('Allow', 'GET, POST');
+    return res.status(405).end('Method Not Allowed');
+  } catch (e) {
+    console.error(e);
+    return res.status(200).json(alexaResponse('Sorry, the service is temporarily unavailable.'));
+  }
+}
+
+function buildSpeech(symbol, data) {
+  if (data?.error) return `I couldn't analyze ${symbol} right now.`;
+
+  const bias = data?.bias || 'neutral';
+  const conf = data?.confidence ? `${data.confidence}%` : 'unknown confidence';
+  const supp = data?.levels?.support;
+  const res = data?.levels?.resistance;
+  const rsi = data?.rsi;
+
+  let biasLine = `The current bias on ${symbol} is ${bias}`;
+  if (bias !== 'neutral' && data?.confidence) biasLine += ` with ${conf} confidence`;
+
+  const levels = (supp && res)
+    ? ` Key support is near ${supp}, and resistance around ${res}.`
+    : '';
+
+  const rsiLine = (typeof rsi === 'number')
+    ? ` RSI is ${rsi}.`
+    : '';
+
+  const tips = (bias === 'long')
+    ? ' Pullback buys toward support are favored while the trend holds.'
+    : (bias === 'short')
+      ? ' Rally fades toward resistance are favored while the trend remains weak.'
+      : ' The trend is mixed; wait for a clearer break above resistance or below support.';
+
+  return (biasLine + '.' + levels + rsiLine + tips)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// util — extract origin for internal call (works on Vercel)
+function originFromReq(req) {
+  const proto = req.headers['x-forwarded-proto'] || 'https';
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  return `${proto}://${host}`;
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', (c) => (data += c));
+    req.on('end', () => {
+      try { resolve(JSON.parse(data || '{}')); }
+      catch (e) { reject(e); }
+    });
+    req.on('error', reject);
+  });
 }
