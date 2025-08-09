@@ -1,278 +1,274 @@
 // /api/analyze.js
 // Works on Vercel/Node serverless.
 // Requires: FINNHUB_API_KEY in your env (Vercel > Project > Settings > Environment Variables)
-// Output fields used by your front-end: bias, confidence, rsi, levels {support,resistance}, notes[], price
+//
+// Request:
+//   GET /api/analyze?symbol=NVDA&timeframe=1h
+//     symbol:  AAPL, NVDA, SPY, BTCUSD, BTC/USDT, EUR/USD, etc.
+//     timeframe: 1m 5m 15m 30m 1h 4h D W M   (defaults to 1h)
+//     lookbackDays: integer (defaults 10)
+//
+// Response:
+//   { bias, confidence, rsi, levels: {support, resistance}, price, notes[] }
 
 const API_KEY = process.env.FINNHUB_API_KEY;
 
-// ---- helpers ---------------------------------------------------------------
+// --- configuration ------------------------------------------------------------
 
 const CRYPTO_BASES = new Set([
-  'BTC','ETH','SOL','ADA','XRP','DOGE','SHIB','LTC','BNB','AVAX','DOT','LINK','MATIC','ARB','OP',
-  'ATOM','NEAR','ETC','BCH','FTM','APT','INJ','SUI','TIA','PEPE'
+  'BTC', 'ETH', 'SOL', 'ADA', 'XRP', 'DOGE', 'SHIB', 'LTC', 'BNB', 'AVAX',
+  'DOT', 'LINK', 'MATIC', 'ARB', 'OP', 'ATOM', 'NEAR', 'ETC', 'BCH', 'FTM',
+  'APT', 'INJ', 'SUI', 'TIA', 'PEPE'
 ]);
 
-const tfMap = {
-  '1m':  '1',
-  '5m':  '5',
-  '15m': '15',
-  '30m': '30',
-  '1h':  '60',
-  '4h':  '240',
-  'D':   'D',
-  'W':   'W',
-  'M':   'M'
+const FX_DEFAULT_VENDOR = 'FX_IDC'; // safer mapping; OANDA can be used too
+
+// map UI timeframe -> Finnhub resolution + suggested history in days
+const TF = {
+  '1m':  { res: '1',   days: 2 },
+  '5m':  { res: '5',   days: 7 },
+  '15m': { res: '15',  days: 14 },
+  '30m': { res: '30',  days: 20 },
+  '1h':  { res: '60',  days: 30 },
+  '4h':  { res: '240', days: 120 },
+  'D':   { res: 'D',   days: 365 },
+  'W':   { res: 'W',   days: 365 * 2 },
+  'M':   { res: 'M',   days: 365 * 5 }
 };
 
-function nowSec() { return Math.floor(Date.now() / 1000); }
+// --- tiny helpers -------------------------------------------------------------
 
-// candle span approx (how many bars we try to pull)
-function spanSeconds(tf) {
-  switch (tf) {
-    case '1m':  return 60 * 60 * 12;     // 12h
-    case '5m':  return 60 * 60 * 24 * 2; // 2d
-    case '15m': return 60 * 60 * 24 * 4;
-    case '30m': return 60 * 60 * 24 * 7;
-    case '1h':  return 60 * 60 * 24 * 14;
-    case '4h':  return 60 * 60 * 24 * 60;
-    case 'D':   return 60 * 60 * 24 * 365;
-    case 'W':   return 60 * 60 * 24 * 365 * 2;
-    case 'M':   return 60 * 60 * 24 * 365 * 5;
-    default:    return 60 * 60 * 24 * 60;
-  }
+const nowSec = () => Math.floor(Date.now() / 1000);
+const daysAgoSec = (d) => nowSec() - Math.floor(d * 86400);
+
+function mean(arr) { return arr.reduce((a, b) => a + b, 0) / (arr.length || 1); }
+function sum(arr)  { return arr.reduce((a, b) => a + b, 0); }
+
+function sma(values, length) {
+  if (values.length < length) return null;
+  let s = 0;
+  for (let i = values.length - length; i < values.length; i++) s += values[i];
+  return s / length;
 }
 
-// simple SMA
-function sma(values, period) {
-  if (values.length < period) return null;
-  let sum = 0, out = [];
-  for (let i = 0; i < values.length; i++) {
-    sum += values[i];
-    if (i >= period) sum -= values[i - period];
-    if (i >= period - 1) out.push(sum / period);
-  }
-  return out;
-}
-
-// RSI(14) classic
-function rsi(values, period = 14) {
-  if (values.length < period + 1) return null;
+function rsi(values, length = 14) {
+  if (values.length <= length) return null;
   let gains = 0, losses = 0;
-  for (let i = 1; i <= period; i++) {
-    const ch = values[i] - values[i-1];
-    if (ch >= 0) gains += ch; else losses -= ch;
+  for (let i = values.length - length; i < values.length; i++) {
+    const chg = values[i] - values[i - 1];
+    if (chg >= 0) gains += chg; else losses -= chg;
   }
-  gains /= period; losses /= period;
-  let rs = losses === 0 ? 100 : gains / (losses || 1e-10);
-  let rsiArr = [100 - 100 / (1 + rs)];
-  for (let i = period + 1; i < values.length; i++) {
-    const ch = values[i] - values[i-1];
-    const gain = Math.max(ch, 0), loss = Math.max(-ch, 0);
-    gains = (gains * (period - 1) + gain) / period;
-    losses = (losses * (period - 1) + loss) / period;
-    rs = losses === 0 ? 100 : gains / (losses || 1e-10);
-    rsiArr.push(100 - 100 / (1 + rs));
-  }
-  return rsiArr;
+  const avgGain = gains / length;
+  const avgLoss = losses / length;
+  if (avgLoss === 0) return 100;
+  const rs = avgGain / avgLoss;
+  return 100 - (100 / (1 + rs));
 }
 
-// rough S/R from recent swings
-function supportResistance(closes, lookback = 60) {
-  const n = closes.length;
-  if (n < lookback + 5) return { support: null, resistance: null };
-  const slice = closes.slice(-lookback);
-  const hi = Math.max(...slice);
-  const lo = Math.min(...slice);
-  return { support: lo, resistance: hi };
+function recentLevels(values, span = 20) {
+  if (values.length < span) return { support: null, resistance: null };
+  const slice = values.slice(-span);
+  return { support: Math.min(...slice), resistance: Math.max(...slice) };
 }
 
-// ---- symbol normalization --------------------------------------------------
-// Figures out whether input is stock / forex / crypto and returns Finnhub endpoint+symbol
-// Examples accepted: "AAPL", "NVDA", "EUR/USD", "EURUSD", "BTCUSD", "BTC/USDT", "BINANCE:BTCUSDT", "OANDA:EUR_USD"
-function normalize(input) {
-  const raw = String(input || '').trim().toUpperCase();
-
-  // If user passes a direct Finnhub symbol like BINANCE:BTCUSDT or OANDA:EUR_USD, pass through
-  if (raw.includes(':')) {
-    const [venue] = raw.split(':');
-    if (venue === 'BINANCE')  return { type: 'crypto', endpoint: 'crypto', symbol: raw };
-    if (venue === 'OANDA')    return { type: 'forex',  endpoint: 'forex',  symbol: raw };
-    // assume it’s a stock on unknown venue → strip venue and use stock
-    const after = raw.split(':')[1] || raw;
-    return { type: 'stock', endpoint: 'stock', symbol: after };
-  }
-
-  // has slash?
-  if (raw.includes('/')) {
-    const [b, q] = raw.split('/').map(s => s.replace(/[^A-Z]/g,''));
-    // guess crypto if base looks like crypto
-    if (CRYPTO_BASES.has(b)) {
-      const quote = (q === 'USDT' || q === 'USD' || q === 'USDC') ? q : 'USDT';
-      return { type: 'crypto', endpoint: 'crypto', symbol: `BINANCE:${b}${quote}` };
-    }
-    // else treat as FOREX
-    return { type: 'forex', endpoint: 'forex', symbol: `OANDA:${b}_${q}` };
-  }
-
-  // no slash, maybe “EURUSD”, “BTCUSD” or plain stock like “NVDA”
-  if (raw.length >= 6) {
-    const b = raw.slice(0,3);
-    const q3 = raw.slice(3,6);
-    if (CRYPTO_BASES.has(b)) {
-      // crypto without slash -> default to USDT if quote missing
-      const quote = raw.endsWith('USDT') ? 'USDT' : (q3 === 'USD' ? 'USDT' : 'USDT');
-      const base = CRYPTO_BASES.has(raw.replace(/USDT|USD$/,'')) ? raw.replace(/USDT|USD$/,'') : b;
-      return { type: 'crypto', endpoint: 'crypto', symbol: `BINANCE:${base}${quote}` };
-    }
-    // if looks like a forex compact pair (EURUSD, GBPJPY etc.)
-    if (/^[A-Z]{6,7}$/.test(raw)) {
-      const base = raw.slice(0,3);
-      const quote = raw.slice(3).replace(/[^A-Z]/g,'') || 'USD';
-      return { type: 'forex', endpoint: 'forex', symbol: `OANDA:${base}_${quote}` };
-    }
-  }
-
-  // default → stock
-  return { type: 'stock', endpoint: 'stock', symbol: raw };
+function slope(arr) {
+  // last N slope: simple linear regression slope sign
+  const N = Math.min(arr.length, 20);
+  if (N < 3) return 0;
+  const y = arr.slice(-N);
+  const x = Array.from({ length: N }, (_, i) => i + 1);
+  const xMean = mean(x), yMean = mean(y);
+  const num = sum(x.map((xi, i) => (xi - xMean) * (y[i] - yMean)));
+  const den = sum(x.map((xi) => Math.pow(xi - xMean, 2)));
+  if (den === 0) return 0;
+  return num / den;
 }
 
-// ---- Finnhub fetch ---------------------------------------------------------
+// --- symbol parsing & endpoint selection -------------------------------------
 
-async function fetchFinnhub(endpoint, params) {
-  const query = new URLSearchParams({ ...params, token: API_KEY }).toString();
-  const url = `https://finnhub.io/api/v1/${endpoint}?${query}`;
-  const r = await fetch(url);
-  if (!r.ok) {
-    const text = await r.text();
-    throw new Error(`Finnhub ${endpoint} error ${r.status}: ${text}`);
-  }
-  return r.json();
-}
-
-async function getCandles({ type, symbol, tf }) {
-  const to = nowSec();
-  const from = to - spanSeconds(tf);
-  const resolution = tfMap[tf] || '60';
-
-  let endpoint;
-  if (type === 'stock') endpoint = 'stock/candle';
-  else if (type === 'forex') endpoint = 'forex/candle';
-  else endpoint = 'crypto/candle';
-
-  const data = await fetchFinnhub(endpoint, { symbol, resolution, from, to });
-  return { data, resolution, from, to, endpoint, symbol };
-}
-
-// try a fallback order if no data
-const FALLBACKS = {
-  '1m':  ['5m','15m','1h','D'],
-  '5m':  ['15m','1h','D'],
-  '15m': ['1h','D'],
-  '30m': ['1h','D'],
-  '1h':  ['4h','D'],
-  '4h':  ['D'],
-  'D':   ['W','M'],
-  'W':   ['D','M'],
-  'M':   ['W','D']
-};
-
-// ---- analysis --------------------------------------------------------------
-
-function analyzeCloses(closes) {
+function normalizeSymbol(raw) {
+  // returns { asset, finnhubSymbol, pretty, notes[] }
+  // asset: 'stock' | 'crypto' | 'fx'
+  const s = (raw || '').toUpperCase().trim();
   const notes = [];
-  const price = closes[closes.length - 1];
 
-  const sma20 = sma(closes, 20);
-  const sma50 = sma(closes, 50);
-  const last20 = sma20 ? sma20[sma20.length - 1] : null;
-  const last50 = sma50 ? sma50[sma50.length - 1] : null;
-
-  const rsiArr = rsi(closes, 14);
-  const rsiLast = rsiArr ? rsiArr[rsiArr.length - 1] : null;
-
-  let bias = 'neutral';
-  let confidence = 50;
-
-  if (last20 && last50) {
-    if (last20 > last50) { bias = 'long'; confidence = 60; }
-    if (last20 < last50) { bias = 'short'; confidence = 60; }
+  // Crypto patterns
+  if (s.includes('BTC') || s.includes('ETH') || s.includes('USDT') || s.includes('USDC')) {
+    const base = s.replace(/[^A-Z/]/g, '').split(/[\/]/)[0];
+    let quote = 'USDT';
+    if (s.includes('/')) {
+      const parts = s.split('/');
+      if (parts[1]) quote = parts[1].replace(/[^A-Z]/g, '') || 'USDT';
+    } else if (s.endsWith('USDT')) {
+      return { asset: 'crypto', finnhubSymbol: `BINANCE:${s}`, pretty: s, notes };
+    }
+    const sym = `BINANCE:${base}${quote}`;
+    notes.push(`Crypto detected → ${sym}`);
+    return { asset: 'crypto', finnhubSymbol: sym, pretty: `${base}/${quote}`, notes };
   }
-  if (rsiLast != null) {
-    if (bias === 'long' && rsiLast >= 55) confidence += 10;
-    if (bias === 'short' && rsiLast <= 45) confidence += 10;
-    if (rsiLast > 70) notes.push('RSI overbought');
-    if (rsiLast < 30) notes.push('RSI oversold');
-  }
-
-  const levels = supportResistance(closes);
-  if (levels.support != null && price < levels.support) {
-    notes.push('Price near/below support');
-  }
-  if (levels.resistance != null && price > levels.resistance) {
-    notes.push('Price near/above resistance');
+  // Crypto by base-only (e.g., "SOL")
+  const token = s.replace(/[^A-Z]/g, '');
+  if (CRYPTO_BASES.has(token)) {
+    const sym = `BINANCE:${token}USDT`;
+    notes.push(`Crypto detected → ${sym}`);
+    return { asset: 'crypto', finnhubSymbol: sym, pretty: `${token}/USDT`, notes };
   }
 
-  confidence = Math.max(0, Math.min(100, Math.round(confidence)));
+  // FX patterns
+  if (s.includes('/')) {
+    const [a, b] = s.split('/');
+    const base = (a || '').replace(/[^A-Z]/g, '');
+    const quote = (b || '').replace(/[^A-Z]/g, '');
+    if (base.length === 3 && quote.length === 3) {
+      const fx = `${FX_DEFAULT_VENDOR}:${base}${quote}`;
+      notes.push(`Forex detected → ${fx}`);
+      return { asset: 'fx', finnhubSymbol: fx, pretty: `${base}/${quote}`, notes };
+    }
+  }
+  // raw like "EURUSD"
+  if (s.length === 6 && /^[A-Z]{6}$/.test(s)) {
+    const fx = `${FX_DEFAULT_VENDOR}:${s}`;
+    notes.push(`Forex detected → ${fx}`);
+    return { asset: 'fx', finnhubSymbol: fx, pretty: `${s.slice(0,3)}/${s.slice(3)}`, notes };
+  }
 
-  return {
-    bias,
-    confidence,
-    rsi: rsiLast != null ? Number(rsiLast.toFixed(2)) : null,
-    levels,
-    notes,
-    price
-  };
+  // Default: stocks / ETFs / indices
+  notes.push(`Assuming stock/ETF: ${s}`);
+  return { asset: 'stock', finnhubSymbol: s, pretty: s, notes };
 }
 
-// ---- handler ---------------------------------------------------------------
+function pickEndpoint(asset) {
+  if (asset === 'crypto') return 'crypto/candle';
+  if (asset === 'fx') return 'forex/candle';
+  return 'stock/candle';
+}
+
+// --- fetch wrappers -----------------------------------------------------------
+
+async function fhJSON(url) {
+  const r = await fetch(url);
+  const text = await r.text();
+  let json;
+  try { json = JSON.parse(text); } catch (_) {
+    throw new Error(`Finnhub response not JSON: ${text.slice(0, 120)}`);
+  }
+  if (!r.ok) {
+    const err = json && (json.error || json.msg || text);
+    throw new Error(err || `HTTP ${r.status}`);
+  }
+  return json;
+}
+
+async function getCandles(endpoint, symbol, resolution, from, to) {
+  const url = `https://finnhub.io/api/v1/${endpoint}?symbol=${encodeURIComponent(symbol)}&resolution=${encodeURIComponent(resolution)}&from=${from}&to=${to}&token=${API_KEY}`;
+  const j = await fhJSON(url);
+  if (j.s !== 'ok' || !Array.isArray(j.c) || j.c.length < 2) {
+    const why = j.s || j.error || 'no data';
+    throw new Error(`No candle data for ${symbol} (${why})`);
+  }
+  return j; // { c, h, l, o, s, t, v }
+}
+
+async function getQuoteIfStock(asset, symbol) {
+  if (asset !== 'stock') return null;
+  const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${API_KEY}`;
+  try { return await fhJSON(url); } catch { return null; }
+}
+
+// --- main logic ---------------------------------------------------------------
 
 export default async function handler(req, res) {
   try {
     if (!API_KEY) {
-      res.status(500).json({ error: 'Missing FINNHUB_API_KEY on server' });
-      return;
+      return res.status(500).json({ error: 'Missing FINNHUB_API_KEY' });
     }
 
-    const { symbol: rawSymbol = 'NVDA', timeframe = '1h' } = (req.method === 'POST' ? req.body : req.query) || {};
-    const tf = String(timeframe || '1h').trim();
+    const {
+      symbol: rawSymbol = 'NVDA',
+      timeframe = '1h',
+      lookbackDays
+    } = req.query;
 
-    const meta = normalize(rawSymbol);
+    const tfKey = (timeframe || '1h').toUpperCase();
+    const tf = TF[tfKey] || TF['1h'];
+    const days = Number(lookbackDays) > 0 ? Number(lookbackDays) : tf.days;
 
-    // Try requested tf, then fallbacks if needed
-    const tfsToTry = [tf, ...(FALLBACKS[tf] || [])];
+    const parsed = normalizeSymbol(rawSymbol);
+    const endpoint = pickEndpoint(parsed.asset);
+    const to = nowSec();
+    const from = daysAgoSec(days);
 
-    let got = null, tried = [];
-    for (const tfTry of tfsToTry) {
-      tried.push(tfTry);
-      const resp = await getCandles({ type: meta.type, symbol: meta.symbol, tf: tfTry });
-      const d = resp.data;
-      if (d && d.s === 'ok' && Array.isArray(d.c) && d.c.length > 0) {
-        got = { tfUsed: tfTry, candles: d, endpoint: resp.endpoint, symbol: meta.symbol, type: meta.type };
-        break;
+    const candles = await getCandles(endpoint, parsed.finnhubSymbol, tf.res, from, to);
+    const closes = candles.c;
+
+    // features
+    const price = closes.at(-1);
+    const sma20 = sma(closes, 20);
+    const sma50 = sma(closes, 50);
+    const _rsi = rsi(closes, 14);
+    const { support, resistance } = recentLevels(closes, 20);
+    const sl = slope(closes);
+
+    // bias + confidence (very simple rules; expand as you wish)
+    let bias = 'neutral';
+    const notes = [...(parsed.notes || [])];
+
+    if (sma20 && sma50) {
+      if (sma20 > sma50) {
+        bias = 'long';
+        notes.push('SMA20 > SMA50 (bullish)');
+      } else if (sma20 < sma50) {
+        bias = 'short';
+        notes.push('SMA20 < SMA50 (bearish)');
       }
     }
-
-    if (!got) {
-      res.status(404).json({
-        error: `No candle data found for ${rawSymbol} on requested/fallback timeframes.`,
-        tried
-      });
-      return;
+    // nudge by slope
+    if (Math.abs(sl) > 0.02) {
+      if (sl > 0) { bias = 'long'; notes.push('Positive slope of recent closes'); }
+      else { bias = 'short'; notes.push('Negative slope of recent closes'); }
     }
 
-    const closes = got.candles.c;
-    const result = analyzeCloses(closes);
+    // confidence (0..100)
+    let conf = 50;
+    if (bias !== 'neutral') {
+      conf = 60;
+      if (_rsi !== null) {
+        if (bias === 'long' && _rsi > 50) conf += 15;
+        if (bias === 'short' && _rsi < 50) conf += 15;
+        if (_rsi > 70 || _rsi < 30) conf -= 10; // overbought/oversold caution
+      }
+      if (sma20 && price) {
+        const dist = Math.abs(price - sma20) / price;
+        if (dist < 0.01) conf += 10; // price near mean
+      }
+      conf = Math.max(5, Math.min(95, conf));
+    }
 
-    // cache a little to cut costs (1 minute ok for 1m+)
-    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=30');
-    res.status(200).json({
-      symbol: rawSymbol,
-      normalizedSymbol: got.symbol,
-      assetType: got.type,
-      timeframeUsed: got.tfUsed,
-      ...result
+    // add rsi bands note
+    if (_rsi !== null) {
+      if (_rsi >= 70) notes.push('RSI overbought (≥70)');
+      else if (_rsi <= 30) notes.push('RSI oversold (≤30)');
+    }
+
+    // try live quote for stocks for a fresher price
+    const q = await getQuoteIfStock(parsed.asset, parsed.finnhubSymbol);
+    const livePrice = q && typeof q.c === 'number' && q.c > 0 ? q.c : price;
+
+    return res.status(200).json({
+      symbol: parsed.pretty,
+      asset: parsed.asset,
+      timeframe: tfKey,
+      price: livePrice,
+      bias,
+      confidence: Math.round(conf),
+      rsi: _rsi !== null ? Math.round(_rsi * 10) / 10 : null,
+      levels: {
+        support: support !== null ? Math.round(support * 100) / 100 : null,
+        resistance: resistance !== null ? Math.round(resistance * 100) / 100 : null
+      },
+      notes
     });
-  } catch (err) {
-    res.status(500).json({ error: err.message || 'Server error' });
+  } catch (e) {
+    return res.status(400).json({ error: String(e.message || e) });
   }
 }
