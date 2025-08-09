@@ -1,104 +1,55 @@
-// /api/alexa.js
-// Minimal voice webhook that fetches our finance analysis and returns speech.
-// Works as: 
-//  - GET /api/alexa?symbol=NVDA (simple test)
-//  - POST Alexa JSON with intent GetDirectionIntent { symbol }
-
-const alexaResponse = (text, shouldEndSession = true) => ({
-  version: '1.0',
-  response: {
-    outputSpeech: { type: 'PlainText', text },
-    shouldEndSession
-  }
-});
+async function runEngine(symbol, resolution = '60') {
+  const baseURL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : `http://localhost:3000`;
+  const r = await fetch(`${baseURL}/api/finance?symbol=${encodeURIComponent(symbol)}&resolution=${encodeURIComponent(resolution)}&limit=220`);
+  return r.json();
+}
 
 export default async function handler(req, res) {
   try {
-    // Allow simple test via GET
+    // Simple GET preview: /api/alexa?symbol=NVDA
     if (req.method === 'GET') {
       const symbol = (req.query.symbol || 'NVDA').toUpperCase();
-      const data = await fetch(`${originFromReq(req)}/api/finance?symbol=${encodeURIComponent(symbol)}&resolution=60&days=5`).then(r => r.json());
-      const speech = buildSpeech(symbol, data);
-      res.setHeader('Cache-Control', 's-maxage=30');
-      return res.status(200).json({ speech, data });
+      const j = await runEngine(symbol);
+      const speech = j.error
+        ? `I couldn't analyze ${symbol}. ${j.error}`
+        : `TrueTrend says ${symbol} is ${j.bias} with ${j.confidence} percent confidence. RSI ${Math.round(j.rsi || 0)}. Support ${fmt(j.levels?.support)}, resistance ${fmt(j.levels?.resistance)}.`;
+      return res.status(200).json({ speech, data: j });
     }
 
-    // Alexa POST
-    if (req.method === 'POST') {
-      const body = req.body || (await readBody(req));
-      const intentName = body?.request?.intent?.name;
-      let symbol = (
-        body?.request?.intent?.slots?.symbol?.value ||
-        body?.request?.intent?.slots?.Symbol?.value ||
-        'NVDA'
-      ).toUpperCase();
+    // Alexa skill POST
+    const body = req.body || {};
+    const intent = body?.request?.intent?.name;
+    let symbol = (
+      body?.request?.intent?.slots?.symbol?.value ||
+      body?.request?.intent?.slots?.Symbol?.value ||
+      'NVDA'
+    ).toUpperCase();
 
-      if (intentName !== 'GetDirectionIntent') {
-        return res.status(200).json(
-          alexaResponse("Try asking: what's the direction on NVDA?")
-        );
-      }
-
-      const data = await fetch(`${originFromReq(req)}/api/finance?symbol=${encodeURIComponent(symbol)}&resolution=60&days=5`).then(r => r.json());
-      const speech = buildSpeech(symbol, data);
-      res.setHeader('Cache-Control', 's-maxage=30');
-      return res.status(200).json(alexaResponse(speech));
+    if (intent !== 'GetDirectionIntent') {
+      const speech = 'Ask me for the direction by saying, what is the direction on NVDA?';
+      return res.json(alexaResponse(speech));
     }
 
-    res.setHeader('Allow', 'GET, POST');
-    return res.status(405).end('Method Not Allowed');
+    const j = await runEngine(symbol);
+    const speech = j.error
+      ? `I couldn't analyze ${symbol}. ${j.error}`
+      : `TrueTrend says ${symbol} is ${j.bias} with ${j.confidence} percent confidence. RSI ${Math.round(j.rsi || 0)}. Support ${fmt(j.levels?.support)}, resistance ${fmt(j.levels?.resistance)}.`;
+
+    return res.json(alexaResponse(speech));
   } catch (e) {
-    console.error(e);
-    return res.status(200).json(alexaResponse('Sorry, the service is temporarily unavailable.'));
+    return res.json(alexaResponse('Something went wrong with TrueTrend.'));
   }
 }
 
-function buildSpeech(symbol, data) {
-  if (data?.error) return `I couldn't analyze ${symbol} right now.`;
-
-  const bias = data?.bias || 'neutral';
-  const conf = data?.confidence ? `${data.confidence}%` : 'unknown confidence';
-  const supp = data?.levels?.support;
-  const res = data?.levels?.resistance;
-  const rsi = data?.rsi;
-
-  let biasLine = `The current bias on ${symbol} is ${bias}`;
-  if (bias !== 'neutral' && data?.confidence) biasLine += ` with ${conf} confidence`;
-
-  const levels = (supp && res)
-    ? ` Key support is near ${supp}, and resistance around ${res}.`
-    : '';
-
-  const rsiLine = (typeof rsi === 'number')
-    ? ` RSI is ${rsi}.`
-    : '';
-
-  const tips = (bias === 'long')
-    ? ' Pullback buys toward support are favored while the trend holds.'
-    : (bias === 'short')
-      ? ' Rally fades toward resistance are favored while the trend remains weak.'
-      : ' The trend is mixed; wait for a clearer break above resistance or below support.';
-
-  return (biasLine + '.' + levels + rsiLine + tips)
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-// util — extract origin for internal call (works on Vercel)
-function originFromReq(req) {
-  const proto = req.headers['x-forwarded-proto'] || 'https';
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  return `${proto}://${host}`;
-}
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', (c) => (data += c));
-    req.on('end', () => {
-      try { resolve(JSON.parse(data || '{}')); }
-      catch (e) { reject(e); }
-    });
-    req.on('error', reject);
-  });
+function fmt(x){ return (x==null||isNaN(x)) ? 'n A' : Number(x).toFixed(2); }
+function alexaResponse(speech) {
+  return {
+    version: '1.0',
+    response: {
+      outputSpeech: { type: 'PlainText', text: speech },
+      shouldEndSession: true
+    }
+  };
 }
