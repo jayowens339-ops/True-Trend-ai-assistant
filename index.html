@@ -1,51 +1,743 @@
-<!-- Run live & Paper Auto-Trade -->
-<div class="row" style="margin-top:12px">
-  <button id="saveStrat" class="cta">Save locally</button>
-  <button id="exportStrat" class="ghost">Export JSON</button>
-  <button id="clearStrat" class="ghost">Clear</button>
-  <button id="runLive" class="cta" style="margin-left:auto">Run on Live Data</button>
-  <button id="runBacktest" class="ghost">Auto-Trade (Paper)</button>
-</div>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TrueTrend AI — Learn it. Earn it. Own it.</title>
+<meta name="description" content="TrueTrend AI reads any chart, explains the why, and alerts you with clear entries. Works with TradingView, Schwab, Fidelity, TD, Webull, MooMoo, PocketOptions, Binance, MT4/5, and more." />
+<style>
+  :root{
+    --bg:#0b1220;--card:#0f172a;--border:#1f2937;--text:#e6e9ef;--muted:#9aa3b2;
+    --accent:#22c55e;--accent2:#06b6d4;--warn:#f59e0b;--danger:#ef4444
+  }
+  *{box-sizing:border-box}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text);margin:0}
+  a{color:inherit;text-decoration:none}
+  .container{max-width:1180px;margin:0 auto;padding:0 20px}
+  header{position:sticky;top:0;z-index:10;background:rgba(11,18,32,.7);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--border)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{font-weight:800;letter-spacing:.3px}
+  .nav a{opacity:.9;margin-left:16px}
+  .cta{background:var(--accent);color:#052e17;border:1px solid var(--accent);border-radius:10px;padding:10px 14px;font-weight:800}
+  .ghost{border:1px solid var(--border);border-radius:10px;padding:10px 14px}
+  .outline{border:1px solid var(--border);border-radius:10px;padding:12px 16px}
+  .hero{padding:56px 0 30px;border-bottom:1px solid var(--border)}
+  .kicker{display:inline-block;background:#0f172a;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:999px;font-size:13px;margin-bottom:14px}
+  h1{font-size:42px;line-height:1.12;margin:0 0 10px}
+  .tag{font-size:16px;color:var(--muted);margin:0 0 18px}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:24px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+  .muted{color:var(--muted)}
+  .section{padding:42px 0;border-bottom:1px solid var(--border)}
+  .section h2{margin:0 0 12px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .badge{border:1px solid var(--border);background:#0f172a;border-radius:999px;padding:6px 10px;color:var(--muted);font-size:13px}
+  /* pricing */
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:14px}
+  .plan{background:#0f172a;border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column}
+  .plan h3{margin:0 0 4px}
+  .price{font-size:28px;font-weight:900;margin:6px 0 10px}
+  ul.features{list-style:none;padding:0;margin:8px 0 16px}
+  ul.features li{display:flex;gap:8px;margin:8px 0;line-height:1.35}
+  .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;margin-top:7px;flex:0 0 8px}
+  .plan .cta{margin-top:auto;text-align:center}
+  /* strategies & builder */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:12px}
+  .cards .card h4{margin:0 0 6px}
+  .builder-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .input,select,button{height:40px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:var(--text);padding:0 10px}
+  textarea{width:100%;min-height:120px;border-radius:12px;border:1px solid var(--border);background:#0b1220;color:var(--text);padding:10px}
+  .rule{display:flex;gap:8px;align-items:center;margin-top:8px}
+  .rule > *{height:34px}
+  .small{font-size:13px;color:var(--muted)}
+  /* overtrading guard */
+  .og-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .og-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#0f172a}
+  .light{width:10px;height:10px;border-radius:50%}
+  .green{background:var(--accent)} .yellow{background:var(--warn)} .red{background:var(--danger)}
+  .toast{position:fixed;right:16px;bottom:16px;background:#111827;border:1px solid var(--border);padding:12px 14px;border-radius:12px;display:none}
+  /* responsive */
+  @media (max-width:900px){ .grid2{grid-template-columns:1fr} h1{font-size:34px} .builder-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <!-- NAV -->
+  <header>
+    <div class="container nav">
+      <div class="brand">TrueTrend AI</div>
+      <nav>
+        <a href="#how">How it works</a>
+        <a href="#strategies">Strategies</a>
+        <a href="#builder">Custom</a>
+        <a href="#voice">Voice</a>
+        <a href="#pricing" class="ghost">Pricing</a>
+        <!-- Default Free Trial -> Advanced $99.99/mo -->
+        <a href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener" class="cta">Start Free Trial</a>
+      </nav>
+    </div>
+  </header>
 
-<!-- Signal output -->
-<pre id="sigOut" class="small" style="margin-top:10px;white-space:pre-wrap"></pre>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container grid2">
+      <div>
+        <span class="kicker">3-Day Free Trial on every plan</span>
+        <h1>Your AI co-pilot for markets & money.</h1>
+        <p class="tag"><b>Learn your money. Earn your money. Own your money.</b> TrueTrend reads your charts, explains the <i>why</i>, and tells you what’s changing—so you can act with confidence. <b>Works on any chart/platform.</b></p>
+        <div class="btns">
+          <a class="cta" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener">Start Free Trial</a>
+          <a class="ghost" href="#strategies">See Strategies & How-To</a>
+          <a class="outline" href="/api/analyze" target="_blank" rel="noopener">Try Live Demo</a>
+        </div>
+        <div class="badges" style="margin-top:14px">
+          <span class="badge">TradingView</span><span class="badge">Schwab</span><span class="badge">Fidelity</span>
+          <span class="badge">TD</span><span class="badge">Webull</span><span class="badge">MooMoo</span>
+          <span class="badge">PocketOptions</span><span class="badge">Binance</span><span class="badge">MT4/5</span>
+        </div>
+      </div>
 
-<!-- Backtest summary + charts -->
-<div class="card" style="margin-top:12px">
-  <h3 style="margin:0 0 6px">Paper Trading Results</h3>
-  <div id="btSummary" class="muted">No results yet.</div>
-  <canvas id="eqChart" height="120" style="margin-top:10px"></canvas>
-  <canvas id="wlChart" height="120" style="margin-top:10px"></canvas>
-</div>
+      <!-- Live demo + Overtrading Guard -->
+      <div class="card">
+        <h3 style="margin:0 0 6px">Try it live</h3>
+        <p class="muted" style="margin-top:0">Example: NVDA, AAPL, SPY, OANDA:EUR_USD, BINANCE:BTCUSDT</p>
+        <div id="live" class="card" style="padding:12px;background:#0b1220">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input id="symbol" placeholder="AAPL" value="AAPL" class="input" style="flex:1"/>
+            <select id="tf"><option>Monthly</option><option selected>Weekly</option><option>Daily</option><option>Hourly</option></select>
+            <button id="go" class="cta">Analyze</button>
+          </div>
+          <pre id="out" style="margin:10px 0 0;min-height:120px;white-space:pre-wrap;color:#e6e9ef"></pre>
 
-<!-- Journal -->
-<div class="card" style="margin-top:12px">
-  <h3 style="margin:0 0 6px">Trade Journal</h3>
-  <div class="row">
-    <button id="exportCSV" class="ghost">Export CSV</button>
-    <button id="clearJournal" class="ghost">Clear Journal</button>
-  </div>
-  <div class="small" style="margin-top:6px">Trades are stored locally in your browser.</div>
-  <table id="journal" style="width:100%;margin-top:10px;border-collapse:collapse">
-    <thead>
-      <tr style="text-align:left;border-bottom:1px solid #1f2937">
-        <th>Time</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>P/L</th><th>Reason</th><th>Strategy</th><th>Why?</th>
+          <div class="card" style="margin-top:10px">
+            <h4 style="margin:0 0 8px">Overtrading Guard</h4>
+            <div class="og-row">
+              <span class="og-pill"><span id="ogLight" class="light green"></span><span id="ogStatus">Cool</span></span>
+              <span class="small">Counts Analyze clicks to prevent overtrading. Local only.</span>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <label class="small">15-min limit <input id="og15" class="input" type="number" min="1" value="10" style="width:80px;margin-left:6px"></label>
+              <label class="small">60-min limit <input id="og60" class="input" type="number" min="1" value="25" style="width:80px;margin-left:6px"></label>
+              <label class="small">Auto-cooldown (min) <input id="ogCd" class="input" type="number" min="0" value="5" style="width:90px;margin-left:6px"></label>
+              <button id="ogReset" class="ghost">Reset counters</button>
+            </div>
+            <div class="small" id="ogCounts" style="margin-top:8px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="section">
+    <div class="container grid2">
+      <div>
+        <h2>How it works</h2>
+        <p class="muted">TrueTrend ingests market data, detects bias, momentum and key levels, then gives you clear entries with confidence and timing. Use it with <b>any chart</b>—just mirror the logic on your platform.</p>
+        <ul class="features">
+          <li><span class="dot"></span> Live bias, confidence, RSI & key levels</li>
+          <li><span class="dot"></span> Sector & trend heatmaps (Advanced)</li>
+          <li><span class="dot"></span> Voice: ask Alexa for direction & levels (Pro)</li>
+          <li><span class="dot"></span> Strategy presets: EMA Touch, RSI+MACD, Stoch+W%R, BOS, ORB, S/R, <b>Trendline</b></li>
+          <li><span class="dot"></span> Stocks, forex, crypto, indices, and OTC</li>
+        </ul>
+        <div class="btns">
+          <a class="ghost" href="#pricing">See Pricing</a>
+          <a class="cta" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener">Start Free Trial</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">Alexa (Voice) — Quick Setup</h3>
+        <ol class="muted" style="line-height:1.6;margin:8px 0 0">
+          <li>Enable the TrueTrend skill in your Alexa app (Pro plan).</li>
+          <li>Say: <b>“Alexa, ask TrueTrend what’s the direction on NVDA.”</b></li>
+          <li>Follow-ups: “Give me confidence and key levels.” / “Read RSI and bias for AAPL.”</li>
+        </ol>
+        <a class="outline" href="#voice" style="display:inline-block;margin-top:10px">Voice instructions</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- STRATEGIES -->
+  <section id="strategies" class="section">
+    <div class="container">
+      <h2>Strategies & how to implement</h2>
+      <p class="muted">Each preset includes settings and an action checklist. Use on any platform—mirror the indicators/settings on your chart.</p>
+      <div class="cards">
+        <div class="card">
+          <h4>Trendline Strategy</h4>
+          <p class="muted">Follow trend by trading bounces and breaks of clean trendlines. (Our own preset.)</p>
+          <ul class="features">
+            <li><span class="dot"></span> Draw a line through ≥2 swing lows (uptrend) or highs (downtrend).</li>
+            <li><span class="dot"></span> Entry A (bounce): touch + rejection close in trend; optional RSI(14) filter.</li>
+            <li><span class="dot"></span> Entry B (break): strong close through line + retest + continuation.</li>
+            <li><span class="dot"></span> Stops: beyond line/swing; Targets: next S/R or 1R–2R.</li>
+            <li><span class="dot"></span> Timeframes: M5–H1; assets: stocks/forex/crypto.</li>
+          </ul>
+          <button class="ghost" id="loadTrendline">Load as Custom Template</button>
+        </div>
+        <div class="card">
+          <h4>EMA Touch (Green Line)</h4>
+          <ul class="features">
+            <li><span class="dot"></span> EMA(9) with trend filter EMA(50); alert on pullback in trend.</li>
+            <li><span class="dot"></span> Timeframes M5–H1; avoid chop.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>RSI + MACD Momentum</h4>
+          <ul class="features">
+            <li><span class="dot"></span> RSI midline cross + MACD histogram expansion.</li>
+            <li><span class="dot"></span> Stops at prior swing; targets at R multiples.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Break of Structure (BOS)</h4>
+          <ul class="features">
+            <li><span class="dot"></span> HH/HL then break + retest; confirm with RSI(50).</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Opening Range Breakout (ORB)</h4>
+          <ul class="features">
+            <li><span class="dot"></span> First 15m range; trade the break with defined stops.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUSTOM STRATEGY BUILDER -->
+  <section id="builder" class="section">
+    <div class="container">
+      <h2>Custom Strategy Builder</h2>
+      <p class="muted">Design your own entries. Save privately in your browser or export JSON. Use on <b>any chart</b> by mirroring the rules.</p>
+
+      <div class="builder-grid">
+        <div class="card">
+          <div class="row">
+            <input id="stratName" class="input" placeholder="Strategy name (e.g., My Pullback + RSI)" style="flex:1">
+            <select id="stratTF">
+              <option>1m</option><option>5m</option><option selected>15m</option>
+              <option>1h</option><option>4h</option><option>1d</option>
+            </select>
+          </div>
+
+          <div id="rules"></div>
+          <button id="addRule" class="ghost" style="margin-top:10px">+ Add rule</button>
+
+          <div class="row" style="margin-top:12px">
+            <button id="saveStrat" class="cta">Save locally</button>
+            <button id="exportStrat" class="ghost">Export JSON</button>
+            <button id="clearStrat" class="ghost">Clear</button>
+            <button id="runLive" class="cta" style="margin-left:auto">Run on Live Data</button>
+            <button id="runBacktest" class="ghost">Auto-Trade (Paper)</button>
+          </div>
+
+          <pre id="sigOut" class="small" style="margin-top:10px;white-space:pre-wrap"></pre>
+
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin:0 0 6px">Paper Trading Results</h3>
+            <div id="btSummary" class="muted">No results yet.</div>
+            <canvas id="eqChart" height="120" style="margin-top:10px"></canvas>
+            <canvas id="wlChart" height="120" style="margin-top:10px"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin:0 0 8px">Preview / Instructions</h4>
+          <textarea id="preview" readonly placeholder="Your strategy summary will appear here..."></textarea>
+
+          <h4 style="margin:12px 0 6px">Import / Load</h4>
+          <textarea id="importBox" placeholder='Paste strategy JSON here then click "Load JSON".'></textarea>
+          <div class="row" style="margin-top:8px">
+            <button id="loadJSON" class="ghost">Load JSON</button>
+            <select id="savedList" style="flex:1"></select>
+            <button id="loadSaved" class="ghost">Load Saved</button>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin:0 0 6px">Trade Journal</h3>
+            <div class="row">
+              <button id="exportCSV" class="ghost">Export CSV</button>
+              <button id="clearJournal" class="ghost">Clear Journal</button>
+            </div>
+            <div class="small" style="margin-top:6px">Trades are stored locally in your browser.</div>
+            <table id="journal" style="width:100%;margin-top:10px;border-collapse:collapse">
+              <thead>
+                <tr style="text-align:left;border-bottom:1px solid #1f2937">
+                  <th>Time</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>P/L</th><th>Reason</th><th>Strategy</th><th>Why?</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin:0 0 6px">Voice / Alexa test</h3>
+            <div class="row">
+              <input id="voiceSymbol" class="input" placeholder="AAPL or OANDA:EUR_USD" style="flex:1">
+              <select id="voiceTF"><option>15m</option><option>1h</option><option>4h</option><option>1d</option></select>
+              <button id="voiceBtn" class="ghost">Get Voice Text</button>
+            </div>
+            <pre id="voiceOut" class="small" style="margin-top:8px;white-space:pre-wrap"></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="small" style="margin-top:10px">
+        Indicators supported in builder JSON: <b>Price</b>, <b>EMA</b>, <b>RSI</b>, <b>MACD_Hist</b>, <b>StochK</b>, <b>WilliamsR</b>, <b>Volume</b>, <b>ATR</b>.  
+        Operators: <b>&gt;</b>, <b>&gt;=</b>, <b>&lt;</b>, <b>&lt;=</b>, <b>crossesAbove</b>, <b>crossesBelow</b>, <b>touches</b>.
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="section">
+    <div class="container">
+      <h2>Pricing</h2>
+      <p class="muted">Every plan includes a <b>3-day free trial</b>. Cancel anytime.</p>
+      <div class="plans">
+        <div class="plan">
+          <h3>Basic</h3>
+          <div class="price">$59.99 / mo</div>
+          <ul class="features">
+            <li><span class="dot"></span> Core strategy engine & daily insights</li>
+            <li><span class="dot"></span> Live bias, confidence, RSI & key levels</li>
+            <li><span class="dot"></span> Works on any chart/platform</li>
+          </ul>
+          <a class="cta" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401" target="_blank" rel="noopener">Start Free Trial</a>
+        </div>
+        <div class="plan">
+          <h3>Advanced</h3>
+          <div class="price">$99.99 / mo</div>
+          <ul class="features">
+            <li><span class="dot"></span> Everything in Basic</li>
+            <li><span class="dot"></span> Advanced strategies & sector heatmaps</li>
+            <li><span class="dot"></span> Strategy presets & backtests</li>
+          </ul>
+          <a class="cta" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener">Start Free Trial</a>
+        </div>
+        <div class="plan">
+          <h3>Pro (Lifetime)</h3>
+          <div class="price">$999 one-time</div>
+          <ul class="features">
+            <li><span class="dot"></span> Everything in Advanced</li>
+            <li><span class="dot"></span> Alexa voice integration (ask for direction, RSI & levels)</li>
+            <li><span class="dot"></span> Priority updates & VIP support</li>
+          </ul>
+          <a class="cta" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406" target="_blank" rel="noopener">Start 3-Day Trial / Unlock Voice</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOICE INFO -->
+  <section id="voice" class="section">
+    <div class="container">
+      <h2>Voice: hands-free with Alexa (Pro)</h2>
+      <p class="muted">Ask for direction, confidence, RSI, and key levels without leaving your chart.</p>
+      <ul class="features">
+        <li><span class="dot"></span> “Alexa, ask TrueTrend what’s the direction on NVDA.”</li>
+        <li><span class="dot"></span> “Ask TrueTrend for RSI and confidence on EUR/USD.”</li>
+        <li><span class="dot"></span> “Ask TrueTrend for key levels on AAPL.”</li>
+      </ul>
+      <a class="cta" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406" target="_blank" rel="noopener">Unlock Voice</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div>© <span id="y"></span> TrueTrend AI — Learn it. Earn it. Own it.</div>
+      <div class="muted">Works with TradingView, Schwab, Fidelity, TD, Webull, MooMoo, PocketOptions, Binance, MT4/5, and more.</div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+  const $ = id => document.getElementById(id);
+  document.getElementById("y").textContent = new Date().getFullYear();
+
+  /* ---------- Live analyze + Overtrading Guard ---------- */
+  const go = $("go"), out = $("out");
+  const OG_KEYS = { last:"tt_clickTimes" };
+  const readTimes = ()=> JSON.parse(localStorage.getItem(OG_KEYS.last)||"[]");
+  const writeTimes = t => localStorage.setItem(OG_KEYS.last, JSON.stringify(t));
+  const toast = (msg)=>{ const el=$("toast"); el.textContent=msg; el.style.display="block"; setTimeout(()=>el.style.display="none", 3500); }
+
+  function updateOGUI(){
+    const now=Date.now();
+    const times=readTimes().filter(t=> now - t < 60*60*1000); // keep last 60m
+    writeTimes(times);
+    const in15 = times.filter(t=> now - t < 15*60*1000).length;
+    const in60 = times.length;
+    const lim15 = parseInt($("og15").value||"10",10);
+    const lim60 = parseInt($("og60").value||"25",10);
+    const cdMin = parseInt($("ogCd").value||"5",10);
+
+    $("ogCounts").textContent = `Last 15m: ${in15}/${lim15} • Last 60m: ${in60}/${lim60}`;
+
+    let status="Cool", cls="green";
+    if(in15 >= lim15 || in60 >= lim60){ status="Slow down"; cls="red"; }
+    else if(in15 >= Math.max(1, Math.floor(lim15*0.7)) || in60 >= Math.max(1, Math.floor(lim60*0.7))){ status="Caution"; cls="yellow"; }
+    $("ogStatus").textContent=status;
+    $("ogLight").className="light "+cls;
+
+    // auto cooldown
+    const cooldownKey="tt_cd_until";
+    const until = parseInt(localStorage.getItem(cooldownKey)||"0",10);
+    const nowSec = Math.floor(now/1000);
+    if((in15 >= lim15 || in60 >= lim60) && cdMin>0){
+      localStorage.setItem(cooldownKey, String(nowSec + cdMin*60));
+      toast(`Overtrading Guard: cooling down for ${cdMin} min`);
+    }
+    const cdActive = nowSec < (parseInt(localStorage.getItem(cooldownKey)||"0",10));
+    go.disabled = cdActive;
+    if(cdActive){
+      const left = parseInt(localStorage.getItem(cooldownKey),10)-nowSec;
+      go.textContent = `Cooldown ${Math.ceil(left/60)}m`;
+    } else {
+      go.textContent = "Analyze";
+    }
+  }
+  ["og15","og60","ogCd"].forEach(id=> $(id)?.addEventListener("input", updateOGUI));
+  $("ogReset")?.addEventListener("click", ()=>{ writeTimes([]); localStorage.removeItem("tt_cd_until"); updateOGUI(); toast("Overtrading counters cleared."); });
+
+  async function runAnalyzeOnce(symbol, timeframe, strategy){
+    const r = await fetch("/api/analyze", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(strategy ? { symbol, timeframe, strategy } : { symbol, timeframe })
+    });
+    const ct = r.headers.get("content-type")||"";
+    const body = ct.includes("application/json") ? await r.json() : { raw: await r.text() };
+    if(!r.ok || body.error) throw new Error(body.message || body.raw || ("HTTP "+r.status));
+    return body;
+  }
+
+  async function runAnalyze(){
+    const symbol = $("symbol").value.trim() || "AAPL";
+    const timeframe = $("tf").value || "Weekly";
+    out.textContent = "Analyzing...";
+    go.disabled = true;
+    try{
+      const body = await runAnalyzeOnce(symbol, timeframe);
+      const q = body.quote || {};
+      const diff = (q.c!=null && q.pc!=null) ? (q.c - q.pc) : null;
+      const pct  = (diff!=null && q.pc) ? (diff/q.pc*100) : null;
+      out.textContent =
+`Symbol: ${symbol} (${timeframe})
+Price:  ${q.c}
+Open:   ${q.o}    High: ${q.h}    Low: ${q.l}
+Prev:   ${q.pc}
+${pct!=null ? `Change: ${diff.toFixed(2)} (${pct.toFixed(2)}%)\n` : ""}Unix t: ${q.t}`;
+      // record click for overtrading
+      const times = readTimes(); times.push(Date.now()); writeTimes(times); updateOGUI();
+      if(pct!=null && Math.abs(pct) > 3){ toast(\`Heads up: ${symbol} moved ${pct.toFixed(2)}% today.\`); }
+    }catch(e){ out.textContent = "Error: "+e.message; }
+    finally{ go.disabled = false; }
+  }
+  go.addEventListener("click", runAnalyze);
+  updateOGUI();
+
+  /* ---------- Strategy Builder ---------- */
+  const RULE_ID = ()=> "r"+Math.random().toString(36).slice(2,8);
+  const rulesEl = $("rules"), previewEl = $("preview");
+  const storeKey = "tt_custom_strategies";
+
+  function ruleRow(rule){
+    const id = rule.id || RULE_ID();
+    const wrap = document.createElement("div"); wrap.className="rule"; wrap.dataset.id=id;
+    wrap.innerHTML = `
+      <select class="ind">
+        <option value="Price">Price</option>
+        <option value="EMA">EMA</option>
+        <option value="RSI">RSI</option>
+        <option value="MACD_Hist">MACD_Hist</option>
+        <option value="StochK">StochK</option>
+        <option value="WilliamsR">WilliamsR</option>
+        <option value="Volume">Volume</option>
+        <option value="ATR">ATR</option>
+      </select>
+      <input class="param input" placeholder="param (e.g., 9)" style="width:90px">
+      <select class="op">
+        <option>&gt;</option><option>&gt;=</option><option>&lt;</option><option>&lt;=</option>
+        <option>crossesAbove</option><option>crossesBelow</option><option>touches</option>
+      </select>
+      <input class="right input" placeholder="value or indicator (e.g., 50 or EMA(50))" style="width:220px">
+      <select class="tf"><option>1m</option><option>5m</option><option selected>15m</option><option>1h</option><option>4h</option><option>1d</option></select>
+      <label class="small"><input type="checkbox" class="req"> required</label>
+      <button class="ghost del" title="Remove">x</button>
+    `;
+    // set initial values
+    wrap.querySelector(".ind").value = rule.ind || "EMA";
+    wrap.querySelector(".param").value = rule.param ?? "";
+    wrap.querySelector(".op").value = rule.op || "touches";
+    wrap.querySelector(".right").value = rule.right || "EMA(50)";
+    wrap.querySelector(".tf").value = rule.tf || "15m";
+    wrap.querySelector(".req").checked = !!rule.req;
+
+    wrap.querySelector(".del").addEventListener("click", ()=>{ wrap.remove(); updatePreview(); });
+    ["change","input"].forEach(evt=>{
+      wrap.querySelectorAll("select,input").forEach(el=> el.addEventListener(evt, updatePreview));
+    });
+    return wrap;
+  }
+
+  function addRule(rule={}){ rulesEl.appendChild(ruleRow(rule)); updatePreview(); }
+  $("addRule").addEventListener("click", ()=> addRule({ ind:"EMA", param:9, op:"touches", right:"EMA(50)", tf:$("stratTF").value, req:true }));
+
+  function collectStrategy(){
+    const name = $("stratName").value.trim() || "Untitled Strategy";
+    const baseTF = $("stratTF").value;
+    const rules = [...rulesEl.querySelectorAll(".rule")].map(r=>({
+      id:r.dataset.id,
+      ind:r.querySelector(".ind").value,
+      param:r.querySelector(".param").value,
+      op:r.querySelector(".op").value,
+      right:r.querySelector(".right").value,
+      tf:r.querySelector(".tf").value,
+      req:r.querySelector(".req").checked
+    }));
+    return { name, baseTF, rules, createdAt: Date.now() };
+  }
+
+  function updatePreview(){
+    const s = collectStrategy();
+    const lines = [];
+    lines.push(`Strategy: ${s.name}  • Base TF: ${s.baseTF}`);
+    s.rules.forEach((r,i)=> lines.push(`${i+1}. [${r.tf}] ${r.ind}${r.param?`(${r.param})`:""} ${r.op} ${r.right}${r.req?" (required)":" (optional)"}`));
+    lines.push("");
+    lines.push("How to implement on any chart:");
+    lines.push("- Add the indicators mentioned (EMA/RSI/etc) with the specified parameters.");
+    lines.push("- Wait for rule conditions to be true on the chosen timeframe(s).");
+    lines.push("- Enter with defined risk (stops beyond swing/SR or ATR x multiple).");
+    lines.push("- Manage to 1R–2R targets or trail by structure.");
+    previewEl.value = lines.join("\n");
+  }
+  ["stratName","stratTF"].forEach(id=> $(id).addEventListener("input", updatePreview));
+
+  function saveStrategy(){
+    const s = collectStrategy();
+    const arr = JSON.parse(localStorage.getItem(storeKey) || "[]");
+    const i = arr.findIndex(x=> x.name === s.name);
+    if(i>=0) arr[i]=s; else arr.push(s);
+    localStorage.setItem(storeKey, JSON.stringify(arr));
+    refreshSavedList();
+    toast(`Saved "${s.name}" locally.`);
+  }
+  function refreshSavedList(){
+    const arr = JSON.parse(localStorage.getItem(storeKey) || "[]");
+    const sel = $("savedList"); sel.innerHTML="";
+    arr.forEach(x=>{ const o=document.createElement("option"); o.value=x.name; o.textContent=x.name; sel.appendChild(o); });
+  }
+  function loadSaved(){
+    const name = $("savedList").value; if(!name) return;
+    const arr = JSON.parse(localStorage.getItem(storeKey) || "[]");
+    const s = arr.find(x=> x.name===name); if(!s) return;
+    $("stratName").value = s.name; $("stratTF").value = s.baseTF;
+    rulesEl.innerHTML=""; s.rules.forEach(addRule); updatePreview();
+  }
+  function exportStrategy(){
+    const s = collectStrategy();
+    const blob = new Blob([JSON.stringify(s,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download=`${s.name.replace(/\s+/g,"_")}.json`; a.click(); URL.revokeObjectURL(url);
+  }
+  function clearStrategy(){ $("stratName").value=""; rulesEl.innerHTML=""; updatePreview(); }
+
+  $("saveStrat").addEventListener("click", saveStrategy);
+  $("exportStrat").addEventListener("click", exportStrategy);
+  $("clearStrat").addEventListener("click", clearStrategy);
+  $("loadJSON").addEventListener("click", ()=>{
+    try{
+      const s = JSON.parse($("importBox").value || "{}");
+      $("stratName").value = s.name || "";
+      $("stratTF").value = s.baseTF || "15m";
+      rulesEl.innerHTML=""; (s.rules||[]).forEach(addRule);
+      updatePreview(); toast("JSON loaded.");
+    }catch(e){ toast("Invalid JSON."); }
+  });
+  $("loadSaved").addEventListener("click", loadSaved);
+  refreshSavedList();
+
+  // Default rule row
+  addRule({ ind:"EMA", param:9, op:"touches", right:"EMA(50)", tf:"15m", req:true });
+
+  // Load Trendline template into builder
+  $("loadTrendline")?.addEventListener("click", ()=>{
+    const tpl = {
+      name:"Trendline Strategy",
+      baseTF:"15m",
+      rules:[
+        {ind:"Price", op:"touches", right:"Trendline(2+ touches)", tf:"15m", req:true},
+        {ind:"RSI", param:14, op:">", right:"50 (for longs) / < 50 (for shorts)", tf:"15m", req:false},
+        {ind:"Volume", op:">", right:"MA(20) on break", tf:"15m", req:false}
+      ]
+    };
+    $("stratName").value = tpl.name;
+    $("stratTF").value = tpl.baseTF;
+    rulesEl.innerHTML=""; tpl.rules.forEach(addRule);
+    updatePreview(); toast("Trendline Strategy loaded into builder.");
+  });
+
+  // ----- Run on Live Data via backend signal mode -----
+  $("runLive").addEventListener("click", async ()=>{
+    const strategy = collectStrategy();
+    const symbol = $("symbol").value.trim() || "AAPL";
+    const timeframe = $("stratTF").value || "15m";
+    const outEl = $("sigOut");
+    outEl.textContent = "Running on live data...";
+    try{
+      const r = await fetch("/api/analyze", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ symbol, timeframe, strategy, mode:"signal" })
+      });
+      const ct = r.headers.get("content-type")||"";
+      const body = ct.includes("application/json") ? await r.json() : { raw: await r.text() };
+      if(!r.ok || body.error) throw new Error(body.message || body.raw || ("HTTP "+r.status));
+
+      const s = body.signal || {}, inds = body.indicators || {};
+      const f = x => (x!=null && x.toFixed) ? x.toFixed(4) : x;
+      const f1 = x => (x!=null && x.toFixed) ? x.toFixed(1) : x;
+      outEl.textContent =
+`Signal: ${s.action}  •  Confidence: ${s.confidence}%
+Best strategy now: ${s.best_strategy_now}
+Entry: ${f(s.entry)}   Stop: ${s.stop==null?"-":f(s.stop)}   Targets: ${Array.isArray(s.targets)?s.targets.map(f).join(", "):"-"}
+Why: ${(s.rationale||[]).join(" | ")}
+
+Snapshot:
+RSI14=${f1(inds.rsi14)}  EMA9=${f(inds.ema9)}  EMA50=${f(inds.ema50)}
+MACD hist=${f(inds.macd?.hist)}  StochK=${f1(inds.stochK)}  ATR14=${f(inds.atr14)}
+
+Custom rules:
+${(body.strategy_evaluation?.rules||[]).map(r => 
+  `- [${r.ok ? "✓" : "×"}] ${r.ind}${r.param?`(${r.param})`:""} ${r.op} ${r.right ?? ""}  → left=${f(r.left)}, right=${f(r.right)}`
+).join("\n") || "(none)"}`;
+    }catch(e){ outEl.textContent = "Error: " + e.message; }
+  });
+
+  // ----- Paper Auto-Trade (Backtest) -----
+  let eqChart, wlChart;
+  function renderCharts(equity, wins, losses){
+    const ctx1 = document.getElementById("eqChart");
+    const ctx2 = document.getElementById("wlChart");
+    if (eqChart) eqChart.destroy(); if (wlChart) wlChart.destroy();
+    eqChart = new Chart(ctx1, {
+      type: "line",
+      data: { labels: equity.map((_,i)=>i), datasets: [{ label:"Equity", data: equity }] },
+      options: { responsive:true, plugins:{legend:{display:false}} }
+    });
+    wlChart = new Chart(ctx2, {
+      type: "bar",
+      data: { labels: ["Wins","Losses"], datasets: [{ label:"Trades", data:[wins, losses] }] },
+      options: { responsive:true, plugins:{legend:{display:false}} }
+    });
+  }
+
+  const JKEY="tt_journal";
+  function readJournal(){ return JSON.parse(localStorage.getItem(JKEY)||"[]"); }
+  function writeJournal(a){ localStorage.setItem(JKEY, JSON.stringify(a)); }
+  function reasonWhy(exitReason, pl){
+    if (exitReason==="Stop hit") return "Stopped before follow-through";
+    if (exitReason==="Target2" || exitReason==="Target1") return "Target reached";
+    if (exitReason==="Opposite signal") return "Momentum reversal";
+    if (exitReason==="End of test") return "Timed exit";
+    return pl>0 ? "Good momentum" : "Chop/late entry";
+  }
+  function pushJournal(symbol, side, entry, exit, pl, strategyName, exitReason, ts){
+    const arr = readJournal();
+    arr.push({
+      ts: ts || Date.now(),
+      symbol, side,
+      entry:+(+entry).toFixed(6), exit:+(+exit).toFixed(6), pl:+(+pl).toFixed(6),
+      reason: exitReason, strategy: strategyName || "Custom",
+      why: reasonWhy(exitReason, pl)
+    });
+    writeJournal(arr); renderJournal();
+  }
+  function renderJournal(){
+    const tbody = document.querySelector("#journal tbody");
+    const arr = readJournal();
+    tbody.innerHTML = arr.slice().reverse().map(t=>`
+      <tr style="border-top:1px solid #1f2937">
+        <td>${new Date(t.ts).toLocaleString()}</td>
+        <td>${t.symbol}</td>
+        <td>${t.side}</td>
+        <td>${t.entry}</td>
+        <td>${t.exit}</td>
+        <td style="color:${t.pl>=0?'#22c55e':'#ef4444'}">${t.pl}</td>
+        <td>${t.reason}</td>
+        <td>${t.strategy}</td>
+        <td>${t.why}</td>
       </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+    `).join("");
+  }
+  function exportCSV(){
+    const arr = readJournal();
+    const head = ["Time","Symbol","Side","Entry","Exit","P/L","Reason","Strategy","Why"];
+    const rows = arr.map(t=>[
+      new Date(t.ts).toISOString(), t.symbol, t.side, t.entry, t.exit, t.pl, t.reason, t.strategy, t.why
+    ]);
+    const csv = [head, ...rows].map(r=> r.map(x=> `"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download="trades.csv"; a.click(); URL.revokeObjectURL(url);
+  }
+  document.getElementById("exportCSV").addEventListener("click", exportCSV);
+  document.getElementById("clearJournal").addEventListener("click", ()=>{ if(confirm("Clear all journal entries?")){ localStorage.removeItem(JKEY); renderJournal(); } });
+  renderJournal();
 
-<!-- Voice test -->
-<div class="card" style="margin-top:12px">
-  <h3 style="margin:0 0 6px">Voice / Alexa test</h3>
-  <div class="row">
-    <input id="voiceSymbol" class="input" placeholder="AAPL or OANDA:EUR_USD" style="flex:1">
-    <select id="voiceTF"><option>15m</option><option>1h</option><option>4h</option><option>1d</option></select>
-    <button id="voiceBtn" class="ghost">Get Voice Text</button>
-  </div>
-  <pre id="voiceOut" class="small" style="margin-top:8px;white-space:pre-wrap"></pre>
-</div>
+  $("runBacktest").addEventListener("click", async ()=>{
+    const strategy = collectStrategy();
+    const symbol = $("symbol").value.trim() || "AAPL";
+    const timeframe = $("stratTF").value || "15m";
+    const btBox = document.getElementById("btSummary");
+    btBox.textContent = "Running paper backtest...";
+    try {
+      const r = await fetch("/api/analyze", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ symbol, timeframe, strategy, mode:"backtest", bars: 400 })
+      });
+      const body = await r.json();
+      if(!r.ok || body.error) throw new Error(body.message || "Backtest error");
 
-<!-- Chart.js (for equity & W/L) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+      const s = body.summary||{};
+      btBox.textContent = `Trades: ${s.total} • Wins: ${s.wins} • Losses: ${s.losses} • Winrate: ${s.winrate}% • Net: ${s.net} • MaxDD: ${s.maxDrawdown}`;
+
+      renderCharts(body.equity||[], s.wins||0, s.losses||0);
+
+      (body.trades||[]).forEach(t=>{
+        const side = t.side, entry = t.entry, exit = t.exit, pl = t.pl, why = t.exitReason;
+        pushJournal(symbol, side, entry, exit, pl, strategy.name || "Custom", why, Date.now());
+      });
+    } catch(e){
+      btBox.textContent = "Error: " + e.message;
+    }
+  });
+
+  // Voice test (returns speech text you can feed to Alexa)
+  $("voiceBtn").addEventListener("click", async ()=>{
+    const symbol = $("voiceSymbol").value.trim() || "AAPL";
+    const timeframe = $("voiceTF").value || "15m";
+    const out = $("voiceOut");
+    out.textContent = "Getting voice text...";
+    try{
+      const r = await fetch("/api/analyze", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ symbol, timeframe, mode:"voice" })
+      });
+      const body = await r.json();
+      if(!r.ok || body.error) throw new Error(body.message || "Voice error");
+      out.textContent = body.speech || JSON.stringify(body, null, 2);
+    }catch(e){ out.textContent = "Error: " + e.message; }
+  });
+</script>
+</body>
+</html>
