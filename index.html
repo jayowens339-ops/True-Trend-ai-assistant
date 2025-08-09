@@ -1,1 +1,110 @@
 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TrueTrend AI — Your AI co-pilot for markets & money</title>
+  <style>
+    :root{--bg:#0b1220;--card:#0f172a;--border:#1f2937;--text:#e6e9ef;--accent:#22c55e}
+    *{box-sizing:border-box}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text);margin:0}
+    header{padding:28px 24px}
+    .container{max-width:1100px;margin:0 auto;padding:0 24px}
+    h1{font-size:36px;margin:0 0 8px}
+    p.lead{opacity:.85;margin:0 0 24px;line-height:1.6}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:20px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    input,select,button{height:44px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:var(--text);padding:0 12px;font-size:16px}
+    input{flex:1;min-width:200px}
+    select{min-width:140px}
+    button{background:var(--accent);border-color:var(--accent);color:#052e17;cursor:pointer;font-weight:700;padding:0 18px}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    #out{margin-top:16px;white-space:pre-wrap;background:#0b1220;border:1px solid var(--border);border-radius:12px;padding:16px;font-family:ui-monospace,Menlo,Consolas,monospace}
+    .muted{opacity:.8;font-size:14px;margin-top:8px}
+    .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:28px}
+    .plan{background:#0f172a;border:1px solid var(--border);border-radius:16px;padding:16px}
+    .plan h3{margin:0 0 12px}
+    .price{font-size:28px;font-weight:800;margin:6px 0 12px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Your AI co-pilot for markets & money.</h1>
+      <p class="lead">TrueTrend reads live data and tells you what’s changing so you can build strategies you own.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h2>Try it live</h2>
+      <div class="row">
+        <input id="symbol" placeholder="AAPL, NVDA, SPY, OANDA:EUR_USD, BINANCE:BTCUSDT" value="AAPL" />
+        <select id="tf">
+          <option>Monthly</option>
+          <option selected>Weekly</option>
+          <option>Daily</option>
+          <option>Hourly</option>
+        </select>
+        <button id="btn">Analyze</button>
+      </div>
+      <div class="muted">Examples: AAPL, NVDA, SPY, <code>OANDA:EUR_USD</code>, <code>BINANCE:BTCUSDT</code></div>
+      <div id="out">Ready.</div>
+    </div>
+
+    <section class="plans">
+      <div class="plan">
+        <h3>Basic</h3>
+        <div class="price">$59.99 / mo</div>
+        <div>Core strategy engine & daily insights</div>
+      </div>
+      <div class="plan">
+        <h3>Advanced</h3>
+        <div class="price">$99.99 / mo</div>
+        <div>Advanced strategies & sector heatmaps</div>
+      </div>
+      <div class="plan">
+        <h3>Pro (Lifetime)</h3>
+        <div class="price">$999 one-time</div>
+        <div>Everything in Advanced + Voice</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id)=>document.getElementById(id);
+    $("btn").addEventListener("click", async ()=>{
+      const symbol = $("symbol").value.trim();
+      const timeframe = $("tf").value;
+      $("btn").disabled = true; $("out").textContent = "Analyzing...";
+      try{
+        const r = await fetch("/api/analyze", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ symbol, timeframe })
+        });
+        const ct = r.headers.get("content-type") || "";
+        const body = ct.includes("application/json") ? await r.json() : { raw: await r.text() };
+        if(!r.ok || body.error){ throw new Error(body.message || body.raw || ("HTTP "+r.status)); }
+
+        const q = body.quote || {};
+        const change = (q.c != null && q.pc != null) ? (q.c - q.pc) : null;
+        const pct = (change != null && q.pc) ? (change / q.pc * 100) : null;
+
+        $("out").textContent =
+          "Symbol: " + body.symbol + " (" + body.timeframe + ")\\n" +
+          "Price:  " + q.c + "\\n" +
+          "Open:   " + q.o + "    High: " + q.h + "    Low: " + q.l + "\\n" +
+          "Prev:   " + q.pc + "\\n" +
+          (pct!=null ? ("Change: " + change.toFixed(2) + " (" + pct.toFixed(2) + "%)\\n") : "") +
+          "Unix t: " + q.t;
+      }catch(err){
+        $("out").textContent = "Error: " + err.message;
+      }finally{
+        $("btn").disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
