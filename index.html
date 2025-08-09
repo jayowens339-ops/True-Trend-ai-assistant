@@ -6,10 +6,7 @@
   <title>TrueTrend AI — Learn it. Earn it. Own it.</title>
   <meta name="description" content="TrueTrend AI reads any chart, explains the why, and alerts you with clear entries. Works with TradingView, Schwab, Fidelity, TD, Webull, MooMoo, PocketOptions, Binance, MT4/5, and more." />
   <style>
-    :root{
-      --bg:#0b1220;--card:#0f172a;--border:#1f2937;--text:#e6e9ef;--muted:#9aa3b2;
-      --accent:#22c55e;--accent2:#06b6d4;--warn:#f59e0b
-    }
+    :root{--bg:#0b1220;--card:#0f172a;--border:#1f2937;--text:#e6e9ef;--muted:#9aa3b2;--accent:#22c55e}
     *{box-sizing:border-box}
     body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text);margin:0}
     a{color:inherit;text-decoration:none}
@@ -30,4 +27,273 @@
     .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
     .muted{color:var(--muted)}
     .section{padding:42px 0;border-bottom:1px solid var(--border)}
-    .section h2{margin:0 0 12
+    .section h2{margin:0 0 12px}
+    .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .badge{border:1px solid var(--border);background:#0f172a;border-radius:999px;padding:6px 10px;color:var(--muted);font-size:13px}
+    .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:14px}
+    .plan{background:#0f172a;border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column}
+    .plan h3{margin:0 0 4px}
+    .price{font-size:28px;font-weight:900;margin:6px 0 10px}
+    ul.features{list-style:none;padding:0;margin:8px 0 16px}
+    ul.features li{display:flex;gap:8px;margin:8px 0;line-height:1.35}
+    .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;margin-top:7px;flex:0 0 8px}
+    .plan .cta{margin-top:auto;text-align:center}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:12px}
+    .cards .card h4{margin:0 0 6px}
+    footer{padding:40px 0;color:var(--muted)}
+    @media (max-width:900px){ .grid2{grid-template-columns:1fr} h1{font-size:34px}}
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <header>
+    <div class="container nav">
+      <div class="brand">TrueTrend AI</div>
+      <nav>
+        <a href="#how">How it works</a>
+        <a href="#strategies">Strategies</a>
+        <a href="#voice">Voice</a>
+        <a href="#pricing" class="ghost">Pricing</a>
+        <!-- Default Free Trial -> Advanced $99.99/mo -->
+        <a href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener" class="cta">Start Free Trial</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container grid2">
+      <div>
+        <span class="kicker">3-Day Free Trial on every plan</span>
+        <h1>Your AI co-pilot for markets & money.</h1>
+        <p class="tag"><b>Learn your money. Earn your money. Own your money.</b> TrueTrend reads your charts, explains the <i>why</i>, and tells you what’s changing—so you can act with confidence.</p>
+        <div class="btns">
+          <!-- Default Free Trial -> Advanced $99.99/mo -->
+          <a class="cta" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener">Start Free Trial</a>
+          <a class="ghost" href="#strategies">See Strategies & How-To</a>
+          <a class="outline" href="/api/analyze" target="_blank" rel="noopener">Try Live Demo</a>
+        </div>
+        <div class="badges" style="margin-top:14px">
+          <span class="badge">Works with any chart/platform</span>
+          <span class="badge">TradingView</span><span class="badge">Schwab</span><span class="badge">Fidelity</span>
+          <span class="badge">TD</span><span class="badge">Webull</span><span class="badge">MooMoo</span>
+          <span class="badge">PocketOptions</span><span class="badge">Binance</span><span class="badge">MT4/5</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">Try it live</h3>
+        <p class="muted" style="margin-top:0">Example: NVDA, AAPL, SPY, OANDA:EUR_USD, BINANCE:BTCUSDT</p>
+        <div id="live" class="card" style="padding:12px;background:#0b1220">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input id="symbol" placeholder="AAPL" value="AAPL" style="flex:1;height:42px;border-radius:10px;border:1px solid var(--border);background:#0f172a;color:var(--text);padding:0 12px"/>
+            <select id="tf" style="height:42px;border-radius:10px;border:1px solid var(--border);background:#0f172a;color:var(--text);padding:0 10px">
+              <option>Monthly</option><option selected>Weekly</option><option>Daily</option><option>Hourly</option>
+            </select>
+            <button id="go" class="cta" style="height:42px">Analyze</button>
+          </div>
+          <pre id="out" style="margin:10px 0 0;min-height:120px;white-space:pre-wrap;color:#e6e9ef"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="section">
+    <div class="container grid2">
+      <div>
+        <h2>How it works</h2>
+        <p class="muted">TrueTrend ingests market data, detects bias, momentum and key levels, then gives you clear entries with confidence and timing. Use it with <b>any chart</b>—we overlay logic on whatever platform you already love.</p>
+        <ul class="features">
+          <li><span class="dot"></span> Live bias, confidence, RSI & key levels</li>
+          <li><span class="dot"></span> Sector & trend heatmaps (Advanced)</li>
+          <li><span class="dot"></span> Voice: ask Alexa for direction & levels (Pro)</li>
+          <li><span class="dot"></span> Strategy presets: EMA Touch, RSI+MACD, Stoch+W%R, BOS, ORB, S/R</li>
+          <li><span class="dot"></span> Stocks, forex, crypto, indices, and OTC</li>
+        </ul>
+        <div class="btns">
+          <a class="ghost" href="#pricing">See Pricing</a>
+          <a class="cta" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener">Start Free Trial</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">Alexa (Voice) — Quick Setup</h3>
+        <ol class="muted" style="line-height:1.6;margin:8px 0 0">
+          <li>Enable the TrueTrend skill in your Alexa app (Pro plan).</li>
+          <li>Say: <b>“Alexa, ask TrueTrend what’s the direction on NVDA.”</b></li>
+          <li>Follow-ups:
+            <ul>
+              <li>“Give me the confidence and key levels.”</li>
+              <li>“Read me RSI and bias for AAPL.”</li>
+            </ul>
+          </li>
+        </ol>
+        <a class="outline" href="#voice" style="display:inline-block;margin-top:10px">Voice instructions</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- STRATEGIES -->
+  <section id="strategies" class="section">
+    <div class="container">
+      <h2>Strategies & how to implement</h2>
+      <p class="muted">Each preset includes settings and an action checklist. Use on any platform—just mirror the indicators/settings.</p>
+      <div class="cards">
+        <div class="card">
+          <h4>EMA Touch (Green Line)</h4>
+          <p class="muted">Trend-following. Alert only when price touches EMA (e.g., 9 or 7) in trend direction.</p>
+          <ul class="features">
+            <li><span class="dot"></span> Settings: EMA(9), EMA(50); timeframe: M5–H1</li>
+            <li><span class="dot"></span> Entry: touch EMA in trend direction; avoid consolidation</li>
+            <li><span class="dot"></span> Great for OTC/PocketOptions (one alert per candle)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>RSI + MACD Momentum</h4>
+          <p class="muted">Capture momentum bursts when RSI crosses midline with MACD expansion.</p>
+          <ul class="features">
+            <li><span class="dot"></span> RSI(14) > 50 for longs; MACD histogram rising</li>
+            <li><span class="dot"></span> Stops at prior swing; targets at R multiples</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Stochastic + Williams %R</h4>
+          <p class="muted">Confluence entries: Stoch blue over orange & W%R up for BUY (inverse for SELL).</p>
+          <ul class="features">
+            <li><span class="dot"></span> Stoch(7,4,3), W%R(7); confirm EMA(50) trend</li>
+            <li><span class="dot"></span> Avoid overextended reads without pullback</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Break of Structure (BOS)</h4>
+          <p class="muted">Detects structure breaks + retests for precision continuation entries.</p>
+          <ul class="features">
+            <li><span class="dot"></span> Long: HH + HL then break above last high + retest</li>
+            <li><span class="dot"></span> Confluence with RSI(50) + volume expansion</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Opening Range Breakout (ORB)</h4>
+          <p class="muted">Monitors first 15-minute range and alerts break direction.</p>
+          <ul class="features">
+            <li><span class="dot"></span> Assets: EUR/USD, GBP/JPY, NAS100, SPX500, US30, metals/commodities</li>
+            <li><span class="dot"></span> Stop: other side of the range; Targets: 1R–2R</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Support / Resistance</h4>
+          <p class="muted">Find reaction zones; wait for rejection/confirmation; enter with risk-defined levels.</p>
+          <ul class="features">
+            <li><span class="dot"></span> Confluence with EMA trend or RSI midline</li>
+            <li><span class="dot"></span> Scale out at the first trouble area</li>
+          </ul>
+        </div>
+      </div>
+      <div class="btns" style="margin-top:12px">
+        <a class="cta" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener">Start Free Trial</a>
+        <a class="ghost" href="/api/analyze" target="_blank" rel="noopener">Open Live Demo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="section">
+    <div class="container">
+      <h2>Pricing</h2>
+      <p class="muted">Every plan includes a <b>3-day free trial</b>. Cancel anytime.</p>
+      <div class="plans">
+        <!-- BASIC -->
+        <div class="plan">
+          <h3>Basic</h3>
+          <div class="price">$59.99 / mo</div>
+          <ul class="features">
+            <li><span class="dot"></span> Core strategy engine & daily insights</li>
+            <li><span class="dot"></span> Live bias, confidence, RSI & key levels</li>
+            <li><span class="dot"></span> Works on any chart/platform</li>
+          </ul>
+          <a class="cta" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401" target="_blank" rel="noopener">Start Free Trial</a>
+        </div>
+
+        <!-- ADVANCED -->
+        <div class="plan">
+          <h3>Advanced</h3>
+          <div class="price">$99.99 / mo</div>
+          <ul class="features">
+            <li><span class="dot"></span> Everything in Basic</li>
+            <li><span class="dot"></span> Advanced strategies & sector heatmaps</li>
+            <li><span class="dot"></span> Strategy presets & backtests</li>
+          </ul>
+          <a class="cta" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" target="_blank" rel="noopener">Start Free Trial</a>
+        </div>
+
+        <!-- PRO -->
+        <div class="plan">
+          <h3>Pro (Lifetime)</h3>
+          <div class="price">$999 one-time</div>
+          <ul class="features">
+            <li><span class="dot"></span> Everything in Advanced</li>
+            <li><span class="dot"></span> Alexa voice integration (ask for direction, RSI & levels)</li>
+            <li><span class="dot"></span> Priority updates & VIP support</li>
+          </ul>
+          <a class="cta" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406" target="_blank" rel="noopener">Start 3-Day Trial / Unlock Voice</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOICE -->
+  <section id="voice" class="section">
+    <div class="container">
+      <h2>Voice: hands-free with Alexa (Pro)</h2>
+      <p class="muted">Ask for direction, confidence, RSI, and key levels without leaving your chart.</p>
+      <ul class="features">
+        <li><span class="dot"></span> “Alexa, ask TrueTrend what’s the direction on NVDA.”</li>
+        <li><span class="dot"></span> “Ask TrueTrend for RSI and confidence on EUR/USD.”</li>
+        <li><span class="dot"></span> “Ask TrueTrend for key levels on AAPL.”</li>
+      </ul>
+      <a class="cta" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406" target="_blank" rel="noopener">Unlock Voice</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div>© <span id="y"></span> TrueTrend AI — Learn it. Earn it. Own it.</div>
+      <div class="muted">Works with TradingView, Schwab, Fidelity, TD, Webull, MooMoo, PocketOptions, Binance, MT4/5, and more.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Live demo box -> calls your backend /api/analyze
+    const $ = id => document.getElementById(id);
+    const go = $("go"), out = $("out");
+    go?.addEventListener("click", async ()=>{
+      const symbol = $("symbol").value.trim();
+      const timeframe = $("tf").value;
+      go.disabled = true; out.textContent = "Analyzing...";
+      try {
+        const r = await fetch("/api/analyze", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ symbol, timeframe })
+        });
+        const ct = r.headers.get("content-type")||"";
+        const body = ct.includes("application/json") ? await r.json() : { raw: await r.text() };
+        if(!r.ok || body.error) throw new Error(body.message || body.raw || ("HTTP "+r.status));
+        const q = body.quote||{};
+        const diff = (q.c!=null && q.pc!=null) ? (q.c - q.pc) : null;
+        const pct  = (diff!=null && q.pc) ? (diff/q.pc*100) : null;
+        out.textContent =
+`Symbol: ${body.symbol} (${body.timeframe})
+Price:  ${q.c}
+Open:   ${q.o}    High: ${q.h}    Low: ${q.l}
+Prev:   ${q.pc}
+${pct!=null ? `Change: ${diff.toFixed(2)} (${pct.toFixed(2)}%)\n` : ""}Unix t: ${q.t}`;
+      } catch (e) {
+        out.textContent = "Error: " + e.message;
+      } finally {
+        go.disabled = false;
+      }
+    });
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
