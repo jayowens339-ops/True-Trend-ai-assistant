@@ -4,249 +4,253 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TrueTrend AI — Learn. Earn. Own.</title>
-  <meta name="description" content="TrueTrend AI reads markets in real-time, explains the ‘why’, and helps you manage your strategy and portfolio—no gurus, no Telegrams, just you + AI." />
+  <meta name="description" content="TrueTrend AI reads markets in real-time, explains the ‘why’, and helps you manage your strategy and portfolio—no gurus, no Telegrams, just you + AI. Works with any chart platform." />
   <style>
     :root {
-      --bg: #0b1220; --card:#11182a; --muted:#9fb0d1; --text:#eaf0ff;
-      --accent:#6ee7b7; --accent2:#60a5fa; --warning:#fbbf24; --danger:#f87171;
-      --shadow:0 8px 30px rgba(0,0,0,.28); --radius:16px;
+      --bg:#0b1220;--card:#11182a;--muted:#9fb0d1;--text:#eaf0ff;
+      --accent:#22c55e;--accent-hi:#16a34a;--blue:#60a5fa;--danger:#f87171;
+      --shadow:0 10px 40px rgba(0,0,0,.35);--r:16px
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);
-      background: radial-gradient(1200px 600px at 20% -10%, #16223b 0%, #0b1220 55%) no-repeat; line-height:1.55;}
-    a{color:var(--accent2);text-decoration:none}
+    body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#16223b 0,#0b1220 55%) no-repeat;color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.55}
+    a{color:var(--blue);text-decoration:none}
     .wrap{max-width:1120px;margin:0 auto;padding:28px}
     header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
-    .brand{display:flex;align-items:center;gap:12px}
+    .brand{display:flex;gap:12px;align-items:center}
     .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(145deg,#4f46e5,#22d3ee);box-shadow:var(--shadow)}
     .badge{font-size:12px;color:var(--muted)}
-    .cta{padding:12px 18px;border-radius:12px;border:1px solid #264270;background:linear-gradient(180deg,#1a2744,#10182b);
-         color:var(--text);cursor:pointer;transition:.2s transform ease}
-    .cta:hover{transform:translateY(-1px)}
-    .cta-accent{border:none;background:linear-gradient(180deg,#22c55e,#16a34a);color:#03120a;font-weight:700}
-    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center;padding:26px;background:rgba(17,24,42,.55);
-          border:1px solid #26314e;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .btn{padding:12px 18px;border-radius:12px;border:1px solid #264270;background:linear-gradient(180deg,#1a2744,#0f1830);color:var(--text);cursor:pointer;transition:.2s transform ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{border:none;background:linear-gradient(180deg,var(--accent),var(--accent-hi));color:#02150b;font-weight:800}
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center;padding:26px;background:rgba(17,24,42,.55);border:1px solid #26314e;border-radius:var(--r);box-shadow:var(--shadow)}
     .title{font-size:clamp(28px,4.2vw,46px);line-height:1.15;margin:0 0 10px}
     .subtitle{color:var(--muted);margin:0 0 16px}
-    .pill{color:#03120a;background:var(--accent);padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px;display:inline-block;margin-bottom:8px}
-    .panel{padding:20px;border:1px solid #2b375a;border-radius:var(--radius);background:#0f182f}
-    .search{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-    .input{flex:1;min-width:220px;padding:14px;border-radius:12px;border:1px solid #2a3c63;background:#0e1530;color:var(--text);outline:none}
-    .result{display:grid;gap:6px;margin-top:8px;font-size:15px}
-    .kpi{display:flex;gap:10px;align-items:baseline;color:var(--muted)} .kpi strong{color:var(--text)}
+    .pill{display:inline-block;margin-bottom:8px;padding:6px 10px;border-radius:999px;background:var(--accent);color:#052011;font-weight:800;font-size:12px}
+    .panel{padding:20px;border:1px solid #2b375a;border-radius:var(--r);background:#0f182f}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:10px}
+    .input,.select{flex:1;padding:14px;border-radius:12px;border:1px solid #2a3c63;background:#0e1530;color:var(--text);outline:none}
+    .result{display:grid;gap:6px;margin-top:8px}
+    .kpi{display:flex;gap:10px;align-items:baseline}
     .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
-    .card{padding:18px;border:1px solid #2b375a;border-radius:var(--radius);background:#0f182f;box-shadow:var(--shadow)}
-    .card h3{margin:0 0 6px} .price{font-weight:800;font-size:22px} .muted{color:var(--muted);font-size:14px}
-    .list{margin:10px 0 18px;padding-left:18px} .list li{margin:6px 0}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(3,10,22,.75);display:none;backdrop-filter:blur(3px)}
+    .card{padding:18px;border:1px solid #2b375a;border-radius:var(--r);background:#0f182f;box-shadow:var(--shadow)}
+    .card h3{margin:0 0 6px}
+    .price{font-weight:800;font-size:22px}
+    .list{margin:10px 0 18px;padding-left:18px}
+    .list li{margin:6px 0}
+    footer{margin:36px 0 10px;color:var(--muted)}
+    /* modal */
+    .backdrop{position:fixed;inset:0;background:rgba(3,10,22,.75);display:none;backdrop-filter:blur(3px)}
     .modal{position:fixed;inset:0;display:none;place-items:center;padding:28px}
     .modal-inner{width:min(880px,94vw);max-height:86vh;overflow:auto;background:#0f182f;border:1px solid #2b375a;border-radius:18px;box-shadow:var(--shadow);padding:24px 22px}
-    .modal h2{margin:0 0 6px} .modal h3{margin:16px 0 8px}
     .close{position:absolute;right:18px;top:14px;border:none;background:#152242;color:#bcd0ff;padding:6px 10px;border-radius:10px;cursor:pointer}
-    @media (max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
+    /* hidden Family button */
+    .family {position:fixed;right:22px;bottom:22px;display:none}
+    @media(max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div><strong>TrueTrend AI</strong><div class="badge">Learn • Earn • Own</div></div>
-      </div>
-      <div style="display:flex;gap:10px">
-        <button id="howBtn" class="cta">How it works & Strategies</button>
-        <a href="#plans" class="cta cta-accent">Start Free Trial</a>
-      </div>
-    </header>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div><strong>TrueTrend AI</strong><div class="badge">Learn • Earn • Own</div></div>
+    </div>
+    <div class="row">
+      <button id="how" class="btn">How it works & Strategies</button>
+      <a href="#plans" class="btn btn-primary">Start Free Trial</a>
+    </div>
+  </header>
 
-    <section class="hero">
-      <div>
-        <span class="pill">3-Day Free Trial on every plan</span>
-        <h1 class="title">Your AI co-pilot for markets & money.</h1>
-        <p class="subtitle">TrueTrend reads live data, explains the “why”, and tells you what’s changing—so you can build strategies you own. No webapps to install. No gurus. Works with <strong>any chart platform</strong> (TradingView, Schwab, Fidelity, TD, Webull, MooMoo, PocketOptions, Binance, MT4/5, …).</p>
+  <section class="hero">
+    <div>
+      <span class="pill">3-Day Free Trial on every plan</span>
+      <h1 class="title">Your AI co-pilot for markets & money.</h1>
+      <p class="subtitle">
+        TrueTrend reads live data, explains the “why”, and tells you what’s changing—so you can
+        build strategies you own. Works with <strong>any chart platform</strong> (TradingView, Schwab, Fidelity, TD, Webull, MooMoo, PocketOptions, Binance, MT4/5, …).
+      </p>
 
-        <div class="panel">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
-            <strong>Try it live</strong>
-            <span class="muted">Example: NVDA, AAPL, SPY, EUR/USD, BTC/USD</span>
-          </div>
-          <div class="search">
-            <input id="sym" class="input" placeholder="Enter a symbol (e.g., NVDA)" />
-            <select id="tf" class="input" style="max-width:140px">
-              <option value="1">1m</option>
-              <option value="5">5m</option>
-              <option value="15">15m</option>
-              <option value="30">30m</option>
-              <option value="60" selected>1h</option>
-              <option value="D">1D</option>
-              <option value="W">1W</option>
-            </select>
-            <button id="go" class="cta cta-accent">Analyze</button>
-          </div>
-          <div id="out" class="result" aria-live="polite"></div>
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <strong>Try it live</strong>
+          <span class="muted">Example: NVDA, AAPL, SPY, EUR/USD, BTC/USD</span>
         </div>
-      </div>
-      <div>
-        <div class="panel">
-          <strong>Voice ready (Pro)</strong>
-          <p class="muted">Ask: “Alexa, ask TrueTrend what’s the direction on <em>NVDA</em>?” It reads our live analysis and gives bias, confidence, RSI & key levels.</p>
-          <div style="display:flex;gap:10px;margin-top:8px">
-            <button id="voiceDemo" class="cta">Preview a voice response</button>
-            <a href="#plans" class="cta cta-accent">Unlock Voice</a>
-          </div>
-          <div id="voiceOut" class="muted" style="margin-top:8px"></div>
+        <div class="row" style="margin-top:10px">
+          <input id="sym" class="input" placeholder="Symbol (e.g., NVDA)" />
+          <select id="tf" class="select" style="max-width:160px">
+            <option value="1m">1m</option>
+            <option value="5m">5m</option>
+            <option value="15m">15m</option>
+            <option value="1h" selected>1h</option>
+            <option value="4h">4h</option>
+            <option value="1d">1d</option>
+            <option value="1w">1w</option>
+          </select>
+          <button id="go" class="btn btn-primary" style="min-width:120px">Analyze</button>
         </div>
+        <div id="out" class="result" aria-live="polite"></div>
       </div>
-    </section>
-
-    <section id="plans" class="grid">
-      <div class="card">
-        <h3>Basic</h3>
-        <div class="price">$59.99 / mo</div>
-        <ul class="list muted">
-          <li>Core strategy engine & daily insights</li>
-          <li>Live bias, confidence, RSI & key levels</li>
-          <li>Journal + “why you won/lost” explanations</li>
-        </ul>
-        <a class="cta cta-accent" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401">Start Free Trial</a>
-      </div>
-
-      <div class="card">
-        <h3>Advanced</h3>
-        <div class="price">$99.99 / mo</div>
-        <ul class="list muted">
-          <li>All Basic features</li>
-          <li>Advanced strategies & sector heatmaps</li>
-          <li>Portfolio signals + ETF rotations</li>
-        </ul>
-        <a class="cta cta-accent" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start Free Trial</a>
-      </div>
-
-      <div class="card">
-        <h3>Pro (Lifetime)</h3>
-        <div class="price">$999 one-time</div>
-        <ul class="list muted">
-          <li>Everything in Advanced</li>
-          <li>Alexa voice integration</li>
-          <li>Priority features & coaching content</li>
-        </ul>
-        <a class="cta cta-accent" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406">Start Free Trial</a>
-      </div>
-    </section>
-
-    <!-- Hidden Family CTA -->
-    <div style="margin-top:14px">
-      <a id="familyCta"
-         href="https://buy.stripe.com/eVq7sLgmN33edzv2ya38404"
-         class="cta cta-accent"
-         style="display:none">
-        Family Free Version
-      </a>
     </div>
 
-    <footer style="margin:36px 0 10px;color:var(--muted)">
-      © <span id="yr"></span> TrueTrend AI — Built to help you learn, earn, and own your money.
-    </footer>
-  </div>
+    <div>
+      <div class="panel">
+        <strong>Voice ready (Pro)</strong>
+        <p class="muted">
+          Ask: “Alexa, ask TrueTrend what’s the direction on <em>NVDA</em>?”
+          It reads live analysis and gives bias, confidence, RSI & key levels.
+        </p>
+        <div class="row" style="margin-top:8px">
+          <button id="voiceDemo" class="btn">Preview a voice response</button>
+          <a href="#plans" class="btn btn-primary">Unlock Voice</a>
+        </div>
+        <div id="voiceOut" class="muted" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </section>
 
-  <!-- Modal -->
-  <div class="modal-backdrop" id="mb"></div>
-  <div class="modal" id="modal">
-    <div class="modal-inner">
-      <button class="close" id="close">Close</button>
-      <h2>How it works</h2>
-      <p class="muted">TrueTrend AI reads live market data, computes technical context (trend, momentum, levels), and returns a clean bias (long/short/neutral). It logs “why you won/lost” so you improve faster. No copy-trading—this is your edge, not someone else’s.</p>
-
-      <h3>Strategies (built-in)</h3>
-      <ul class="muted">
-        <li><strong>Trend-SMA 20/50</strong> — Baseline engine: 20/50 SMA + RSI filter.</li>
-        <li><strong>Break of Structure</strong> — HH/HL & LL/LH with volume to flag regime changes.</li>
-        <li><strong>Support/Resistance</strong> — Auto swing levels + ATR buffers.</li>
-        <li><strong>ORB</strong> — Opening Range Breakout with momentum.</li>
-        <li><strong>Portfolio Mode</strong> — Sector trends & ETF rotation signals.</li>
+  <section id="plans" class="grid">
+    <div class="card">
+      <h3>Basic</h3>
+      <div class="price">$59.99 / mo</div>
+      <ul class="list muted">
+        <li>Core strategy engine & daily insights</li>
+        <li>Live bias, confidence, RSI & key levels</li>
+        <li>Journal + “why you won/lost” explanations</li>
       </ul>
-
-      <h3>Alexa (Pro) quick connect</h3>
-      <ol class="muted">
-        <li>Create a <strong>Custom</strong> Alexa Skill named <em>TrueTrend</em>.</li>
-        <li>Endpoint: <code>https://YOUR-DOMAIN/api/alexa</code></li>
-        <li>Intent: <code>GetDirectionIntent</code>, slot <code>symbol</code>.</li>
-        <li>Utterances: “what’s the direction on {symbol}”.</li>
-      </ol>
+      <a class="btn btn-primary" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401">Start Free Trial</a>
     </div>
+    <div class="card">
+      <h3>Advanced</h3>
+      <div class="price">$99.99 / mo</div>
+      <ul class="list muted">
+        <li>All Basic features</li>
+        <li>Advanced strategies & sector heatmaps</li>
+        <li>Portfolio signals + ETF rotations</li>
+      </ul>
+      <a class="btn btn-primary" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start Free Trial</a>
+    </div>
+    <div class="card">
+      <h3>Pro (Lifetime)</h3>
+      <div class="price">$999 one-time</div>
+      <ul class="list muted">
+        <li>Everything in Advanced</li>
+        <li>Alexa voice integration</li>
+        <li>Priority features & coaching content</li>
+      </ul>
+      <a class="btn btn-primary" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406">Start Free Trial</a>
+    </div>
+  </section>
+
+  <footer>© <span id="yr"></span> TrueTrend AI — Built to help you learn, earn, and own your money.</footer>
+</div>
+
+<!-- Hidden Family plan (revealed by typing “family”) -->
+<a id="familyBtn" class="btn btn-primary family" href="https://buy.stripe.com/eVq7sLgmN33edzv2ya38404">Family Free</a>
+
+<!-- Modal -->
+<div id="backdrop" class="backdrop"></div>
+<div id="modal" class="modal">
+  <div class="modal-inner">
+    <button id="close" class="close">Close</button>
+    <h2>How it works</h2>
+    <p class="muted">
+      TrueTrend AI reads live market data, computes technical context (trend, momentum, levels),
+      and returns a clean bias (long/short/neutral) with confidence. It also logs “why you won/lost”
+      so you improve faster. No copy-trading—this is your edge.
+    </p>
+
+    <h3>Strategies (built-in)</h3>
+    <ul class="muted">
+      <li><strong>Trend-SMA 20/50</strong> — baseline engine (slope/cross + RSI filter)</li>
+      <li><strong>Break of Structure</strong> — regime change via HH/HL & LH/LL + volume</li>
+      <li><strong>Support/Resistance</strong> — auto swing levels w/ ATR buffers</li>
+      <li><strong>ORB</strong> — opening range breakout + momentum</li>
+      <li><strong>Portfolio Mode</strong> — sector trends & ETF rotation</li>
+      <li><strong>Options helpers</strong> — directional bias + IV context</li>
+    </ul>
+
+    <h3>Alexa (Pro)</h3>
+    <ol class="muted">
+      <li>Create an Alexa Skill named <em>TrueTrend</em> (Custom).</li>
+      <li>HTTPS endpoint: <code>https://YOUR-DOMAIN/api/alexa</code></li>
+      <li>Intent <code>GetDirectionIntent</code> with slot <code>symbol</code>.</li>
+      <li>Utterances: “what’s the direction on {symbol}”, “ask TrueTrend about {symbol}”.</li>
+    </ol>
   </div>
+</div>
 
-  <script>
-    // footer year
-    document.getElementById('yr').textContent = new Date().getFullYear();
+<script>
+  // Year
+  document.getElementById('yr').textContent = new Date().getFullYear();
 
-    // modal
-    const mb = document.getElementById('mb');
-    const modal = document.getElementById('modal');
-    const openModal = () => { mb.style.display='block'; modal.style.display='grid'; };
-    const closeModal = () => { mb.style.display='none'; modal.style.display='none'; };
-    document.getElementById('howBtn').onclick = openModal;
-    document.getElementById('close').onclick = closeModal;
-    mb.onclick = closeModal;
+  // Modal
+  const backdrop = document.getElementById('backdrop');
+  const modal = document.getElementById('modal');
+  const open = () => { backdrop.style.display='block'; modal.style.display='grid'; };
+  const close = () => { backdrop.style.display='none'; modal.style.display='none'; };
+  document.getElementById('how').onclick = open;
+  document.getElementById('close').onclick = close;
+  backdrop.onclick = close;
 
-    // analyze
-    const out = document.getElementById('out');
-    const symEl = document.getElementById('sym');
-    const tfEl  = document.getElementById('tf');
-
-    async function analyze(symbol) {
-      out.innerHTML = '<span class="muted">Working…</span>';
-      try {
-        const tf = tfEl.value || '60';
-        const r = await fetch(`/api/analyze?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(tf)}`);
-        const j = await r.json();
-        if (!r.ok || j.error) throw new Error(j.error || 'Request failed');
-
-        const rows = [
-          ['Bias', `<strong>${j.direction ?? 'neutral'}</strong>`],
-          ['Last Price', j.lastPrice ?? '—'],
-          ['Timeframe', tf],
-          ['Candles', j.totalCandles ?? '—']
-        ];
-        out.innerHTML = rows.map(([k,v]) => `<div class="kpi"><span class="muted">${k}:</span> <span>${v}</span></div>`).join('');
-      } catch (e) {
-        out.innerHTML = `<span class="muted" style="color:#f87171">Error: ${e.message}</span>`;
-      }
+  // Analyze (multi-timeframe)
+  const out = document.getElementById('out');
+  async function analyze(symbol, tf){
+    out.innerHTML = '<span class="muted">Working…</span>';
+    try{
+      const r = await fetch(`/api/analyze?symbol=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(tf)}`);
+      const j = await r.json();
+      if(j.error) throw new Error(j.error);
+      const rows = [
+        ['Bias', `<strong>${j.bias ?? 'neutral'}</strong> (${j.confidence ?? 0}% confidence)`],
+        ['Price', j.price ?? '—'],
+        ['RSI', j.rsi ?? '—'],
+        ['Support', j.levels?.support ?? '—'],
+        ['Resistance', j.levels?.resistance ?? '—'],
+        ['Notes', (j.notes || []).join(' • ') || '—']
+      ];
+      out.innerHTML = rows.map(([k,v]) => `<div class="kpi"><span class="muted">${k}:</span><span>${v}</span></div>`).join('');
+    }catch(e){
+      out.innerHTML = `<span class="muted" style="color:var(--danger)">Error: ${e.message}</span>`;
     }
-    document.getElementById('go').onclick = () => {
-      const s = symEl.value.trim();
-      if (s) analyze(s);
-    };
-    symEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') document.getElementById('go').click();
-    });
+  }
+  document.getElementById('go').onclick = ()=>{
+    const s = document.getElementById('sym').value.trim() || 'NVDA';
+    const tf = document.getElementById('tf').value;
+    analyze(s, tf);
+  };
+  document.getElementById('sym').addEventListener('keydown', (e)=>{ if(e.key==='Enter') document.getElementById('go').click(); });
 
-    // voice preview (optional)
-    document.getElementById('voiceDemo').onclick = async () => {
-      const s = symEl.value.trim() || 'NVDA';
-      const el = document.getElementById('voiceOut');
-      el.textContent = 'Asking TrueTrend…';
-      try {
-        const r = await fetch(`/api/alexa?symbol=${encodeURIComponent(s)}`);
-        const j = await r.json();
-        el.textContent = j.speech || 'No preview available.';
-      } catch (e) {
-        el.textContent = 'Unable to fetch voice preview.';
+  // Voice preview
+  document.getElementById('voiceDemo').onclick = async ()=>{
+    const s = (document.getElementById('sym').value.trim() || 'NVDA');
+    const el = document.getElementById('voiceOut');
+    el.textContent = 'Asking TrueTrend…';
+    try{
+      const r = await fetch(`/api/alexa?symbol=${encodeURIComponent(s)}`);
+      const j = await r.json();
+      el.textContent = j.speech || 'No preview available.';
+    }catch{ el.textContent = 'Unable to fetch voice preview.'; }
+  };
+
+  // Hidden “family” trigger: if the user types the letters f-a-m-i-l-y
+  (function(){
+    const btn = document.getElementById('familyBtn');
+    const target = 'family';
+    let buf = '';
+    let last = 0;
+    window.addEventListener('keydown', (e)=>{
+      const now = Date.now();
+      if(now - last > 1200) buf = '';
+      last = now;
+      if(e.key.length === 1) buf += e.key.toLowerCase();
+      if(buf.endsWith(target)){
+        btn.style.display = 'inline-block';
+        // Optional pulse
+        btn.animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:600});
       }
-    };
-
-    // reveal Family CTA
-    const familyBtn = document.getElementById('familyCta');
-    function revealFamily(){ if (familyBtn) familyBtn.style.display='inline-block'; }
-    if (/[?&]family=1\b/i.test(location.search) || /#family\b/i.test(location.hash)) revealFamily();
-    let keyBuf=''; window.addEventListener('keydown',(e)=>{
-      const tag = document.activeElement?.tagName;
-      if (tag==='INPUT'||tag==='TEXTAREA'||e.ctrlKey||e.metaKey||e.altKey) return;
-      const ch = e.key.length===1 ? e.key.toLowerCase() : '';
-      if(!ch) return;
-      keyBuf=(keyBuf+ch).slice(-6);
-      if(keyBuf.includes('family')) revealFamily();
     });
-  </script>
+  })();
+</script>
 </body>
 </html>
