@@ -1,38 +1,50 @@
-// app/api/analyze/route.ts
-export const dynamic = "force-dynamic";
+// api/analyze.js
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", ["POST"]);
+    return res.status(405).json({ error: true, message: "Method not allowed" });
+  }
 
-export async function POST(request: Request) {
   try {
-    const { symbol, timeframe } = await request.json();
-
+    const { symbol, timeframe } = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
     if (!symbol) {
-      return new Response(JSON.stringify({ error: "Missing symbol" }), { status: 400 });
+      return res.status(400).json({ error: true, message: "Missing symbol" });
     }
 
     const apiKey = process.env.TRUETREND_API_KEY;
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Server API key not set" }), { status: 500 });
+      return res.status(500).json({ error: true, message: "Server API key not set" });
     }
 
-    const r = await fetch(process.env.TRUETREND_API_URL ?? "https://api.truetrend.ai/analyze", {
+    const url = process.env.TRUETREND_API_URL || "https://api.truetrend.ai/analyze";
+
+    const r = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({ symbol, timeframe: timeframe || "Monthly" }),
       cache: "no-store",
     });
 
-    if (!r.ok) {
-      const detail = await r.text().catch(() => "");
-      return new Response(JSON.stringify({ error: "Upstream error", detail }), { status: r.status });
+    const text = await r.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw: text };
     }
 
-    const data = await r.json();
-    return new Response(JSON.stringify(data), { status: 200 });
+    if (!r.ok) {
+      return res
+        .status(r.status)
+        .json({ error: true, status: r.status, message: data?.message || data?.error || data?.raw || `Upstream ${r.status}` });
+    }
+
+    return res.status(200).json(data);
   } catch (err) {
-    console.error(err);
-    return new Response(JSON.stringify({ error: "Unexpected server error" }), { status: 500 });
+    console.error("vercel /api/analyze error:", err);
+    return res.status(500).json({ error: true, message: "Unexpected server error" });
   }
 }
