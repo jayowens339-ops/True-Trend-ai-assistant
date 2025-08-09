@@ -1,4 +1,3 @@
-// pages/api/analyze.js
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
@@ -11,7 +10,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: true, message: "Missing symbol" });
     }
 
-    const apiKey = process.env.TRUETREND_API_KEY; // server-only (no NEXT_PUBLIC_)
+    const apiKey = process.env.TRUETREND_API_KEY;
     if (!apiKey) {
       return res.status(500).json({ error: true, message: "Server API key not set" });
     }
@@ -29,22 +28,29 @@ export default async function handler(req, res) {
     });
 
     const text = await r.text();
+    console.log("Upstream API raw response:", text); // ✅ This will appear in Vercel logs
+
     let data;
     try {
-      data = text ? JSON.parse(text) : {};
+      data = JSON.parse(text);
     } catch {
-      data = { raw: text }; // upstream sent plain text
+      // If not JSON, wrap it in an object
+      data = { raw: text };
     }
 
     if (!r.ok) {
-      return res
-        .status(r.status)
-        .json({ error: true, status: r.status, message: data?.message || data?.error || data?.raw || `Upstream ${r.status}` });
+      return res.status(r.status).json({
+        error: true,
+        status: r.status,
+        message: data?.message || data?.error || data?.raw || `Upstream ${r.status}`
+      });
     }
 
+    // Return whatever data the upstream actually sent
     return res.status(200).json(data);
+
   } catch (err) {
-    console.error("analyze API error:", err);
+    console.error("Analyze API error:", err);
     return res.status(500).json({ error: true, message: "Unexpected server error" });
   }
 }
