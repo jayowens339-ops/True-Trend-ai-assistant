@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TrueTrend AI — Access</title>
+<style>
+:root{--bg:#0a0f1f;--card:#121936;--line:#22306a;--txt:#eaf0ff;--mut:#98a9d6;--accent:#22c55e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:16px Inter,system-ui,Segoe UI,Roboto}
+.wrap{max-width:900px;margin:0 auto;padding:28px 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.badge{display:inline-block;background:#0e1640;border:1px solid var(--line);padding:4px 10px;border-radius:999px;color:#cfe0ff;font-size:12px}
+a.launch{display:inline-block;background:var(--accent);color:#052910;font-weight:800;padding:12px 16px;border-radius:12px;text-decoration:none}
+pre{white-space:pre-wrap;word-break:break-word;background:#0c1434;border:1px solid #253375;border-radius:8px;padding:10px}
+.logo{border:1px solid #2a3a7a;border-radius:999px;padding:6px 10px;background:#0f1738;color:#cde0ff;font-size:13px;margin-right:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <span class="badge" id="planBadge">Access Granted</span>
+    <h1 style="margin:6px 0 10px">Welcome to TrueTrend AI</h1>
+    <p>You’re in. Launch the app or attach it to any chart using the bookmarklet below.</p>
+    <p><a class="launch" id="launch" href="PRODUCT_URL" target="_blank">Open TrueTrend AI</a></p>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2 style="margin-top:0">Attach to any chart (bookmarklet)</h2>
+    <p>Drag the button below to your bookmarks bar. Then open any chart (TradingView, TradeLocker, TradeStation, Binance, Fidelity, Schwab, PocketOptions), and click it.</p>
+    <p id="bmHolder"></p>
+    <div style="margin-top:10px">
+      <span class="logo">TradingView</span><span class="logo">TradeLocker</span><span class="logo">TradeStation</span>
+      <span class="logo">Binance</span><span class="logo">Fidelity</span><span class="logo">Schwab</span><span class="logo">PocketOptions</span>
+    </div>
+    <p style="margin-top:10px">Tip: If your browser hides the bookmarks bar, show it with <b>Ctrl+Shift+B</b> (Windows) or <b>Cmd+Shift+B</b> (Mac).</p>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2 style="margin-top:0">What’s included</h2>
+    <ul>
+      <li>Voice BUY/SELL with confidence score</li>
+      <li>9 strategies: Trendline, EMA Touch, ORB, Support/Resistance, Stoch+W%R, RSI+MACD, Break of Structure, Pullback Continuation, Mean Reversion</li>
+      <li>Built-in journal with CSV export</li>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2 style="margin-top:0">Need help?</h2>
+    <p>Email support: <a href="mailto:james01882@gmail.com">james01882@gmail.com</a></p>
+    <p class="badge">Not financial advice. Trade responsibly.</p>
+  </div>
+</div>
+
+<script>
+// read plan from query (?plan=starter|pro|lifetime)
+const params=new URLSearchParams(location.search);const plan=params.get('plan')||'member';
+document.getElementById('planBadge').textContent=plan.charAt(0).toUpperCase()+plan.slice(1)+' Access';
+
+// Build the bookmarklet using this domain's /api/analyze endpoint
+(function buildBookmarklet(){
+  const ORIGIN = new URL(document.getElementById('launch').href).origin; // your app origin
+  const code = `
+    (function(){
+      if(window.__TTAI_OVERLAY__){return;}
+      const API='${ORIGIN}/api/analyze';
+      const css=\`
+      #ttai-ov{all:initial;position:fixed;z-index:999999;right:14px;bottom:14px;width:320px;
+      font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;color:#e9eeff;background:#121935;
+      border:1px solid #29336b;border-radius:12px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+      #ttai-ov *{all:unset;display:revert}
+      #ttai-ov input,#ttai-ov select,#ttai-ov button{background:#0e1538;border:1px solid #29336b;color:#e9eeff;border-radius:8px;height:34px;padding:0 8px}
+      #ttai-ov button{background:#22c55e;color:#04220f;font-weight:700;cursor:pointer}
+      #ttai-ov .t{font-size:12px;color:#93a7d9;margin-top:6px} #ttai-ov .sig{font-weight:900;margin-top:6px}
+      #ttai-ov .buy{color:#22c55e}#ttai-ov .sell{color:#ff7373}\`;
+      const s=document.createElement('style');s.textContent=css;document.head.appendChild(s);
+      const box=document.createElement('div');box.id='ttai-ov';
+      box.innerHTML='<div style="display:flex;gap:6px;margin-bottom:6px"><input id="tt-sym" placeholder="Symbol" style="flex:1"><select id="tt-tf"><option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option></select><button id="tt-go">Go</button></div><div style="display:flex;gap:6px"><select id="tt-str"><option>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option><option>Stoch + Williams %R</option><option>RSI + MACD</option><option>Break of Structure</option><option>Pullback Continuation</option><option>Mean Reversion</option></select><label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="tt-voice" checked>Voice</label></div><div class="t" id="tt-st">Attached. Watching…</div><div id="tt-out" class="t"></div><div id="tt-s" class="sig"></div>';
+      document.body.appendChild(box); window.__TTAI_OVERLAY__=true;
+      const q=(x)=>box.querySelector(x); const sym=q('#tt-sym'), tf=q('#tt-tf'), str=q('#tt-str'), st=q('#tt-st'), out=q('#tt-out'), sig=q('#tt-s'), voice=q('#tt-voice');
+      function speak(t){try{if(!voice.checked)return;speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(t));}catch{}}
+      function guessSym(){ const u=new URL(location.href); const sp=u.searchParams.get('symbol'); if(sp) return decodeURIComponent(sp).replace(/[:_]/g,'').replace(/-.*/,'');
+        const m=location.pathname.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR)?/); if(m) return m[0];
+        const t=document.title.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR)?/); return t?t[0]:'';}
+      sym.value=guessSym()||'EURUSD';
+      async function run(){
+        st.textContent='Analyzing…';
+        try{ const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticker:sym.value,timeframe:tf.value,strategy:str.value})});
+          const j=await r.json(); const s=j.signals&&j.signals[0]; out.textContent=(j.summary||'')+'  ['+(j.mode||'')+']';
+          sig.textContent=s? s.action+' — '+s.reason+' ('+Math.round((s.confidence||0)*100)+'%)':'';
+          sig.className='sig '+(s?(s.action==='BUY'?'buy':'sell'):''); if(s) speak(s.action+'. '+s.reason);
+        }catch(e){ st.textContent='Error. Try again.'; }
+        st.textContent='Watching…';
+      }
+      q('#tt-go').addEventListener('click',run); sym.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+      let href=location.href, tit=document.title; setInterval(()=>{ if(location.href!==href||document.title!==tit){ href=location.href; tit=document.title; const g=guessSym(); if(g && g!==sym.value){ sym.value=g; run(); } } },1500);
+      run();
+    })();
+  `.replace(/\n+/g,' ');
+  const a=document.createElement('a'); a.textContent='Attach TrueTrend to this page'; a.style='display:inline-block;background:#0e1640;border:1px solid #2a3a7a;padding:10px 12px;border-radius:10px;color:#dbe6ff';
+  a.href='javascript:'+encodeURIComponent(code);
+  document.getElementById('bmHolder').appendChild(a);
+})();
+</script>
+</body>
+</html>
