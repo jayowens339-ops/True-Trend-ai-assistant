@@ -6,12 +6,8 @@
 <title>TrueTrend AI - Learn it. Earn it. Own it.</title>
 <meta name="description" content="TrueTrend AI reads your charts, explains the why, and alerts you with clear entries. Works with any chart or platform." />
 <style>
-  :root{
-    --bg:#0b1220;--card:#0f172a;--border:#1f2937;--text:#e6e9ef;--muted:#9aa3b2;
-    --accent:#22c55e;--ink:#031c10;--btn:#16a34a;--btn2:#0ea5e9;--danger:#ef4444;--warn:#f59e0b
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  :root{--bg:#0b1220;--card:#0f172a;--border:#1f2937;--text:#e6e9ef;--muted:#9aa3b2;--accent:#22c55e;--ink:#031c10;--btn:#16a34a;--warn:#f59e0b;--danger:#ef4444}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
   a{color:inherit;text-decoration:none}
   .container{max-width:1140px;margin:0 auto;padding:0 16px}
   header{position:sticky;top:0;background:rgba(11,18,32,.75);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);z-index:5}
@@ -41,8 +37,7 @@
   .plan{background:#0b1424;border:1px solid var(--border);border-radius:14px;padding:16px}
   .price{font-size:26px;font-weight:900;margin:6px 0 10px}
   .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#0b1424}
-  .dot{width:10px;height:10px;border-radius:50%}
-  .green{background:var(--accent)} .yellow{background:var(--warn)} .red{background:var(--danger)}
+  .dot{width:10px;height:10px;border-radius:50%} .green{background:var(--accent)} .yellow{background:var(--warn)} .red{background:var(--danger)}
   @media (max-width:900px){ .grid2{grid-template-columns:1fr} h1{font-size:32px} }
 </style>
 </head>
@@ -84,8 +79,7 @@
       <div class="row">
         <input id="symbol" class="input" placeholder="AAPL" value="NVDA" style="flex:1">
         <select id="tf">
-          <option>Monthly</option><option selected>Weekly</option>
-          <option>Daily</option><option>1h</option><option>15m</option>
+          <option>Monthly</option><option>Weekly</option><option selected>Daily</option><option>1h</option><option>15m</option>
         </select>
         <button id="go">Analyze</button>
       </div>
@@ -139,9 +133,9 @@
       <h3 style="margin:0 0 6px">Trendline Strategy</h3>
       <ul class="small" style="line-height:1.6;margin:6px 0 0;padding-left:18px">
         <li>Draw a line through two or more swing lows for an uptrend or highs for a downtrend</li>
-        <li>Entry A - bounce: price touches and rejects in the direction of the trend</li>
-        <li>Entry B - break: strong close through the line then retest then continuation</li>
-        <li>Stops beyond the line or swing, targets 1R to 2R or next support or resistance</li>
+        <li>Entry A - bounce: price touches and rejects in trend direction</li>
+        <li>Entry B - break: close through the line, retest, continuation</li>
+        <li>Stops beyond the line or swing, targets 1R to 2R or next level</li>
         <li>Best on 5m to 1h charts for stocks, forex or crypto</li>
       </ul>
     </div>
@@ -235,14 +229,13 @@
 </footer>
 
 <script>
-  // tiny helpers
   function $(id){return document.getElementById(id);}
-  function j(r){return JSON.stringify(r,null,2);}
+  function j(x){return JSON.stringify(x,null,2);}
 
   // Overtrading guard (local only)
   const ogKey = "tt_clicks";
-  function readClicks(){ try{return JSON.parse(localStorage.getItem(ogKey)||"[]");}catch(e){return []} }
-  function writeClicks(a){ localStorage.setItem(ogKey, JSON.stringify(a)); }
+  function readClicks(){ try{return JSON.parse(localStorage.getItem(ogKey)||"[]");}catch(_){return [];} }
+  function writeClicks(v){ localStorage.setItem(ogKey, JSON.stringify(v)); }
   function updateGuardUI(){
     const now = Date.now();
     const arr = readClicks().filter(t => now - t < 60*60*1000);
@@ -253,72 +246,69 @@
     const lim60 = parseInt($("og60").value||"25",10);
     $("ogCounts").textContent = "Last 15m: " + n15 + "/" + lim15 + " - Last 60m: " + n60 + "/" + lim60;
 
-    var cls = "green", txt = "Cool";
-    if (n15 >= lim15 || n60 >= lim60){ cls = "red"; txt = "Slow down"; }
-    else if (n15 >= Math.max(1, Math.floor(lim15*0.7)) || n60 >= Math.max(1, Math.floor(lim60*0.7))){ cls="yellow"; txt="Caution"; }
+    var cls="green", txt="Cool";
+    if(n15>=lim15 || n60>=lim60){ cls="red"; txt="Slow down"; }
+    else if(n15>=Math.max(1,Math.floor(lim15*0.7)) || n60>=Math.max(1,Math.floor(lim60*0.7))){ cls="yellow"; txt="Caution"; }
     $("ogLight").className = "dot " + cls;
     $("ogStatus").textContent = txt;
 
-    const cdMin = parseInt($("ogCd").value||"0",10);
+    const cd = parseInt($("ogCd").value||"0",10);
     const until = parseInt(localStorage.getItem("tt_cd_until")||"0",10);
-    const nowSec = Math.floor(now/1000);
-    const cooling = nowSec < until;
+    const nowS = Math.floor(now/1000);
+    const cooling = nowS < until;
     $("go").disabled = cooling;
-    $("go").textContent = cooling ? ("Cooldown " + Math.ceil((until-nowSec)/60) + "m") : "Analyze";
+    $("go").textContent = cooling ? ("Cooldown " + Math.ceil((until-nowS)/60) + "m") : "Analyze";
 
-    if (!cooling && cdMin>0 && (n15 >= lim15 || n60 >= lim60)){
-      localStorage.setItem("tt_cd_until", String(nowSec + cdMin*60));
+    if(!cooling && cd>0 && (n15>=lim15 || n60>=lim60)){
+      localStorage.setItem("tt_cd_until", String(nowS + cd*60));
       updateGuardUI();
     }
   }
   ["og15","og60","ogCd"].forEach(id => $(id).addEventListener("input", updateGuardUI));
   $("ogReset").addEventListener("click", ()=>{ writeClicks([]); localStorage.removeItem("tt_cd_until"); updateGuardUI(); });
 
-  // Analyze
-  async function run(symbol, timeframe, payloadExtra){
-    const body = Object.assign({symbol,timeframe}, (payloadExtra||{}));
+  // patched run(): do not throw on data.error; only on HTTP error
+  async function run(symbol, timeframe, extra){
     const r = await fetch("/api/analyze", {
       method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify(body)
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(Object.assign({ symbol, timeframe }, extra||{}))
     });
     const ct = r.headers.get("content-type")||"";
-    const data = ct.indexOf("application/json")>=0 ? await r.json() : { raw: await r.text() };
-    if (!r.ok || data.error){ throw new Error(data.message || JSON.stringify(data.detail) || data.raw || ("HTTP "+r.status)); }
+    const data = ct.includes("application/json") ? await r.json() : { raw: await r.text() };
+    if(!r.ok) throw new Error(data.message || ("HTTP "+r.status));
     return data;
   }
 
   $("go").addEventListener("click", async ()=>{
     const s = ($("symbol").value||"AAPL").trim();
-    const tf = $("tf").value || "Weekly";
+    const tf = $("tf").value || "Daily";
     $("out").textContent = "Analyzing...";
     try{
       const data = await run(s, tf);
-      const q = data.quote||{};
-      const sig = data.signal||{};
-      var lines = [];
+      const q = data.quote || {};
+      const sig = data.signal || {};
+      const lines = [];
       lines.push("Symbol: " + s + " (" + tf + ")");
-      lines.push("Price: " + q.c + "  Open: " + q.o + "  High: " + q.h + "  Low: " + q.l);
-      if (q.pc!=null && q.c!=null){
-        var d = q.c - q.pc, p = q.pc ? (d/q.pc*100) : 0;
-        lines.push("Change: " + d.toFixed(2) + " (" + p.toFixed(2) + "%)");
+      if(q.c!=null) lines.push("Price: " + q.c + "  Open: " + q.o + "  High: " + q.h + "  Low: " + q.l);
+      if(data.note){ lines.push(""); lines.push("Note: " + data.note); }
+      if(sig && (sig.action || sig.entry!=null)){
+        lines.push("");
+        lines.push("Signal: " + (sig.action||"HOLD") + "  Confidence: " + (sig.confidence??"-") + "%");
+        lines.push("Entry: " + (sig.entry??"-") + "  Stop: " + (sig.stop??"-"));
+        lines.push("Targets: " + (Array.isArray(sig.targets)?sig.targets.join(", "):"-"));
+      } else {
+        lines.push(""); lines.push("No signal yet. Try another timeframe or a prefixed symbol (OANDA:EUR_USD, BINANCE:BTCUSDT).");
       }
-      lines.push("");
-      lines.push("Signal: " + (sig.action||"-") + "  Confidence: " + (sig.confidence!=null?sig.confidence:"-") + "%");
-      lines.push("Entry: " + (sig.entry!=null?sig.entry:"-") + "  Stop: " + (sig.stop!=null?sig.stop:"-"));
-      lines.push("Targets: " + (Array.isArray(sig.targets)?sig.targets.join(", "):"-"));
       $("out").textContent = lines.join("\n");
 
       const arr = readClicks(); arr.push(Date.now()); writeClicks(arr); updateGuardUI();
-    }catch(e){
-      $("out").textContent = "Error: " + e.message;
-    }
+    }catch(e){ $("out").textContent = "Error: " + e.message; }
   });
 
-  // Custom strategy
+  // custom strategy button (passes through to API; API currently returns main signal)
   $("runStrat").addEventListener("click", async ()=>{
-    var sObj;
-    try{ sObj = JSON.parse($("stratBox").value); }catch(e){ $("stratOut").textContent = "Invalid JSON"; return; }
+    let sObj; try{ sObj = JSON.parse($("stratBox").value); }catch(_){ $("stratOut").textContent="Invalid JSON"; return; }
     const sym = $("sym2").value.trim() || "AAPL";
     const tfx = $("tf2").value || "15m";
     $("stratOut").textContent = "Running custom strategy...";
@@ -328,7 +318,7 @@
     }catch(e){ $("stratOut").textContent = "Error: " + e.message; }
   });
 
-  // Voice test
+  // voice demo
   $("vbtn").addEventListener("click", async ()=>{
     const s = $("vsym").value.trim() || "AAPL";
     const tf = $("vtf").value || "15m";
@@ -339,7 +329,6 @@
     }catch(e){ $("vout").textContent = "Error: " + e.message; }
   });
 
-  // init
   document.getElementById("y").textContent = new Date().getFullYear();
   updateGuardUI();
 </script>
