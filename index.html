@@ -1,48 +1,52 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>TrueTrend AI — Learn money. Earn money. Own money.</title>
-  <meta name="description" content="TrueTrend AI reads charts, explains the why, and tells you what’s changing—so you can act with confidence."/>
-  <style>
-    :root{
-      --bg:#070b14;--ink:#ecf1ff;--mut:#97a5c7;--card:#0d1324;--line:#1a2340;
-      --acc:#22c55e;--acc2:#7c5cff;--chip:#111a33;--glow:0 12px 30px rgba(124,92,255,.25);
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;background:linear-gradient(180deg,#070b14 0%,#0a1130 100%);color:var(--ink);font:16px/1.45 Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
-    a{color:#9cc1ff;text-decoration:none}
-    .wrap{max-width:1200px;margin:0 auto;padding:28px}
-    header{display:flex;align-items:center;justify-content:space-between;gap:14px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(45deg,var(--acc2),#36d399);box-shadow:0 0 18px #7c5cff}
-    nav a{margin:0 10px;color:var(--mut)}
-    .cta{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{background:var(--acc);color:#062613;border:0;padding:12px 18px;border-radius:12px;font-weight:800;cursor:pointer}
-    .btn.ghost{background:#121a33;color:#cfe0ff;border:1px solid var(--line)}
-    .btn.purple{background:var(--acc2);color:#0a0720;box-shadow:var(--glow)}
-    .tag{display:inline-block;background:#0c1530;border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:#cde1ff;margin:4px 6px 0 0;font-size:.86rem}
-    .grid{display:grid;gap:24px;grid-template-columns:1.1fr 1fr;margin-top:26px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
-    h1{font-size:44px;line-height:1.05;margin:10px 0}
-    .sub{color:var(--mut)}
-    .badges{margin-top:12px}
-    .lockable{position:relative}
-    .lockOverlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,12,24,.7),rgba(8,12,24,.7));display:flex;align-items:center;justify-content:center;border-radius:18px}
-    .lockInner{background:#0b1222;border:1px solid var(--line);padding:16px;border-radius:12px;text-align:center}
-    input,select,textarea{background:#0b1430;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:11px 12px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .pill{background:#0f1a3a;border:1px solid var(--line);padding:6px 10px;border-radius:999px}
-    .mut{color:var(--mut)}
-    .mono{font-family:ui-monospace,Consolas,Menlo,monospace}
-    .kpi{font-size:40px;font-weight:900}
-    .divider{height:1px;background:var(--line);margin:18px 0}
-    .modal{position:fixed;inset:0;background:rgba(2,4,10,.6);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
-    .modal .sheet{max-width:900px;width:100%;background:#0d1326;border:1px solid var(--line);border-radius:16px;padding:18px}
-    footer{margin:50px 0 20px;color:var(--mut);text-align:center}
-    canvas{max-width:100%}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TrueTrend AI — Learn money. Earn money. Own money.</title>
+<meta name="description" content="TrueTrend AI reads any chart, explains the why, and tells you what’s changing—no Telegrams, WhatsApp, or gurus needed."/>
+<style>
+  :root{
+    --bg:#070b14;--ink:#ecf1ff;--mut:#97a5c7;--card:#0d1324;--line:#1a2340;
+    --acc:#22c55e;--acc2:#7c5cff;--chip:#111a33;--glow:0 12px 30px rgba(124,92,255,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:linear-gradient(180deg,#070b14 0%,#0a1130 100%);color:var(--ink);
+    font:16px/1.45 Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+  a{color:#9cc1ff;text-decoration:none}
+  .wrap{max-width:1200px;margin:0 auto;padding:28px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:14px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(45deg,var(--acc2),#36d399);box-shadow:0 0 18px #7c5cff}
+  nav a{margin:0 10px;color:var(--mut)}
+  .cta{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{background:var(--acc);color:#062613;border:0;padding:12px 18px;border-radius:12px;font-weight:800;cursor:pointer}
+  .btn.ghost{background:#121a33;color:#cfe0ff;border:1px solid var(--line)}
+  .btn.purple{background:var(--acc2);color:#0a0720;box-shadow:var(--glow)}
+  .tag{display:inline-block;background:#0c1530;border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:#cde1ff;margin:4px 6px 0 0;font-size:.86rem}
+  .grid{display:grid;gap:24px;grid-template-columns:1.1fr 1fr;margin-top:26px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;position:relative}
+  h1{font-size:44px;line-height:1.05;margin:10px 0}
+  .sub{color:var(--mut)}
+  .badges{margin-top:12px}
+  .lockable{position:relative}
+  .lockOverlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,12,24,.7),rgba(8,12,24,.7));
+    display:flex;align-items:center;justify-content:center;border-radius:18px}
+  .lockInner{background:#0b1222;border:1px solid var(--line);padding:16px;border-radius:12px;text-align:center}
+  input,select,textarea{background:#0b1430;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:11px 12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .pill{background:#0f1a3a;border:1px solid var(--line);padding:6px 10px;border-radius:999px}
+  .mut{color:var(--mut)}
+  .mono{font-family:ui-monospace,Consolas,Menlo,monospace}
+  .kpi{font-size:40px;font-weight:900}
+  .divider{height:1px;background:var(--line);margin:18px 0}
+  .modal{position:fixed;inset:0;background:rgba(2,4,10,.6);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal .sheet{max-width:900px;width:100%;background:#0d1326;border:1px solid var(--line);border-radius:16px;padding:18px}
+  footer{margin:50px 0 20px;color:var(--mut);text-align:center}
+  canvas{max-width:100%}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:6px;border-bottom:1px solid var(--line)}
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -65,10 +69,12 @@
     <section class="grid">
       <div class="card">
         <h1>Learn money. Earn money. Own money.</h1>
-        <p class="sub">Your chic AI co-pilot that reads <b>any chart</b>, explains the <b>why</b>, and tells you what’s changing—so you can act with confidence.</p>
+        <p class="sub">Your chic AI co-pilot that reads <b>any chart</b>, explains the <b>why</b>, and tells you what’s changing—<b>no Telegrams, WhatsApp, or gurus needed</b>.</p>
+
         <div class="badges">
           <div class="mut" style="margin:6px 0 2px">Works with charts:</div>
-          <span class="tag">TradingView</span><span class="tag">TD</span><span class="tag">Webull</span><span class="tag">MooMoo</span><span class="tag">MT4/5</span><span class="tag">ThinkOrSwim</span>
+          <span class="tag">TradingView</span><span class="tag">Thinkorswim</span><span class="tag">Webull</span><span class="tag">MooMoo</span><span class="tag">MT4/5</span>
+          <span class="tag">TradeStation</span><span class="tag">TradeLocker</span>
           <div class="mut" style="margin:10px 0 2px">And brokers/exchanges:</div>
           <span class="tag">Schwab</span><span class="tag">Fidelity</span><span class="tag">OANDA (FX)</span><span class="tag">Binance</span>
         </div>
@@ -76,7 +82,7 @@
         <div class="divider"></div>
         <div class="row">
           <a class="btn" href="#pricing">Try 3-Day Free</a>
-          <button class="btn ghost" id="openStrategies">See Strategies & How-To</button>
+          <button class="btn ghost" id="openStrategies">See Strategies & How-to</button>
         </div>
       </div>
 
@@ -124,7 +130,7 @@
         </div>
         <canvas id="equity" height="120"></canvas>
         <div class="divider"></div>
-        <table id="jTable" style="width:100%;border-collapse:collapse;font-size:.95rem">
+        <table id="jTable">
           <thead><tr style="color:#c6d6ff"><th align="left">Date</th><th align="left">Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>P/L</th><th align="left">Notes</th></tr></thead>
           <tbody></tbody>
         </table>
@@ -180,56 +186,61 @@
   <div class="modal" id="guide">
     <div class="sheet">
       <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 id="strategies" style="margin:0">Strategies & How-To</h3>
+        <h3 id="strategies" style="margin:0">Strategies & How-to</h3>
         <button class="btn ghost" id="closeGuide">Close</button>
       </div>
       <div class="divider"></div>
       <h4>Built-in strategies</h4>
       <ul class="mut">
         <li><b>Trendline (short-term):</b> EMA slope proxy + pullback confirm.</li>
-        <li><b>Crossing EMAs (swing):</b> EMA-9 crossing EMA-50 + volume thrust.</li>
+        <li><b>Crossing EMAs (swing):</b> EMA-9 crossing EMA-50 + momentum thrust.</li>
         <li><b>RSI Reversal (short-term):</b> RSI(14) crosses 30/70 with momentum.</li>
         <li><b>Range Breakout (any):</b> break of recent high/low with retest.</li>
-        <li><b>Multi-TF filter:</b> optional “higher timeframe” slope check.</li>
+        <li><b>Multi-TF filter:</b> optional higher-timeframe slope check.</li>
       </ul>
 
       <div class="divider"></div>
       <h4>Alexa voice hookup (Pro/Lifetime)</h4>
       <ol class="mut">
-        <li>In the TrueTrend app, enable Voice in Settings.</li>
-        <li>In Alexa app, add a Custom Skill: Invocation “TrueTrend”.</li>
-        <li>Sample phrase: “Alexa, ask TrueTrend what’s the direction on NVDA?”</li>
+        <li>Enable Voice in TrueTrend settings.</li>
+        <li>In Alexa app, add a Custom Skill: invocation “TrueTrend”.</li>
+        <li>Sample phrase: “Alexa, ask TrueTrend is NVDA a buy on daily?”</li>
         <li>We return bias, confidence, RSI and key levels; Alexa reads it.</li>
       </ol>
 
       <div class="divider"></div>
       <h4>How to run the analyzer</h4>
       <ol class="mut">
-        <li>Pick <b>Ticker</b> → choose <b>Timeframe</b> → choose <b>Strategy</b>.</li>
-        <li>Click <b>Analyze</b>. If Pro/Lifetime, you’ll get voice and full signals.</li>
-        <li>Click “Add” in Journal to record the trade; we’ll draw your equity curve.</li>
+        <li>Enter <b>Ticker</b> → pick <b>Timeframe</b> → choose <b>Strategy</b>.</li>
+        <li>Click <b>Analyze</b>. Pro/Lifetime adds voice + enhanced signals.</li>
+        <li>Add the trade to your <b>Journal</b> to build your equity curve.</li>
       </ol>
     </div>
   </div>
 
 <script>
+/* ============ Utilities ============ */
 const $ = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+function number(n,d=2){ return (n==null||isNaN(n))?'-':Number(n).toFixed(d); }
 
-// ----- plan gate -----
+/* ============ Plan gate (uses backend if available, else Basic) ============ */
 async function getPlan(){
   try{
-    const r=await fetch('/api/entitlements/whoami',{credentials:'include'});
+    const r = await fetch('/api/entitlements/whoami',{credentials:'include'});
     if(!r.ok) throw 0;
-    const j=await r.json(); return j.plan||'basic';
-  }catch{return 'basic'}
+    const j = await r.json();
+    return j.plan || 'basic';
+  }catch{
+    return 'basic';
+  }
 }
 async function applyGate(){
   const p = await getPlan();
-  $('#planBadge').textContent = p==='pro' ? 'Pro' : p==='lifetime' ? 'Lifetime' : 'Basic';
+  $('#planBadge').textContent = p==='pro'?'Pro':p==='lifetime'?'Lifetime':p==='family'?'Family':'Basic';
   const hasFull = (p==='pro'||p==='lifetime'||p==='family');
   if(!hasFull){
-    // lock the pro panel & voice lookup
     const lock = '<div class="lockOverlay"><div class="lockInner"><b>Pro/Lifetime required</b><div style="margin-top:8px"><a class="btn purple" href="#pricing">Start 3-Day Free</a></div></div></div>';
     if(!$('#proPanel').querySelector('.lockOverlay')) $('#proPanel').insertAdjacentHTML('beforeend',lock);
   } else {
@@ -238,139 +249,215 @@ async function applyGate(){
 }
 applyGate();
 
-// ----- strategies modal -----
-$('#openGuide').onclick = $('#openStrategies').onclick = ()=>{$('#guide').style.display='flex'}
-$('#closeGuide').onclick = ()=>{$('#guide').style.display='none'}
+/* ============ Modal ============ */
+$('#openGuide').onclick = $('#openStrategies').onclick = ()=>{$('#guide').style.display='flex'};
+$('#closeGuide').onclick = ()=>{$('#guide').style.display='none'};
 
-// ----- analyze -----
-const clicks=[];
-function recordClick(){
-  const now=Date.now();
-  clicks.push(now);
-  // keep last hour
+/* ============ Over-trading guard ============ */
+const clicks=[]; function recordAnalyzeClick(){
+  const now=Date.now(); clicks.push(now);
   while(clicks[0] < now-60*60*1000) clicks.shift();
   const last15 = clicks.filter(t=> t>now-15*60*1000).length;
-  const last60 = clicks.length;
-  $('#otLabel').textContent = last15>10 || last60>25 ? 'Slow down' : 'Cool';
+  $('#otLabel').textContent = (last15>10 || clicks.length>25) ? 'Slow down' : 'Cool';
 }
 
-$('#run').onclick = async ()=>{
-  recordClick();
-  const symbol = $('#symbol').value.trim() || 'NVDA';
-  const timeframe = $('#timeframe').value;
-  const strategy = $('#strategy').value;
-  $('#answer').textContent = 'Analyzing '+symbol+'…';
-  try{
-    const r = await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({symbol,timeframe,strategy})});
-    const j = await r.json();
-    if(j.error){ $('#answer').textContent = 'Error: '+j.message; return; }
-
-    // pretty print
-    const lines = [];
-    lines.push(`Symbol: ${symbol} (${timeframe})`);
-    lines.push(`Price: ${j.quote.c.toFixed(2)}   High: ${j.quote.h.toFixed(2)}   Low: ${j.quote.l.toFixed(2)}`);
-    lines.push(`Signal: ${j.signal.action}   Confidence: ${Math.round(j.signal.confidence)}%`);
-    if(j.targets) lines.push(`Entry: ${j.targets.entry?.toFixed?.(2) ?? '-'}   Stop: ${j.targets.stop?.toFixed?.(2) ?? '-'}   TP: ${j.targets.tp?.toFixed?.(2) ?? '-'}`);
-    lines.push('— Reasoning —');
-    j.signal.reasons.forEach(r=>lines.push('• '+r));
-    $('#answer').textContent = lines.join('\\n');
-
-    // notification
-    if(Notification && Notification.permission!=='denied'){
-      if(Notification.permission!=='granted') await Notification.requestPermission();
-      if(Notification.permission==='granted'){
-        new Notification(`TrueTrend: ${j.signal.action}`, { body:`${symbol} ${timeframe} · ${Math.round(j.signal.confidence)}%` });
-      }
-    }
-
-    // voice (gated)
-    $('#speakBtn').onclick = ()=> speak(j.voiceText || lines.join('. '));
-  }catch(e){
-    $('#answer').textContent = 'Network error.';
+/* ============ Analyzer (client-side fallback; no server needed) ============ */
+function toYahoo(sym){
+  // FX like EURUSD → EURUSD=X ; Crypto like BTCUSD → BTC-USD ; TradingView OANDA:EUR_USD → EURUSD=X
+  const m = sym.match(/^OANDA:([A-Z]{3})_([A-Z]{3})$/); if(m) return m[1]+m[2]+'=X';
+  const c = sym.match(/^([A-Z]+)USDT$/i); if(c) return c[1].toUpperCase()+'-USD';
+  return sym;
+}
+function tfParams(tf){ switch(tf){
+  case '15m':return{interval:'15m',range:'5d',agg:1}; case '1h':return{interval:'60m',range:'1mo',agg:1};
+  case '4h':return{interval:'60m',range:'3mo',agg:4}; case 'Weekly':return{interval:'1wk',range:'2y',agg:1};
+  default: return{interval:'1d',range:'6mo',agg:1};
+}}
+async function fetchYahoo(sym,tf){
+  const {interval,range,agg}=tfParams(tf);
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(toYahoo(sym))}?range=${range}&interval=${interval}`;
+  const r=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 TrueTrend'}});
+  if(!r.ok) throw new Error('Data '+r.status);
+  const d=await r.json(); const res=d?.chart?.result?.[0]; const q=res?.indicators?.quote?.[0];
+  if(!res||!q||!Array.isArray(res.timestamp)) throw new Error('No data');
+  // aggregate 4h from 1h if needed
+  let c=q.close,h=q.high,l=q.low,o=q.open,t=res.timestamp;
+  if(tf==='4h'){
+    const C=[],H=[],L=[],O=[],T=[]; for(let i=0;i<c.length;i+=4){
+      const s=c.slice(i,i+4); if(s.length<4) break;
+      C.push(s.at(-1)); H.push(Math.max(...h.slice(i,i+4))); L.push(Math.min(...l.slice(i,i+4)));
+      O.push(o[i]); T.push(t[i]);
+    } c=C;h=H;l=L;o=O;t=T;
   }
-};
+  return {t,c,h,l,o};
+}
+function emaSeries(a,p){ if(!a.length) return []; const k=2/(p+1); let e=a[0]; return a.map((v,i)=> (e = i? v*k + e*(1-k) : v)); }
+function rsiSeries(a,p=14){ if(a.length<2) return Array(a.length).fill(50);
+  let g=0,l=0; for(let i=1;i<=p;i++){const d=a[i]-a[i-1]; if(d>=0) g+=d; else l-=d;}
+  let ag=g/p, al=l/p; const out=[...Array(p).fill(50)]; out.push( 100-100/(1+(ag/(al||1e-9))) );
+  for(let i=p+1;i<a.length;i++){ const d=a[i]-a[i-1]; const G=d>0?d:0, L=d<0?-d:0; ag=(ag*(p-1)+G)/p; al=(al*(p-1)+L)/p; out.push(100-100/(1+(ag/(al||1e-9)))); }
+  return out;
+}
+function macdHist(a){ const e12=emaSeries(a,12), e26=emaSeries(a,26); const line=e12.map((v,i)=>v-(e26[i]||v)); const sig=emaSeries(line,9); return line.map((v,i)=>v-(sig[i]||0)); }
+function slope(arr,n=6){ const s=arr.slice(-n); if(s.length<2) return 0; const f=s[0], l=s[s.length-1]; return (l-f)/Math.max(Math.abs(f),1e-9); }
 
-// ----- voice synthesis (friendlier male if available) -----
+function decideSignal(strategy, c, h, l){
+  const n=c.length-1, price=c[n];
+  const ema9=emaSeries(c,9), ema50=emaSeries(c,50), rsi=rsiSeries(c,14), hist=macdHist(c);
+  const bull=ema9[n]>ema50[n], emaSlope=slope(ema50,6), rsiV=rsi[n], macH=hist[n];
+  const reasons=[]; let action='HOLD', conf=50;
+
+  if(strategy==='cross'){
+    const up=ema9[n]>ema50[n] && ema9[n-1]<=ema50[n-1];
+    const dn=ema9[n]<ema50[n] && ema9[n-1]>=ema50[n-1];
+    if(up){action='BUY'; reasons.push('EMA9 crossed above EMA50');}
+    if(dn){action='SELL';reasons.push('EMA9 crossed below EMA50');}
+    conf=Math.min(95, Math.abs(emaSlope)*300 + (up||dn?25:0) + (macH>0?10:0));
+  } else if(strategy==='rsiReversal'){
+    if(rsiV<32){action='BUY'; reasons.push('RSI near oversold');}
+    else if(rsiV>68){action='SELL'; reasons.push('RSI near overbought');}
+    else reasons.push('RSI mid-range');
+    conf=Math.min(92, (70-Math.abs(50-rsiV))*(-1)+80 + (macH>0?8:0));
+  } else if(strategy==='breakout'){
+    const HH=Math.max(...h.slice(-20,-1)), LL=Math.min(...l.slice(-20,-1));
+    if(price>HH){action='BUY'; reasons.push('Breaking 20-bar high');}
+    else if(price<LL){action='SELL'; reasons.push('Breaking 20-bar low');}
+    else reasons.push('Still inside range');
+    conf=Math.min(90, (price>HH||price<LL?70:40) + (macH>0?6:0) + (bull?6:-2));
+  } else { // trendline
+    if(emaSlope>0 && price>=ema9[n]){action='BUY'; reasons.push('EMA50 slope up + above EMA9');}
+    else if(emaSlope<0 && price<=ema9[n]){action='SELL'; reasons.push('EMA50 slope down + below EMA9');}
+    else reasons.push('No clean alignment');
+    conf=Math.min(93, Math.abs(emaSlope)*400 + (macH>0?10:0) + (bull?8:-4));
+  }
+  conf=Math.max(5,Math.min(98,Math.round(conf)));
+  return {action,confidence:conf,reasons, price, ema9:ema9[n], ema50:ema50[n], rsi:rsiV, macdHist:macH};
+}
+function targets(sig){
+  const p=sig.price; if(sig.action==='BUY') return {entry:p, stop:p*0.98, tp:p*1.03};
+  if(sig.action==='SELL') return {entry:p, stop:p*1.02, tp:p*0.97}; return {};
+}
+function voiceLine(symbol, tf, sig){
+  const mood = sig.confidence>80?'high confidence':sig.confidence>60?'good confidence':'low confidence';
+  return `On ${symbol} ${tf}, price around ${number(sig.price)}. Signal is ${sig.action.toLowerCase()} with ${sig.confidence} percent, ${mood}. Reasons: ${sig.reasons.slice(0,3).join('; ')}.`;
+}
+
+/* Robust click binding (fixes Analyze button not responding) */
+document.addEventListener('DOMContentLoaded', ()=>{
+
+  $('#run').addEventListener('click', async ()=>{
+    try{
+      recordAnalyzeClick();
+      const symbol = $('#symbol').value.trim() || 'NVDA';
+      const timeframe = $('#timeframe').value || 'Daily';
+      const strategy = $('#strategy').value || 'trendline';
+      $('#answer').textContent = `Analyzing ${symbol} (${timeframe})…`;
+
+      const o = await fetchYahoo(symbol,timeframe);
+      const sig = decideSignal(strategy, o.c, o.h, o.l);
+      const tgt = targets(sig);
+
+      const lines=[];
+      lines.push(`Symbol: ${symbol} (${timeframe})`);
+      lines.push(`Price: ${number(sig.price)}   High: ${number(o.h.at(-1))}   Low: ${number(o.l.at(-1))}`);
+      lines.push(`Signal: ${sig.action}   Confidence: ${sig.confidence}%`);
+      if(tgt.entry) lines.push(`Entry: ${number(tgt.entry)}   Stop: ${number(tgt.stop)}   TP: ${number(tgt.tp)}`);
+      lines.push('— Reasoning —'); sig.reasons.forEach(r=>lines.push('• '+r));
+      $('#answer').textContent = lines.join('\n');
+
+      // Desktop notification
+      try{
+        if('Notification' in window){
+          if(Notification.permission==='default') await Notification.requestPermission();
+          if(Notification.permission==='granted'){
+            new Notification(`TrueTrend: ${sig.action}`, { body:`${symbol} ${timeframe} · ${sig.confidence}%` });
+          }
+        }
+      }catch{}
+
+      // attach voice for gated users (button shown only when unlocked)
+      $('#speakBtn').onclick = ()=> speak( voiceLine(symbol,timeframe,sig) );
+
+    }catch(e){
+      console.error(e);
+      $('#answer').textContent = 'Error: '+(e.message||'Failed to analyze.');
+    }
+  }, { passive:true });
+
+  // Voice lookup (gated UI shows when plan unlocked)
+  $('#voiceAnalyze').addEventListener('click', async ()=>{
+    const s = $('#voiceSym').value.trim() || 'AAPL';
+    $('#voiceOut').textContent = 'Fetching voice text for '+s+'…';
+    try{
+      const o = await fetchYahoo(s,'Daily');
+      const sig = decideSignal('trendline', o.c, o.h, o.l);
+      const v = voiceLine(s,'Daily',sig);
+      $('#voiceOut').textContent = v;
+      if($('#voiceRow').style.display==='flex') speak(v);
+    }catch(e){
+      $('#voiceOut').textContent = 'Error: '+(e.message||'Failed.');
+    }
+  }, { passive:true });
+
+});
+
+/* ===== Voice (friendlier male) ===== */
 function pickMaleVoice(){
   const voices = speechSynthesis.getVoices();
-  const prefer = [
-    /Daniel/i, /Alex/i, /UK English Male/i, /Google UK English Male/i, /Male/i
-  ];
-  for(const p of prefer){
-    const v = voices.find(v=>p.test(v.name)); if(v) return v;
-  }
+  const prefer=[/Daniel/i,/Alex/i,/UK English Male/i,/Google UK English Male/i,/Male/i];
+  for(const p of prefer){ const v=voices.find(v=>p.test(v.name)); if(v) return v; }
   return voices[0];
 }
 function speak(text){
-  if(!window.speechSynthesis) return;
-  const u = new SpeechSynthesisUtterance(text);
-  const v = pickMaleVoice(); if(v) u.voice = v;
-  u.rate = 1.02; u.pitch = 1.05;
+  if(!('speechSynthesis' in window)) return;
+  const u=new SpeechSynthesisUtterance(text);
+  const v=pickMaleVoice(); if(v) u.voice=v;
+  u.rate=1.02; u.pitch=1.05;
   speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
-speechSynthesis.onvoiceschanged = ()=>{}; // ensures voices load
+speechSynthesis.onvoiceschanged=()=>{};
 
-// ----- voice lookup short-cut -----
-$('#voiceAnalyze').onclick = async ()=>{
-  const s = $('#voiceSym').value.trim() || 'AAPL';
-  $('#voiceOut').textContent = 'Fetching voice text for '+s+'…';
-  const r = await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({symbol:s,timeframe:'Daily',strategy:'trendline'})});
-  const j = await r.json();
-  $('#voiceOut').textContent = j.voiceText || '—';
-  if($('#voiceRow').style.display==='flex') speak(j.voiceText);
-};
-
-// ----- journal -----
+/* ===== Journal & Equity ===== */
 const storeKey='tt_journal_v1';
 let journal = JSON.parse(localStorage.getItem(storeKey)||'[]');
 function renderJournal(){
-  const tb = $('#jTable tbody'); tb.innerHTML='';
-  let eq = 0; const pts=[0];
-  journal.forEach(row=>{
+  const tb=$('#jTable tbody'); tb.innerHTML='';
+  let eq=0; const pts=[0];
+  journal.forEach(r=>{
     const tr=document.createElement('tr');
-    tr.innerHTML = \`<td>\${new Date(row.ts).toLocaleString()}</td>
-      <td>\${row.sym}</td><td align="center">\${row.side}</td>
-      <td align="right">\${(+row.entry).toFixed(4)}</td>
-      <td align="right">\${(+row.exit).toFixed(4)}</td>
-      <td align="right" class="mono">\${(row.pnl).toFixed(2)}</td>
-      <td>\${row.notes||''}</td>\`;
+    tr.innerHTML = `<td>${new Date(r.ts).toLocaleString()}</td>
+      <td>${r.sym}</td><td align="center">${r.side}</td>
+      <td align="right" class="mono">${number(+r.entry,4)}</td>
+      <td align="right" class="mono">${number(+r.exit,4)}</td>
+      <td align="right" class="mono">${number(r.pnl,2)}</td>
+      <td>${r.notes||''}</td>`;
     tb.appendChild(tr);
-    eq += row.pnl; pts.push(eq);
+    eq+=r.pnl; pts.push(eq);
   });
   drawEquity(pts);
 }
 function drawEquity(pts){
-  const c=$('#equity'); const ctx=c.getContext('2d');
-  const w=c.width=c.clientWidth; const h=c.height;
-  ctx.clearRect(0,0,w,h);
-  if(pts.length<2) return;
-  const max=Math.max(...pts), min=Math.min(...pts);
-  const range = max-min||1;
+  const c=$('#equity'), ctx=c.getContext('2d');
+  const w=c.width=c.clientWidth, h=c.height;
+  ctx.clearRect(0,0,w,h); if(pts.length<2) return;
+  const max=Math.max(...pts), min=Math.min(...pts), R=(max-min)||1;
   ctx.strokeStyle='#7c5cff'; ctx.lineWidth=2; ctx.beginPath();
-  pts.forEach((v,i)=>{
-    const x = i/(pts.length-1)*w;
-    const y = h - ((v-min)/range)*h;
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  });
+  pts.forEach((v,i)=>{ const x=i/(pts.length-1)*w; const y=h-((v-min)/R)*h; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
   ctx.stroke();
 }
-$('#addJ').onclick = ()=>{
+$('#addJ').onclick=()=>{
   const sym=$('#jSym').value.trim()||'—';
-  const entry=parseFloat($('#jEntry').value||'0');
-  const exit=parseFloat($('#jExit').value||'0');
-  const side=$('#jSide').value;
-  const notes=$('#jNotes').value.trim();
+  const entry=parseFloat($('#jEntry').value||'0'); const exit=parseFloat($('#jExit').value||'0');
+  const side=$('#jSide').value; const notes=$('#jNotes').value.trim();
   if(!entry||!exit){ alert('Entry & Exit required'); return; }
-  const pnl = (side==='BUY') ? (exit-entry) : (entry-exit);
+  const pnl=(side==='BUY')?(exit-entry):(entry-exit);
   journal.push({ts:Date.now(),sym,entry,exit,side,notes,pnl});
-  localStorage.setItem(storeKey,JSON.stringify(journal));
-  renderJournal();
+  localStorage.setItem(storeKey,JSON.stringify(journal)); renderJournal();
 };
 renderJournal();
 
-$('#year').textContent = new Date().getFullYear();
+/* ===== Misc ===== */
+$('#year').textContent=new Date().getFullYear();
 </script>
 </body>
 </html>
