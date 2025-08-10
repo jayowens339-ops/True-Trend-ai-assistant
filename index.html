@@ -2,12 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TrueTrend AI - Learn it. Earn it. Own it.</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TrueTrend AI — Learn it. Earn it. Own it.</title>
 <meta name="description" content="TrueTrend AI reads your charts, explains the why, and alerts you with clear entries. Works with any chart or platform." />
 <style>
-  :root{--bg:#0b1220;--card:#0f172a;--border:#1f2937;--text:#e6e9ef;--muted:#9aa3b2;--accent:#22c55e;--ink:#031c10;--btn:#16a34a;--warn:#f59e0b;--danger:#ef4444}
-  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  :root{
+    --bg:#0b1220; --card:#0f172a; --border:#1f2937; --text:#e6e9ef; --muted:#9aa3b2;
+    --accent:#22c55e; --ink:#071b12; --btn:#16a34a; --warn:#f59e0b; --danger:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
   a{color:inherit;text-decoration:none}
   .container{max-width:1140px;margin:0 auto;padding:0 16px}
   header{position:sticky;top:0;background:rgba(11,18,32,.75);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);z-index:5}
@@ -21,7 +25,7 @@
   h1{margin:0 0 10px;font-size:40px;line-height:1.15}
   .tag{color:var(--muted)}
   .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-  .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+  .grid2{display:grid;grid-template-columns:1.05fr .95fr;gap:20px}
   .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
   .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted);background:#0b1424;font-size:13px}
@@ -33,11 +37,12 @@
   pre{white-space:pre-wrap;margin:10px 0 0}
   .small{color:var(--muted);font-size:13px}
   .row{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#0b1424}
+  .dot{width:10px;height:10px;border-radius:50%} .green{background:var(--accent)} .yellow{background:var(--warn)} .red{background:var(--danger)}
   .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
   .plan{background:#0b1424;border:1px solid var(--border);border-radius:14px;padding:16px}
   .price{font-size:26px;font-weight:900;margin:6px 0 10px}
-  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#0b1424}
-  .dot{width:10px;height:10px;border-radius:50%} .green{background:var(--accent)} .yellow{background:var(--warn)} .red{background:var(--danger)}
+  textarea{width:100%;min-height:120px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:var(--text);padding:10px}
   @media (max-width:900px){ .grid2{grid-template-columns:1fr} h1{font-size:32px} }
 </style>
 </head>
@@ -48,7 +53,6 @@
     <nav>
       <a href="#how">How it works</a>
       <a href="#strategies">Strategies</a>
-      <a href="#custom">Custom</a>
       <a href="#voice">Voice</a>
       <a href="#pricing" class="ghost">Pricing</a>
       <a class="cta" target="_blank" rel="noopener" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start Free Trial</a>
@@ -63,8 +67,8 @@
       <p class="tag"><b>Learn your money. Earn your money. Own your money.</b> TrueTrend reads your charts, explains the why, and alerts you with clear entries. Works with any chart or platform.</p>
       <div class="btns">
         <a class="cta" target="_blank" rel="noopener" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start Free Trial</a>
-        <a class="ghost" href="#strategies">See Strategies and How-To</a>
-        <a class="outline" href="/api/analyze" target="_blank" rel="noopener">Try Live Demo</a>
+        <a class="ghost" href="#strategies">See Strategies & How-To</a>
+        <a class="outline" href="/api/analyze" target="_blank" rel="noopener">Try API</a>
       </div>
       <div class="badges">
         <span class="badge">TradingView</span><span class="badge">Schwab</span><span class="badge">Fidelity</span>
@@ -76,7 +80,7 @@
     <div class="card">
       <h3 style="margin:0 0 6px">Try it live</h3>
       <p class="small">Example: NVDA, AAPL, SPY, OANDA:EUR_USD, BINANCE:BTCUSDT</p>
-      <div class="row">
+      <div class="row" style="margin-bottom:8px">
         <input id="symbol" class="input" placeholder="AAPL" value="NVDA" style="flex:1">
         <select id="tf">
           <option>Monthly</option><option>Weekly</option><option selected>Daily</option><option>1h</option><option>15m</option>
@@ -103,84 +107,57 @@
   </div>
 </section>
 
+<section id="voice" class="section">
+  <div class="container">
+    <h2>Voice test</h2>
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <input id="vsym" class="input" placeholder="AAPL or OANDA:EUR_USD" style="flex:1">
+        <select id="vtf"><option>15m</option><option selected>1h</option><option>Daily</option><option>Weekly</option></select>
+        <button id="vbtn" class="secondary">Get voice text</button>
+        <button id="speak" class="secondary">Speak</button>
+        <button id="copySsml" class="secondary">Copy SSML</button>
+      </div>
+      <textarea id="voiceTxt" placeholder="Voice sentence will appear here..." readonly></textarea>
+      <textarea id="voiceSsml" placeholder="<speak>SSML will appear here…</speak>" readonly style="margin-top:8px"></textarea>
+    </div>
+  </div>
+</section>
+
 <section id="how" class="section">
   <div class="container grid2">
     <div>
       <h2>How it works</h2>
-      <p class="small">TrueTrend detects bias, momentum and key levels, then gives you entries with confidence. Use it with any chart by mirroring the rules on your platform.</p>
+      <p class="small">TrueTrend detects bias, momentum and key levels, then gives you entries with confidence. Mirror the rules on any chart platform.</p>
       <ul class="small" style="line-height:1.6;margin:6px 0 0;padding-left:18px">
         <li>Live bias, confidence, RSI and levels</li>
-        <li>Strategy presets including Trendline, EMA Pullback, RSI plus MACD</li>
+        <li>Strategy presets including Trendline, EMA Pullback, RSI + MACD</li>
         <li>Stocks, forex, crypto, indices and more</li>
       </ul>
     </div>
     <div class="card">
-      <h3 style="margin:0 0 6px">Alexa quick start (Pro)</h3>
+      <h3 style="margin:0 0 6px">Quick start for Alexa (Pro)</h3>
       <ol class="small" style="line-height:1.6;margin:6px 0 0">
         <li>Enable the TrueTrend skill in your Alexa app</li>
-        <li>Say: Alexa, ask TrueTrend what is the direction on NVDA</li>
-        <li>Ask for confidence, RSI and key levels</li>
+        <li>Say: “Alexa, ask TrueTrend what is the direction on NVDA”</li>
+        <li>Ask for confidence, RSI and levels</li>
       </ol>
-      <a class="outline" href="#voice" style="display:inline-block;margin-top:8px">Voice instructions</a>
     </div>
   </div>
 </section>
 
 <section id="strategies" class="section">
   <div class="container">
-    <h2>Strategies and how to implement</h2>
+    <h2>Strategies & how-to</h2>
     <div class="card" style="margin-top:8px">
       <h3 style="margin:0 0 6px">Trendline Strategy</h3>
       <ul class="small" style="line-height:1.6;margin:6px 0 0;padding-left:18px">
-        <li>Draw a line through two or more swing lows for an uptrend or highs for a downtrend</li>
-        <li>Entry A - bounce: price touches and rejects in trend direction</li>
-        <li>Entry B - break: close through the line, retest, continuation</li>
-        <li>Stops beyond the line or swing, targets 1R to 2R or next level</li>
-        <li>Best on 5m to 1h charts for stocks, forex or crypto</li>
+        <li>Draw a line through multiple swing lows (uptrend) or highs (downtrend).</li>
+        <li>Entry A — bounce: touch + rejection with momentum.</li>
+        <li>Entry B — break: close through the line, retest, continuation.</li>
+        <li>Stops beyond the line; targets 1R to 2R or next key level.</li>
+        <li>Works best on 5m–1h in liquid symbols.</li>
       </ul>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <a class="ghost" href="#custom">Open Custom Strategy Runner</a>
-      <a class="cta" target="_blank" rel="noopener" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start Free Trial</a>
-    </div>
-  </div>
-</section>
-
-<section id="custom" class="section">
-  <div class="container">
-    <h2>Custom Strategy - JSON</h2>
-    <p class="small">Paste a simple strategy object and run it on live data. Fields: name, rules[]. Each rule: ind, param, op, right, tf, req.</p>
-    <div class="card">
-      <textarea id="stratBox" style="width:100%;min-height:140px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:var(--text);padding:10px">
-{
-  "name": "Trendline helper",
-  "baseTF": "15m",
-  "rules": [
-    { "ind": "Price", "op": "touches", "right": "Trendline(2+ touches)", "tf": "15m", "req": true },
-    { "ind": "RSI", "param": 14, "op": ">", "right": "50", "tf": "15m", "req": false }
-  ]
-}
-      </textarea>
-      <div class="row" style="margin-top:8px">
-        <input id="sym2" class="input" placeholder="AAPL" value="AAPL" style="flex:1">
-        <select id="tf2"><option>15m</option><option>1h</option><option>4h</option><option>Daily</option></select>
-        <button id="runStrat">Run on live data</button>
-      </div>
-      <pre id="stratOut"></pre>
-    </div>
-  </div>
-</section>
-
-<section id="voice" class="section">
-  <div class="container">
-    <h2>Voice test</h2>
-    <div class="card">
-      <div class="row">
-        <input id="vsym" class="input" placeholder="AAPL or OANDA:EUR_USD" style="flex:1">
-        <select id="vtf"><option>15m</option><option>1h</option><option>Daily</option></select>
-        <button id="vbtn" class="secondary">Get voice text</button>
-      </div>
-      <pre id="vout"></pre>
     </div>
   </div>
 </section>
@@ -188,51 +165,107 @@
 <section id="pricing" class="section">
   <div class="container">
     <h2>Pricing</h2>
-    <p class="small">Every plan includes a 3 day free trial. Cancel anytime.</p>
+    <p class="small">Every plan includes a 3-day free trial. Cancel anytime.</p>
     <div class="plans" style="margin-top:8px">
       <div class="plan">
         <h3>Basic</h3>
-        <div class="price">$59.99 per month</div>
+        <div class="price">$59.99 / mo</div>
         <ul class="small" style="line-height:1.6;margin:6px 0 0;padding-left:18px">
-          <li>Core strategy engine and daily insights</li>
-          <li>Live bias, confidence, RSI and levels</li>
+          <li>Core strategy engine & daily insights</li>
+          <li>Live bias, confidence, RSI & levels</li>
           <li>Works on any chart or platform</li>
         </ul>
         <a class="cta" target="_blank" rel="noopener" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401" style="display:inline-block;margin-top:10px">Start Free Trial</a>
       </div>
       <div class="plan">
         <h3>Advanced</h3>
-        <div class="price">$99.99 per month</div>
+        <div class="price">$99.99 / mo</div>
         <ul class="small" style="line-height:1.6;margin:6px 0 0;padding-left:18px">
           <li>Everything in Basic</li>
-          <li>Advanced strategies and sector heatmaps</li>
-          <li>Strategy presets and backtests</li>
+          <li>Advanced strategies & sector heatmaps</li>
+          <li>Backtests & presets</li>
         </ul>
         <a class="cta" target="_blank" rel="noopener" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400" style="display:inline-block;margin-top:10px">Start Free Trial</a>
       </div>
       <div class="plan">
-        <h3>Pro Lifetime</h3>
-        <div class="price">$999 one time</div>
+        <h3>Pro (Lifetime)</h3>
+        <div class="price">$999 one-time</div>
         <ul class="small" style="line-height:1.6;margin:6px 0 0;padding-left:18px">
           <li>Everything in Advanced</li>
           <li>Alexa voice integration</li>
-          <li>Priority updates and support</li>
+          <li>Priority updates & support</li>
         </ul>
-        <a class="cta" target="_blank" rel="noopener" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406" style="display:inline-block;margin-top:10px">Start 3 Day Trial</a>
+        <a class="cta" target="_blank" rel="noopener" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406" style="display:inline-block;margin-top:10px">Start 3-Day Trial</a>
       </div>
     </div>
   </div>
 </section>
 
 <footer class="section" style="border-bottom:none">
-  <div class="container small">Copyright <span id="y"></span> TrueTrend AI - Learn it. Earn it. Own it.</div>
+  <div class="container small">© <span id="y"></span> TrueTrend AI — Learn it. Earn it. Own it.</div>
 </footer>
 
 <script>
-  function $(id){return document.getElementById(id);}
-  function j(x){return JSON.stringify(x,null,2);}
+  // ---------- small helpers ----------
+  const $ = id => document.getElementById(id);
+  const j = x => JSON.stringify(x,null,2);
 
-  // Overtrading guard (local only)
+  function fmt(n, d=1){ if(n==null || isNaN(n)) return '-'; return Number(n).toFixed(d); }
+  function tfSpeech(tf){
+    switch((tf||'').toLowerCase()){
+      case '15m': return 'the fifteen minute';
+      case '30m': return 'the thirty minute';
+      case '1h': return 'the one hour';
+      case '4h': return 'the four hour';
+      case 'daily': return 'the daily';
+      case 'weekly': return 'the weekly';
+      case 'monthly': return 'the monthly';
+      default: return 'this timeframe';
+    }
+  }
+  function speakSymbol(sym){
+    const core = (sym||'').replace(/^.*:/,'').replace(/[_=]/g,' ');
+    if (/^[A-Z]{1,5}$/.test(core)) return core.split('').join(' ');
+    return core.replace(/[:_]/g, ' ');
+  }
+
+  function buildSpeech({ symbol, timeframe, quote, indicators, signal, note }){
+    const tf = tfSpeech(timeframe);
+    const name = speakSymbol(symbol);
+    const price = fmt(quote?.c, 2);
+    const conf = signal?.confidence ?? 0;
+    const rsi  = fmt(indicators?.rsi14, 0);
+    const ema9 = fmt(indicators?.ema9, 1);
+    const ema50= fmt(indicators?.ema50, 1);
+    const act  = (signal?.action || 'HOLD').toUpperCase();
+    const stop = signal?.stop!=null ? fmt(signal.stop,2) : null;
+    const t1   = Array.isArray(signal?.targets) && signal.targets[0]!=null ? fmt(signal.targets[0],2) : null;
+    const t2   = Array.isArray(signal?.targets) && signal.targets[1]!=null ? fmt(signal.targets[1],2) : null;
+
+    const parts = [];
+    parts.push(`On ${tf}, ${name} is ${act}.`);
+    if (quote?.c!=null) parts.push(`Price ${price}.`);
+    parts.push(`Confidence ${conf} percent.`);
+    if (indicators?.rsi14!=null) parts.push(`R S I ${rsi}.`);
+    if (indicators?.ema9!=null && indicators?.ema50!=null){
+      const rel = (indicators.ema9>indicators.ema50) ? 'above' : (indicators.ema9<indicators.ema50 ? 'below' : 'near');
+      parts.push(`E M A nine is ${rel} E M A fifty: ${ema9} versus ${ema50}.`);
+    }
+    if (act==='BUY' || act==='SELL'){
+      if (t1) parts.push(`First target ${t1}.`);
+      if (t2) parts.push(`Second target ${t2}.`);
+      if (stop) parts.push(`Stop around ${stop}.`);
+    } else {
+      parts.push(`No clear edge right now.`);
+    }
+    if (note) parts.push(`Note: ${String(note).replace(/_/g,' ')}.`);
+
+    const speech = parts.join(' ');
+    const ssml = `<speak>${speech.replace(/\./g,'.<break time="300ms"/>')}</speak>`;
+    return { speech, ssml };
+  }
+
+  // ---------- Overtrading Guard ----------
   const ogKey = "tt_clicks";
   function readClicks(){ try{return JSON.parse(localStorage.getItem(ogKey)||"[]");}catch(_){return [];} }
   function writeClicks(v){ localStorage.setItem(ogKey, JSON.stringify(v)); }
@@ -244,9 +277,9 @@
     const n60 = arr.length;
     const lim15 = parseInt($("og15").value||"10",10);
     const lim60 = parseInt($("og60").value||"25",10);
-    $("ogCounts").textContent = "Last 15m: " + n15 + "/" + lim15 + " - Last 60m: " + n60 + "/" + lim60;
+    $("ogCounts").textContent = "Last 15m: " + n15 + "/" + lim15 + " — Last 60m: " + n60 + "/" + lim60;
 
-    var cls="green", txt="Cool";
+    let cls="green", txt="Cool";
     if(n15>=lim15 || n60>=lim60){ cls="red"; txt="Slow down"; }
     else if(n15>=Math.max(1,Math.floor(lim15*0.7)) || n60>=Math.max(1,Math.floor(lim60*0.7))){ cls="yellow"; txt="Caution"; }
     $("ogLight").className = "dot " + cls;
@@ -258,7 +291,6 @@
     const cooling = nowS < until;
     $("go").disabled = cooling;
     $("go").textContent = cooling ? ("Cooldown " + Math.ceil((until-nowS)/60) + "m") : "Analyze";
-
     if(!cooling && cd>0 && (n15>=lim15 || n60>=lim60)){
       localStorage.setItem("tt_cd_until", String(nowS + cd*60));
       updateGuardUI();
@@ -267,7 +299,7 @@
   ["og15","og60","ogCd"].forEach(id => $(id).addEventListener("input", updateGuardUI));
   $("ogReset").addEventListener("click", ()=>{ writeClicks([]); localStorage.removeItem("tt_cd_until"); updateGuardUI(); });
 
-  // patched run(): do not throw on data.error; only on HTTP error
+  // ---------- API call (friendly to "no_data") ----------
   async function run(symbol, timeframe, extra){
     const r = await fetch("/api/analyze", {
       method:"POST",
@@ -277,9 +309,10 @@
     const ct = r.headers.get("content-type")||"";
     const data = ct.includes("application/json") ? await r.json() : { raw: await r.text() };
     if(!r.ok) throw new Error(data.message || ("HTTP "+r.status));
-    return data;
+    return data; // even if data.error==true we handle gracefully
   }
 
+  // ---------- Analyze ----------
   $("go").addEventListener("click", async ()=>{
     const s = ($("symbol").value||"AAPL").trim();
     const tf = $("tf").value || "Daily";
@@ -288,6 +321,7 @@
       const data = await run(s, tf);
       const q = data.quote || {};
       const sig = data.signal || {};
+      const ind = data.indicators || {};
       const lines = [];
       lines.push("Symbol: " + s + " (" + tf + ")");
       if(q.c!=null) lines.push("Price: " + q.c + "  Open: " + q.o + "  High: " + q.h + "  Low: " + q.l);
@@ -302,33 +336,59 @@
       }
       $("out").textContent = lines.join("\n");
 
+      // Overtrading counter
       const arr = readClicks(); arr.push(Date.now()); writeClicks(arr); updateGuardUI();
     }catch(e){ $("out").textContent = "Error: " + e.message; }
   });
 
-  // custom strategy button (passes through to API; API currently returns main signal)
-  $("runStrat").addEventListener("click", async ()=>{
-    let sObj; try{ sObj = JSON.parse($("stratBox").value); }catch(_){ $("stratOut").textContent="Invalid JSON"; return; }
-    const sym = $("sym2").value.trim() || "AAPL";
-    const tfx = $("tf2").value || "15m";
-    $("stratOut").textContent = "Running custom strategy...";
-    try{
-      const data = await run(sym, tfx, { strategy:sObj, mode:"signal" });
-      $("stratOut").textContent = j(data.signal||data);
-    }catch(e){ $("stratOut").textContent = "Error: " + e.message; }
-  });
+  // ---------- Voice ----------
+  let lastSpeech = "", lastSSML = "";
 
-  // voice demo
   $("vbtn").addEventListener("click", async ()=>{
-    const s = $("vsym").value.trim() || "AAPL";
+    const s = ($("vsym").value||$("symbol").value||"AAPL").trim();
     const tf = $("vtf").value || "15m";
-    $("vout").textContent = "Requesting...";
+    $("voiceTxt").value = "Fetching…";
+    $("voiceSsml").value = "";
     try{
       const data = await run(s, tf, { mode:"voice" });
-      $("vout").textContent = data.speech || j(data);
-    }catch(e){ $("vout").textContent = "Error: " + e.message; }
+      // prefer API-provided speech if present; otherwise build locally
+      const built = buildSpeech({
+        symbol:s, timeframe:tf,
+        quote:data.quote||{}, indicators:data.indicators||{},
+        signal:data.signal||{}, note:data.note
+      });
+      const speech = data.speech || built.speech;
+      const ssml   = data.ssml   || built.ssml;
+      $("voiceTxt").value  = speech;
+      $("voiceSsml").value = ssml;
+      lastSpeech = speech; lastSSML = ssml;
+    }catch(e){
+      $("voiceTxt").value = "Error: " + e.message;
+      $("voiceSsml").value = "";
+      lastSpeech = ""; lastSSML = "";
+    }
   });
 
+  $("speak").addEventListener("click", ()=>{
+    if(!lastSpeech){ alert("Get voice text first."); return; }
+    try{
+      const u = new SpeechSynthesisUtterance(lastSpeech);
+      u.rate = 1; u.pitch = 1; u.volume = 1;
+      window.speechSynthesis.cancel(); // stop previous
+      window.speechSynthesis.speak(u);
+    }catch(_e){ alert("Speech synthesis not supported in this browser."); }
+  });
+
+  $("copySsml").addEventListener("click", async ()=>{
+    if(!lastSSML){ alert("Nothing to copy yet."); return; }
+    try{
+      await navigator.clipboard.writeText(lastSSML);
+      $("copySsml").textContent = "Copied!";
+      setTimeout(()=>$("copySsml").textContent="Copy SSML",1200);
+    }catch(_e){ alert("Clipboard blocked by browser."); }
+  });
+
+  // init
   document.getElementById("y").textContent = new Date().getFullYear();
   updateGuardUI();
 </script>
