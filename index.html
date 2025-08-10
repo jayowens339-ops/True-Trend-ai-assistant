@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>TrueTrend AI — Learn money. Earn money. Own money.</title>
-<meta name="description" content="TrueTrend AI reads your chart, explains why, and tells you what’s changing—no Telegrams, WhatsApp, or gurus needed."/>
+<meta name="description" content="TrueTrend AI reads your chart, explains the why, and tells you what’s changing—no Telegrams, WhatsApp, or gurus needed."/>
 <style>
   :root{--bg:#070b14;--ink:#ecf1ff;--mut:#99a7c9;--card:#0d1324;--line:#1a2340;--acc:#22c55e;--acc2:#7c5cff}
   *{box-sizing:border-box} html,body{margin:0;background:#070b14;color:var(--ink);font:16px/1.45 Inter,ui-sans-serif,system-ui}
@@ -15,15 +15,16 @@
   .btn.ghost{background:#111a33;color:#cfe0ff;border:1px solid var(--line)}
   .btn.purple{background:var(--acc2);color:#0a0720}
   .grid{display:grid;gap:18px;grid-template-columns:1.05fr 1fr;margin-top:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .tag{display:inline-block;background:#0c1530;border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:#cde1ff;margin:4px 6px 0 0;font-size:.86rem}
   h1{margin:6px 0 6px;font-size:38px}
   .mut{color:var(--mut)} .mono{font-family:ui-monospace,Consolas,Menlo,monospace}
   input,select{background:#0b1430;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 12px}
   pre{white-space:pre-wrap}
-  .lockOverlay{position:absolute;inset:0;background:rgba(8,12,24,.7);display:flex;align-items:center;justify-content:center;border-radius:14px}
-  .lockInner{background:#0b1222;border:1px solid var(--line);padding:14px;border-radius:12px;text-align:center}
+  .overlay{position:absolute;inset:0;background:rgba(8,12,24,.72);display:flex;align-items:center;justify-content:center;border-radius:14px}
+  .overlayBox{background:#0b1222;border:1px solid var(--line);padding:14px;border-radius:12px;text-align:center;max-width:420px}
+  .ribbon{position:absolute;top:10px;right:10px;background:#13214a;border:1px solid var(--line);color:#cfe0ff;padding:4px 10px;border-radius:999px;font-size:.82rem}
 </style>
 </head>
 <body>
@@ -49,8 +50,10 @@
       <div class="row" style="margin-top:10px"><a class="btn" href="#pricing">Try 3-Day Free</a></div>
     </div>
 
-    <div class="card" id="proPanel" style="position:relative">
-      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Analyzer (Pro/Lifetime)</h3><div class="tag">Over-trading: <b id="otLabel">Cool</b></div></div>
+    <!-- ANALYZER: always available as DEMO for Basic; unlimited for Pro/Lifetime -->
+    <div class="card" id="anCard">
+      <div class="ribbon" id="demoRibbon" style="display:none">Demo — Full access in Pro</div>
+      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Analyzer</h3><div class="tag">Over-trading: <b id="otLabel">Cool</b></div></div>
       <div class="row" style="margin-top:8px">
         <input id="symbol" placeholder="Ticker e.g., NVDA, EURUSD, BTCUSD" style="flex:1"/>
         <select id="timeframe"><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option><option>Weekly</option></select>
@@ -64,10 +67,17 @@
       </div>
       <div class="row" style="margin-top:6px">
         <label class="mut"><input type="checkbox" id="autoAnalyze" checked> Auto analyze on chart change</label>
-        <label class="mut"><input type="checkbox" id="autoSpeak"> Auto voice</label>
+        <label class="mut" id="autoSpeakWrap" style="display:none"><input type="checkbox" id="autoSpeak"> Auto voice</label>
       </div>
       <pre id="answer" class="mono" style="margin-top:8px"></pre>
       <div id="voiceRow" class="row" style="display:none;margin-top:6px"><button class="btn ghost" id="speakBtn">🔊 Read it</button><span class="mut">Friendlier male voice</span></div>
+      <div class="overlay" id="limitOverlay" style="display:none">
+        <div class="overlayBox">
+          <div style="font-weight:800">You’ve reached today’s demo limit</div>
+          <div class="mut" style="margin-top:6px">Get full Analyzer with unlimited usage, voice, and strategy builder.</div>
+          <div style="margin-top:10px"><a class="btn purple" href="#pricing">Start Free Trial</a></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -97,6 +107,13 @@
       <p class="mut">Type a ticker and we’ll read bias, confidence, RSI and levels (Daily).</p>
       <div class="row"><input id="voiceSym" placeholder="AAPL, NVDA, EURUSD"/><button class="btn" id="voiceAnalyze">Get voice</button></div>
       <pre id="voiceOut" class="mono" style="margin-top:8px"></pre>
+      <div class="overlay" id="voiceGate" style="display:none">
+        <div class="overlayBox">
+          <div style="font-weight:800">Voice is included with Pro/Lifetime</div>
+          <div class="mut" style="margin-top:6px">Get friendly voice summaries and Alexa directions.</div>
+          <div style="margin-top:10px"><a class="btn purple" href="#pricing">Start Free Trial</a></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -105,12 +122,17 @@
     <div class="row" style="flex-wrap:wrap;gap:16px">
       <div class="card" style="min-width:250px">
         <h4>Basic — $59.99/mo</h4>
-        <ul class="mut"><li>Reads any chart you open</li><li>Journal + Equity Curve</li><li>Over-trading guard</li></ul>
+        <ul class="mut">
+          <li>Reads any chart you open</li>
+          <li>Journal + Equity Curve</li>
+          <li>Over-trading guard</li>
+          <li><b>Analyzer demo on homepage</b></li>
+        </ul>
         <a class="btn" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401">Start 3-Day Free</a>
       </div>
       <div class="card" style="min-width:250px;border-color:#7c5cff">
         <h4>Pro — $99.99/mo</h4>
-        <ul class="mut"><li>Everything in Basic</li><li>Analyzer + Strategy Builder</li><li>Voice + Alexa directions</li></ul>
+        <ul class="mut"><li>Everything in Basic</li><li>Full Analyzer + Strategy Builder</li><li>Voice + Alexa directions</li></ul>
         <a class="btn purple" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start 3-Day Free</a>
       </div>
       <div class="card" style="min-width:250px;border-color:#22c55e">
@@ -123,25 +145,36 @@
 </div>
 
 <script>
-/* ====== PLAN GATE (use ?plan=pro or ?plan=lifetime to test voice/analyzer) ====== */
+/* ====== PLAN & DEMO RULES ====== */
 const $=s=>document.querySelector(s);
-function getPlan(){ try{const p=new URL(location.href).searchParams.get('plan'); return p||'basic'; }catch{ return 'basic'; } }
+function getPlan(){ try{const p=new URL(location.href).searchParams.get('plan'); return (p||'basic').toLowerCase(); }catch{ return 'basic'; } }
 function setPlanUI(){
-  const plan=getPlan(); $('#planBadge').textContent=plan.charAt(0).toUpperCase()+plan.slice(1);
-  const pro = /^(pro|lifetime|family)$/i.test(plan);
-  if(!pro){
-    // lock analyzer & voice UI but keep journal free
-    if(!$('#proPanel').querySelector('.lockOverlay')){
-      $('#proPanel').insertAdjacentHTML('beforeend',
-        '<div class="lockOverlay"><div class="lockInner"><b>Pro/Lifetime required</b><div style="margin-top:8px"><a class="btn purple" href="#pricing">Start Free Trial</a></div></div></div>');
-    }
-    $('#voiceCard').insertAdjacentHTML('beforeend',
-      '<div class="lockOverlay"><div class="lockInner"><b>Pro/Lifetime required</b><div style="margin-top:8px"><a class="btn purple" href="#pricing">Start Free Trial</a></div></div></div>');
-  }else{
-    $('#voiceRow').style.display='flex';
-  }
+  const plan=getPlan();
+  $('#planBadge').textContent=plan.charAt(0).toUpperCase()+plan.slice(1);
+  const isPro=/^(pro|lifetime|family)$/i.test(plan);
+
+  // Analyzer: demo ribbon for Basic
+  $('#demoRibbon').style.display = isPro ? 'none' : 'inline-block';
+  // Auto voice available only for Pro/Lifetime
+  $('#autoSpeakWrap').style.display = isPro ? 'inline-block' : 'none';
+  $('#voiceRow').style.display      = isPro ? 'flex'        : 'none';
+
+  // Voice panel: gate for Basic
+  $('#voiceGate').style.display = isPro ? 'none' : 'flex';
 }
 setPlanUI();
+
+/* ====== DEMO LIMIT (Basic only): 6 per day ====== */
+const DEMO_MAX = 6;
+function demoKey(){ const d=new Date(); const k = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; return `tt_demo_${k}`; }
+function demoCount(){ return +(localStorage.getItem(demoKey())||0); }
+function incDemo(){ const n=demoCount()+1; localStorage.setItem(demoKey(), n); return n; }
+function enforceDemoGate(){
+  const isPro=/^(pro|lifetime|family)$/i.test(getPlan());
+  if(isPro){ $('#limitOverlay').style.display='none'; $('#run').disabled=false; return; }
+  if(demoCount()>=DEMO_MAX){ $('#limitOverlay').style.display='flex'; $('#run').disabled=true; }
+}
+enforceDemoGate();
 
 /* ====== OVER-TRADING GUARD ====== */
 const clicks=[]; function markAnalyze(){const now=Date.now(); clicks.push(now);
@@ -188,10 +221,10 @@ async function fetchYahoo(sym,tf){
   }
   throw lastErr||new Error('No data');
 }
-// Stooq CSV fallback (Daily/Weekly, equities only)
+// Stooq fallback (Daily/Weekly, equities)
 async function fetchStooq(sym, tf='Daily'){
   const s = sym.includes(':') ? sym.split(':').pop() : sym;
-  const code=s.toLowerCase()+ (s.length<=5?'.us':''); // crude guess for US stocks
+  const code=s.toLowerCase()+ (s.length<=5?'.us':''); // naive US guess
   const i=(tf==='Weekly')?'w':'d';
   const url=`https://stooq.com/q/d/l/?s=${code}&i=${i}`;
   const r=await fetch(url); if(!r.ok) throw new Error('stooq '+r.status);
@@ -200,7 +233,6 @@ async function fetchStooq(sym, tf='Daily'){
     if(!C||C==='-') continue; t.push(Date.parse(D)/1000); o.push(+O); h.push(+H); l.push(+L); c.push(+C); }
   return {t,c,h,l,o, note:'stooq'};
 }
-// Unified
 async function fetchCandles(sym, tf){
   try{ return await fetchYahoo(sym, tf); }
   catch{ if(tf==='Daily'||tf==='Weekly') return await fetchStooq(sym, tf); throw new Error('No data'); }
@@ -242,6 +274,12 @@ function voiceLine(symbol, tf, sig,note){ const mood=sig.confidence>80?'high con
 
 /* ====== ANALYZER ====== */
 async function runAnalysis(symbol, timeframe, strategy){
+  // demo enforcement (count only for Basic)
+  const isPro=/^(pro|lifetime|family)$/i.test(getPlan());
+  if(!isPro){
+    if(demoCount()>=DEMO_MAX){ enforceDemoGate(); return; }
+  }
+
   markAnalyze();
   $('#answer').textContent=`Analyzing ${symbol} (${timeframe})…`;
   try{
@@ -255,13 +293,19 @@ async function runAnalysis(symbol, timeframe, strategy){
     if(tgt.entry) lines.push(`Entry: ${num(tgt.entry)}   Stop: ${num(tgt.stop)}   TP: ${num(tgt.tp)}`);
     lines.push('— Reasons —'); sig.reasons.forEach(r=>lines.push('• '+r));
     $('#answer').textContent=lines.join('\n');
-    $('#speakBtn').onclick=()=> speak( voiceLine(symbol,timeframe,sig,o.note) );
-    if($('#voiceRow').style.display==='flex' && $('#autoSpeak').checked) speak( voiceLine(symbol,timeframe,sig,o.note) );
+
+    if(isPro){
+      $('#speakBtn').onclick=()=> speak( voiceLine(symbol,timeframe,sig,o.note) );
+      if($('#autoSpeak').checked) speak( voiceLine(symbol,timeframe,sig,o.note) );
+    }
+
+    // tick demo counter after successful analysis
+    if(!isPro){ if(incDemo()>=DEMO_MAX){ enforceDemoGate(); } }
   }catch(e){ $('#answer').textContent='Error: '+(e.message||e); }
 }
 $('#run').onclick=()=> runAnalysis(($('#symbol').value||'NVDA').trim(), $('#timeframe').value||'Daily', $('#strategy').value||'trendline');
 
-/* ====== VOICE LOOKUP (always speaks on button for Pro/Lifetime) ====== */
+/* ====== VOICE LOOKUP ====== */
 function pickMaleVoice(){ const vs=speechSynthesis.getVoices(); const pref=[/Daniel/i,/Alex/i,/Google UK English Male/i,/Male/i];
   for(const p of pref){ const v=vs.find(v=>p.test(v.name)); if(v) return v; } return vs[0]; }
 function speak(text){ try{ const u=new SpeechSynthesisUtterance(text); const v=pickMaleVoice(); if(v) u.voice=v; u.rate=1.02; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch{} }
