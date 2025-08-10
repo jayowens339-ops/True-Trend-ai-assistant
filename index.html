@@ -11,8 +11,9 @@
     --bg:#070b14;--ink:#ecf1ff;--mut:#97a5c7;--card:#0d1324;--line:#1a2340;
     --acc:#22c55e;--acc2:#7c5cff;--chip:#111a33;--glow:0 10px 24px rgba(124,92,255,.25)
   }
-  *{box-sizing:border-box} html,body{margin:0;background:linear-gradient(180deg,#070b14 0%,#0a1130 100%);color:var(--ink);
-  font:16px/1.45 Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:linear-gradient(180deg,#070b14 0%,#0a1130 100%);color:var(--ink);
+    font:16px/1.45 Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
   a{color:#9cc1ff;text-decoration:none}
   .wrap{max-width:1180px;margin:0 auto;padding:22px}
   header{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -83,6 +84,12 @@
       <pre id="answer" class="mono" style="margin-top:10px;white-space:pre-wrap"></pre>
       <div id="voiceRow" class="row" style="margin-top:6px;display:none"><button class="btn ghost" id="speakBtn">🔊 Read it</button><span class="mut">Friendlier male voice</span></div>
     </div>
+  </section>
+
+  <!-- Live TradingView chart (synced to analyzer) -->
+  <section class="card" id="chartHost" style="margin-top:16px">
+    <h3 style="margin:0 0 8px">Live Chart</h3>
+    <div id="tvchart" style="height:520px"></div>
   </section>
 
   <section class="grid" style="margin-top:18px">
@@ -165,19 +172,21 @@
 </div>
 
 <script>
-/* ===== helpers ===== */
-const $=s=>document.querySelector(s); const $$=s=>document.querySelectorAll(s);
+/* ========= helpers ========= */
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
 const num=(n,d=2)=> (n==null||isNaN(n))?'-':Number(n).toFixed(d);
 
-/* ===== plan gate (defaults to Basic if backend absent) ===== */
-async function getPlan(){
+/* ========= plan gate (URL ?plan=pro|lifetime|family, else Basic; uses backend if present) ========= */
+function getQueryPlan(){ try{const p=new URL(location.href).searchParams.get('plan'); return p&&['basic','pro','lifetime','family'].includes(p)?p:null;}catch{return null} }
+async function getServerPlan(){
   try{const r=await fetch('/api/entitlements/whoami',{credentials:'include'}); if(!r.ok) throw 0; const j=await r.json(); return j.plan||'basic';}
-  catch{return 'basic'}
+  catch{return null}
 }
 async function gate(){
-  const p=await getPlan();
-  $('#planBadge').textContent = p==='pro'?'Pro':p==='lifetime'?'Lifetime':p==='family'?'Family':'Basic';
-  const pro = (p==='pro'||p==='lifetime'||p==='family');
+  let plan = getQueryPlan() || await getServerPlan() || 'basic';
+  $('#planBadge').textContent = plan==='pro'?'Pro':plan==='lifetime'?'Lifetime':plan==='family'?'Family':'Basic';
+  const pro = (plan==='pro'||plan==='lifetime'||plan==='family');
   if(!pro){
     if(!$('#proPanel').querySelector('.lockOverlay')){
       $('#proPanel').insertAdjacentHTML('beforeend','<div class="lockOverlay"><div class="lockInner"><b>Pro/Lifetime required</b><div style="margin-top:8px"><a class="btn purple" href="#pricing">Start 3-Day Free</a></div></div></div>');
@@ -188,69 +197,174 @@ async function gate(){
 }
 gate();
 
-/* ===== modal ===== */
+/* ========= modal ========= */
 $('#openGuide').onclick=$('#openStrategies').onclick=()=>{$('#guide').style.display='flex'};
 $('#closeGuide').onclick=()=>{$('#guide').style.display='none'};
 
-/* ===== over-trading guard ===== */
+/* ========= over-trading guard ========= */
 const clicks=[]; function markAnalyze(){const now=Date.now();clicks.push(now);while(clicks[0]<now-60*60*1e3)clicks.shift();$('#otLabel').textContent=(clicks.filter(t=>t>now-15*60*1e3).length>10||clicks.length>25)?'Slow down':'Cool'}
 
-/* ===== analyzer (server API, lean) ===== */
-document.addEventListener('DOMContentLoaded',()=>{
-  $('#run').addEventListener('click',async ()=>{
-    markAnalyze();
-    const symbol=($('#symbol').value||'NVDA').trim(), timeframe=$('#timeframe').value, strategy=$('#strategy').value;
-    $('#answer').textContent=`Analyzing ${symbol} (${timeframe})…`;
+/* ========= Yahoo fetch + indicators ========= */
+function toYahoo(sym){
+  if(/^OANDA:([A-Z]{3})_([A-Z]{3})$/.test(sym)) return RegExp.$1+RegExp.$2+'=X';
+  if(/^BINANCE:([A-Z]+)USDT$/i.test(sym)) return RegExp.$1.toUpperCase()+'-USD';
+  if(/^([A-Z]+)USD$/i.test(sym)) return RegExp.$1.toUpperCase()+'-USD';
+  return sym;
+}
+function tfParams(tf){ switch(tf){
+  case '15m':return{interval:'15m',range:'5d',agg:1}; case '1h':return{interval:'60m',range:'1mo',agg:1};
+  case '4h':return{interval:'60m',range:'3mo',agg:4}; case 'Weekly':return{interval:'1wk',range:'2y',agg:1};
+  default:return{interval:'1d',range:'6mo',agg:1};
+}}
+async function fetchYahoo(sym,tf){
+  const p=tfParams(tf);
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(toYahoo(sym))}?range=${p.range}&interval=${p.interval}`;
+  const r=await fetch(url,{headers:{'User-Agent':'TrueTrend/1.0'}});
+  if(!r.ok) throw new Error('Data '+r.status);
+  const d=await r.json(); const rt=d?.chart?.result?.[0]; const q=rt?.indicators?.quote?.[0];
+  if(!rt||!q||!Array.isArray(rt.timestamp)) throw new Error('No data');
+  let c=q.close,h=q.high,l=q.low,o=q.open,t=rt.timestamp;
+  if(tf==='4h'){
+    const C=[],H=[],L=[],O=[],T=[];
+    for(let i=0;i<c.length;i+=4){ const s=c.slice(i,i+4); if(s.length<4) break;
+      C.push(s.at(-1)); H.push(Math.max(...h.slice(i,i+4))); L.push(Math.min(...l.slice(i,i+4))); O.push(o[i]); T.push(t[i]); }
+    c=C;h=H;l=L;o=O;t=T;
+  }
+  return {t,c,h,l,o};
+}
+function ema(a,p){ if(!a.length) return []; const k=2/(p+1); let e=a[0]; return a.map((v,i)=> e = i? v*k + e*(1-k) : v); }
+function rsi(a,p=14){ if(a.length<p+1) return Array(a.length).fill(50); let g=0,lo=0; for(let i=1;i<=p;i++){const d=a[i]-a[i-1]; if(d>=0)g+=d; else lo-=d}
+  let ag=g/p, al=lo/p; const out=[...Array(p).fill(50), 100-100/(1+(ag/(al||1e-9)))];
+  for(let i=p+1;i<a.length;i++){ const d=a[i]-a[i-1]; const G=d>0?d:0, L=d<0?-d:0; ag=(ag*(p-1)+G)/p; al=(al*(p-1)+L)/p; out.push(100-100/(1+(ag/(al||1e-9)))) }
+  return out;
+}
+function macdHist(a){ const e12=ema(a,12), e26=ema(a,26), line=e12.map((v,i)=>v-(e26[i]||v)), sig=ema(line,9); return line.map((v,i)=>v-(sig[i]||0)); }
+function slope(a,n=6){ const s=a.slice(-n); if(s.length<2)return 0; return (s.at(-1)-s[0]) / Math.max(Math.abs(s[0]),1e-9) }
+function decide(strategy, c,h,l){
+  const n=c.length-1, price=c[n]; const ema9=ema(c,9), ema50=ema(c,50), r=rsi(c,14), m=macdHist(c);
+  const bull=ema9[n]>ema50[n], emaS=slope(ema50,6), rV=r[n], mH=m[n]; const reasons=[]; let action='HOLD', conf=50;
+  if(strategy==='cross'){ const up=ema9[n]>ema50[n]&&ema9[n-1]<=ema50[n-1], dn=ema9[n]<ema50[n]&&ema9[n-1]>=ema50[n-1];
+    if(up){action='BUY'; reasons.push('EMA9 crossed above EMA50')} if(dn){action='SELL'; reasons.push('EMA9 crossed below EMA50')}
+    conf=Math.min(95, Math.abs(emaS)*300 + (up||dn?25:0) + (mH>0?10:0));
+  } else if(strategy==='rsiReversal'){ if(rV<32){action='BUY'; reasons.push('RSI near oversold')} else if(rV>68){action='SELL'; reasons.push('RSI near overbought')} else reasons.push('RSI mid-range');
+    conf=Math.min(92, (70-Math.abs(50-rV))*(-1)+80 + (mH>0?8:0));
+  } else if(strategy==='breakout'){ const HH=Math.max(...h.slice(-20,-1)), LL=Math.min(...l.slice(-20,-1));
+    if(price>HH){action='BUY'; reasons.push('Breaking 20-bar high')} else if(price<LL){action='SELL'; reasons.push('Breaking 20-bar low')} else reasons.push('Still inside range');
+    conf=Math.min(90, (price>HH||price<LL?70:40) + (mH>0?6:0) + (bull?6:-2));
+  } else { // trendline
+    if(emaS>0 && price>=ema9[n]){action='BUY'; reasons.push('EMA50 slope up + above EMA9')}
+    else if(emaS<0 && price<=ema9[n]){action='SELL'; reasons.push('EMA50 slope down + below EMA9')}
+    else reasons.push('No clean alignment');
+    conf=Math.min(93, Math.abs(emaS)*400 + (mH>0?10:0) + (bull?8:-4));
+  }
+  conf=Math.max(5,Math.min(98,Math.round(conf)));
+  return {action,confidence:conf,reasons, price, ema9:ema9[n], ema50:ema50[n], rsi:rV, macdHist:mH};
+}
+function targets(sig){ const p=sig.price; if(sig.action==='BUY') return {entry:p, stop:p*0.98, tp:p*1.03}; if(sig.action==='SELL') return {entry:p, stop:p*1.02, tp:p*0.97}; return {} }
+function voiceLine(symbol, tf, sig){ const mood=sig.confidence>80?'high confidence':sig.confidence>60?'good confidence':'low confidence'; return `On ${symbol} ${tf}, price around ${num(sig.price)}. Signal is ${sig.action.toLowerCase()} with ${sig.confidence} percent, ${mood}. Reasons: ${sig.reasons.slice(0,3).join('; ')}.` }
+
+/* ========= Analyze button (robust) ========= */
+document.addEventListener('DOMContentLoaded', ()=>{
+  $('#run').addEventListener('click', async ()=>{
     try{
-      const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol,timeframe, strategy})});
-      const j=await r.json(); if(j.error) throw new Error(j.message||'Server error');
+      markAnalyze();
+      const symbol=($('#symbol').value||'NVDA').trim(), timeframe=$('#timeframe').value||'Daily', strategy=$('#strategy').value||'trendline';
+      $('#answer').textContent=`Analyzing ${symbol} (${timeframe})…`;
+      const o=await fetchYahoo(symbol,timeframe);
+      const sig=decide(strategy,o.c,o.h,o.l); const tgt=targets(sig);
       const lines=[]; lines.push(`Symbol: ${symbol} (${timeframe})`);
-      lines.push(`Price: ${num(j.quote.c)}   High: ${num(j.quote.h)}   Low: ${num(j.quote.l)}`);
-      lines.push(`Signal: ${j.signal.action}   Confidence: ${Math.round(j.signal.confidence)}%`);
-      if(j.targets?.entry) lines.push(`Entry: ${num(j.targets.entry)}   Stop: ${num(j.targets.stop)}   TP: ${num(j.targets.tp)}`);
-      lines.push('— Reasons —'); (j.signal.reasons||[]).forEach(r=>lines.push('• '+r));
+      lines.push(`Price: ${num(sig.price)}   High: ${num(o.h.at(-1))}   Low: ${num(o.l.at(-1))}`);
+      lines.push(`Signal: ${sig.action}   Confidence: ${sig.confidence}%`);
+      if(tgt.entry) lines.push(`Entry: ${num(tgt.entry)}   Stop: ${num(tgt.stop)}   TP: ${num(tgt.tp)}`);
+      lines.push('— Reasons —'); sig.reasons.forEach(r=>lines.push('• '+r));
       $('#answer').textContent=lines.join('\n');
 
-      if('Notification' in window){
-        if(Notification.permission==='default') await Notification.requestPermission();
-        if(Notification.permission==='granted'){ new Notification(`TrueTrend: ${j.signal.action}`, { body:`${symbol} ${timeframe} · ${Math.round(j.signal.confidence)}%` });}
-      }
-      $('#speakBtn').onclick=()=> speak(j.voiceText || lines.join('. '));
+      // notify
+      try{
+        if('Notification' in window){
+          if(Notification.permission==='default') await Notification.requestPermission();
+          if(Notification.permission==='granted'){ new Notification(`TrueTrend: ${sig.action}`, { body:`${symbol} ${timeframe} · ${sig.confidence}%` });}
+        }
+      }catch{}
+
+      // voice (if unlocked)
+      $('#speakBtn').onclick=()=> speak( voiceLine(symbol,timeframe,sig) );
+
+      // sync TradingView chart
+      setTimeout(syncChart, 60);
     }catch(e){
+      console.error(e);
       $('#answer').textContent='Error: '+(e.message||'Failed to analyze.');
     }
   }, {passive:true});
 
+  // voice quick lookup
   $('#voiceAnalyze').addEventListener('click', async ()=>{
     const s=($('#voiceSym').value||'AAPL').trim();
     $('#voiceOut').textContent='Fetching voice for '+s+'…';
     try{
-      const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:s,timeframe:'Daily',strategy:'trendline'})});
-      const j=await r.json();
-      $('#voiceOut').textContent=j.voiceText||'—';
-      if($('#voiceRow').style.display==='flex') speak(j.voiceText);
+      const o=await fetchYahoo(s,'Daily'); const sig=decide('trendline',o.c,o.h,o.l); const v=voiceLine(s,'Daily',sig);
+      $('#voiceOut').textContent=v;
+      if($('#voiceRow').style.display==='flex') speak(v);
     }catch(e){ $('#voiceOut').textContent='Error: '+(e.message||'Failed'); }
   }, {passive:true});
 });
 
-/* ===== voice (friendlier male) loaded lazily ===== */
-function pickMaleVoice(){const vs=speechSynthesis.getVoices();const pref=[/Daniel/i,/Alex/i,/UK English Male/i,/Google UK English Male/i,/Male/i];for(const p of pref){const v=vs.find(v=>p.test(v.name));if(v)return v}return vs[0]}
-function speak(text){ if(!('speechSynthesis'in window))return; const u=new SpeechSynthesisUtterance(text); const v=pickMaleVoice(); if(v)u.voice=v; u.rate=1.02; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u) }
+/* ========= Voice (friendlier male) ========= */
+function pickMaleVoice(){
+  const vs=speechSynthesis.getVoices();
+  const pref=[/Daniel/i,/Alex/i,/UK English Male/i,/Google UK English Male/i,/Male/i];
+  for(const p of pref){ const v=vs.find(v=>p.test(v.name)); if(v) return v; }
+  return vs[0];
+}
+function speak(text){ if(!('speechSynthesis' in window)) return; const u=new SpeechSynthesisUtterance(text); const v=pickMaleVoice(); if(v) u.voice=v; u.rate=1.02; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u) }
 requestIdleCallback?.(()=>speechSynthesis.getVoices());
 
-/* ===== journal (init lazily when visible) ===== */
+/* ========= Journal (lazy init on view) ========= */
 const storeKey='tt_journal_v1'; let journal=null;
-function ensureJournal(){ if(journal) return; journal = JSON.parse(localStorage.getItem(storeKey)||'[]'); renderJournal() }
+function ensureJournal(){ if(journal) return; journal=JSON.parse(localStorage.getItem(storeKey)||'[]'); renderJournal(); }
 function renderJournal(){
   const tb=$('#jTable tbody'); tb.innerHTML=''; let eq=0; const pts=[0];
   journal.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${new Date(r.ts).toLocaleString()}</td><td>${r.sym}</td><td align="center">${r.side}</td><td align="right" class="mono">${num(+r.entry,4)}</td><td align="right" class="mono">${num(+r.exit,4)}</td><td align="right" class="mono">${num(r.pnl,2)}</td><td>${r.notes||''}</td>`; tb.appendChild(tr); eq+=r.pnl; pts.push(eq); });
   drawEquity(pts);
 }
-function drawEquity(pts){ const c=$('#equity'), ctx=c.getContext('2d'); const w=c.width=c.clientWidth, h=c.height; ctx.clearRect(0,0,w,h); if(pts.length<2)return; const mx=Math.max(...pts), mn=Math.min(...pts), R=(mx-mn)||1; ctx.strokeStyle='#7c5cff'; ctx.lineWidth=2; ctx.beginPath(); pts.forEach((v,i)=>{const x=i/(pts.length-1)*w; const y=h-((v-mn)/R)*h; if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y)}); ctx.stroke(); }
-$('#addJ').onclick=()=>{ ensureJournal(); const sym=$('#jSym').value.trim()||'—', entry=parseFloat($('#jEntry').value||'0'), exit=parseFloat($('#jExit').value||'0'), side=$('#jSide').value, notes=$('#jNotes').value.trim(); if(!entry||!exit){alert('Entry & Exit required');return} const pnl=(side==='BUY')?(exit-entry):(entry-exit); journal.push({ts:Date.now(),sym: sym.toUpperCase(),entry,exit,side,notes,pnl}); localStorage.setItem(storeKey,JSON.stringify(journal)); renderJournal() };
-new IntersectionObserver((es)=>{if(es[0].isIntersecting){ensureJournal();}}, {rootMargin:"200px"}).observe($('#journalCard'));
+function drawEquity(pts){ const c=$('#equity'), ctx=c.getContext('2d'); const w=c.width=c.clientWidth, h=c.height; ctx.clearRect(0,0,w,h); if(pts.length<2)return; const mx=Math.max(...pts), mn=Math.min(...pts), R=(mx-mn)||1; ctx.strokeStyle='#7c5cff'; ctx.lineWidth=2; ctx.beginPath(); pts.forEach((v,i)=>{ const x=i/(pts.length-1)*w; const y=h-((v-mn)/R)*h; if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y) }); ctx.stroke(); }
+$('#addJ').onclick=()=>{ ensureJournal(); const sym=$('#jSym').value.trim()||'—', entry=parseFloat($('#jEntry').value||'0'), exit=parseFloat($('#jExit').value||'0'), side=$('#jSide').value, notes=$('#jNotes').value.trim(); if(!entry||!exit){alert('Entry & Exit required');return} const pnl=(side==='BUY')?(exit-entry):(entry-exit); journal.push({ts:Date.now(),sym:sym.toUpperCase(),entry,exit,side,notes,pnl}); localStorage.setItem(storeKey,JSON.stringify(journal)); renderJournal() };
+new IntersectionObserver((es)=>{ if(es[0].isIntersecting) ensureJournal(); }, {rootMargin:"200px"}).observe($('#journalCard'));
 
-$('#openStrategies').setAttribute('aria-controls','guide'); $('#openGuide').setAttribute('aria-controls','guide'); $('#year').textContent=new Date().getFullYear();
+/* ========= TradingView embed & sync ========= */
+(function(){
+  const scriptUrl="https://s3.tradingview.com/tv.js";
+  function loadTV(cb){ if(window.TradingView?.widget) return cb(); const s=document.createElement("script"); s.src=scriptUrl; s.onload=cb; document.head.appendChild(s); }
+  function tfToTV(tf){ return tf==="15m"?"15":tf==="1h"?"60":tf==="4h"?"240":tf==="Weekly"?"W":"D" }
+  function normSymbol(s){
+    if(/^OANDA:([A-Z]{3})_([A-Z]{3})$/.test(s)) return "OANDA:"+RegExp.$1+RegExp.$2;
+    if(/^([A-Z]+)USD$/i.test(s)) return RegExp.$1.toUpperCase()+"USD";
+    return s.toUpperCase();
+  }
+  function createChart(){
+    const symbol = normSymbol(document.getElementById("symbol")?.value || "NVDA");
+    const interval = tfToTV(document.getElementById("timeframe")?.value || "Daily");
+    // eslint-disable-next-line no-undef
+    window.tvWidget = new TradingView.widget({
+      symbol, interval, container_id:"tvchart", autosize:true, timezone:"Etc/UTC", theme:"dark", style:"1",
+      hide_top_toolbar:false, hide_legend:false, studies:["MACD@tv-basicstudies","RSI@tv-basicstudies"]
+    });
+  }
+  window.syncChart = function(){
+    if(!window.tvWidget) return;
+    const sym=normSymbol(document.getElementById("symbol")?.value||"NVDA");
+    const tf=tfToTV(document.getElementById("timeframe")?.value||"Daily");
+    window.tvWidget?.setSymbol(sym, tf);
+  };
+  loadTV(createChart);
+  document.addEventListener("DOMContentLoaded", ()=>{
+    document.getElementById("timeframe")?.addEventListener("change", ()=> setTimeout(window.syncChart, 50), {passive:true});
+  });
+})();
+
+/* ========= misc ========= */
+$('#year').textContent=new Date().getFullYear();
 </script>
 </body>
 </html>
