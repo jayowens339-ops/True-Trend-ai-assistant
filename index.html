@@ -1,339 +1,253 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>TrueTrend AI — Learn money. Earn money. Own money.</title>
-<meta name="description" content="TrueTrend AI reads your chart, explains the why, and tells you what’s changing—no Telegrams, WhatsApp, or gurus needed. Works with TradingView, Thinkorswim, Webull, MooMoo, PocketOptions, MT4/5, TradeStation, TradeLocker."/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TrueTrend AI</title>
 <style>
-  :root{--bg:#070b14;--ink:#ecf1ff;--mut:#99a7c9;--card:#0d1324;--line:#1a2340;--acc:#22c55e;--acc2:#7c5cff}
-  *{box-sizing:border-box}
-  html,body{margin:0;background:#070b14;color:var(--ink);font:16px/1.45 Inter,ui-sans-serif,system-ui}
-  .wrap{max-width:1180px;margin:0 auto;padding:22px}
-  header{display:flex;align-items:center;justify-content:space-between}
-  nav a{color:var(--mut);margin:0 10px;text-decoration:none}
-  .btn{background:var(--acc);color:#062613;border:0;padding:11px 14px;border-radius:12px;font-weight:800;cursor:pointer}
-  .btn.ghost{background:#111a33;color:#cfe0ff;border:1px solid var(--line)}
-  .btn.purple{background:var(--acc2);color:#0a0720}
-  .grid{display:grid;gap:18px;grid-template-columns:1.05fr 1fr;margin-top:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative}
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .tag{display:inline-block;background:#0c1530;border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:#cde1ff;margin:4px 6px 0 0;font-size:.86rem}
-  h1{margin:6px 0 6px;font-size:38px}
-  .mut{color:var(--mut)} .mono{font-family:ui-monospace,Consolas,Menlo,monospace}
-  input,select{background:#0b1430;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 12px}
-  pre{white-space:pre-wrap}
-  .overlay{position:absolute;inset:0;background:rgba(8,12,24,.72);display:flex;align-items:center;justify-content:center;border-radius:14px}
-  .overlayBox{background:#0b1222;border:1px solid var(--line);padding:14px;border-radius:12px;text-align:center;max-width:420px}
-  .ribbon{position:absolute;top:10px;right:10px;background:#13214a;border:1px solid var(--line);color:#cfe0ff;padding:4px 10px;border-radius:999px;font-size:.82rem}
-  ul{margin:8px 0 0 18px}
+:root{--bg:#0b1020;--card:#121935;--line:#1c2550;--txt:#e9eeff;--mut:#93a7d9;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--vio:#9b87f5}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);font:15px Inter,system-ui,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:28px auto;padding:0 16px}
+h1{margin:0 0 4px;font-size:34px} .sub{color:var(--mut);margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+input,select,button,textarea{border-radius:10px;border:1px solid var(--line);background:#0e1538;color:var(--txt)}
+input,select,button{height:42px;padding:0 12px} textarea{padding:10px}
+button{background:var(--ok);color:#04220f;border:none;font-weight:700;cursor:pointer}
+button[disabled]{opacity:.6;cursor:wait}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:#0e1640;border:1px solid var(--line);color:#cbd7ff}
+.kbd{font:12px ui-monospace,Menlo,Consolas,monospace;background:#0e1640;border:1px solid var(--line);padding:1px 6px;border-radius:6px}
+.out{white-space:pre-wrap;line-height:1.5}
+#bigSignal{font-size:28px;font-weight:900;margin-top:8px}
+.buy{color:var(--ok)} .sell{color:#ff7373}
+.tbl{width:100%;border-collapse:collapse;margin-top:8px}
+.tbl th,.tbl td{padding:8px;border-bottom:1px solid #26306a;text-align:left;font-size:13px}
+small.mut{color:var(--mut)}
+a.book{color:#a3b6ff;text-decoration:none;border:1px dashed #2a3a7a;padding:6px 10px;border-radius:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div><strong>TrueTrend AI</strong> <span id="planBadge" class="tag">Checking plan…</span></div>
-    <nav><a href="#strategies">Strategies</a> <a href="#pricing">Pricing</a></nav>
-    <div><a class="btn purple" href="#pricing">Start 3-Day Free</a></div>
-  </header>
 
-  <section class="grid">
-    <div class="card">
-      <h1>Learn money. Earn money. Own money.</h1>
-      <p class="mut">TrueTrend reads live data, explains the <b>why</b>, and tells you what’s changing — <b>no Telegrams, WhatsApp, or gurus</b> needed.</p>
-      <div class="mut" style="margin:8px 0 4px">Works with any chart/platform:</div>
-      <div>
-        <span class="tag">TradingView</span><span class="tag">Thinkorswim</span><span class="tag">Webull</span>
-        <span class="tag">MooMoo</span><span class="tag">PocketOptions</span><span class="tag">MT4/5</span>
-        <span class="tag">TradeStation</span><span class="tag">TradeLocker</span>
-      </div>
-      <div class="mut" style="margin:12px 0 6px">And brokers/exchanges:</div>
-      <div><span class="tag">Schwab</span><span class="tag">Fidelity</span><span class="tag">OANDA</span><span class="tag">Binance</span></div>
-      <div class="row" style="margin-top:12px"><a class="btn" href="#pricing">Try 3-Day Free</a></div>
+  <div class="card" style="margin-bottom:12px">
+    <h1>TrueTrend AI <span class="badge">Live</span></h1>
+    <div class="sub">Reads the market, says <b>BUY</b>/<b>SELL</b> out loud, and logs your trades. Works with any platform.</div>
+
+    <div class="row">
+      <input id="ticker" placeholder="Ticker / Pair e.g., EURUSD, AAPL, BTCUSDT" style="flex:1;min-width:220px">
+      <select id="timeframe">
+        <option>5m</option><option>15m</option><option>1h</option><option>4h</option>
+        <option selected>Daily</option>
+      </select>
+      <select id="strategy">
+        <option selected>Trendline</option>
+        <option>EMA Touch</option>
+        <option>ORB</option>
+        <option>Support/Resistance</option>
+        <option>Stoch + Williams %R</option>
+        <option>RSI + MACD</option>
+        <option>Break of Structure</option>
+        <option>Pullback Continuation</option>
+        <option>Mean Reversion</option>
+      </select>
+      <button id="btnAnalyze">Analyze</button>
+      <label><input type="checkbox" id="auto" checked> Auto analyze on change</label>
+      <label><input type="checkbox" id="voice" checked> Voice</label>
     </div>
 
-    <!-- ANALYZER (demo for all, Daily/Weekly); Pro/Lifetime remove limits + auto voice -->
-    <div class="card" id="anCard">
-      <div class="ribbon" id="demoRibbon" style="display:none">Demo — Full access in Pro</div>
-      <div class="row" style="justify-content:space-between">
-        <h3 style="margin:0">Analyzer</h3>
-        <div class="tag">Over-trading: <b id="otLabel">Cool</b></div>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <input id="symbol" placeholder="Ticker / Pair / Crypto e.g., NVDA, EURUSD, BTC"/>
-        <select id="timeframe">
-          <option selected>Daily</option>
-          <option>Weekly</option>
-        </select>
-        <select id="strategy">
-          <option value="trendline">Trendline</option>
-          <option value="cross">Crossing EMAs</option>
-          <option value="rsiReversal">RSI Reversal</option>
-          <option value="breakout">Range Breakout</option>
-        </select>
-        <button class="btn" id="run">Analyze</button>
-      </div>
-      <div class="row" style="margin-top:6px">
-        <label class="mut"><input type="checkbox" id="autoAnalyze" checked> Auto analyze on chart change</label>
-        <label class="mut" id="autoSpeakWrap" style="display:none"><input type="checkbox" id="autoSpeak"> Auto voice</label>
-      </div>
-      <pre id="answer" class="mono" style="margin-top:8px"></pre>
-      <div id="voiceRow" class="row" style="display:none;margin-top:6px">
-        <button class="btn ghost" id="speakBtn">🔊 Read it</button><span class="mut">Friendlier male voice</span>
-      </div>
-      <div class="overlay" id="limitOverlay" style="display:none">
-        <div class="overlayBox">
-          <div style="font-weight:800">You’ve reached today’s demo limit</div>
-          <div class="mut" style="margin-top:6px">Get unlimited Analyzer, voice, and strategy builder in Pro.</div>
-          <div style="margin-top:10px"><a class="btn purple" href="#pricing">Start Free Trial</a></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="card" style="margin-top:16px">
-    <h3 style="margin:0 0 8px">Live Chart</h3>
-    <div id="tvchart" style="height:460px"></div>
-  </section>
-
-  <section class="grid" style="margin-top:16px">
-    <div class="card" id="journalCard">
-      <h3>Trade Journal & Equity Curve (All plans)</h3>
-      <div class="row" style="gap:8px;margin:6px 0">
-        <input id="jSym" placeholder="Symbol" style="width:120px">
-        <input id="jEntry" type="number" step="0.0001" placeholder="Entry">
-        <input id="jExit"  type="number" step="0.0001" placeholder="Exit">
-        <select id="jSide"><option>BUY</option><option>SELL</option></select>
-        <input id="jNotes" placeholder="Why win/lose?">
-        <button class="btn" id="addJ">Add</button>
-      </div>
-      <canvas id="equity" height="120"></canvas>
-      <div style="margin:10px 0;border-bottom:1px solid var(--line)"></div>
-      <table id="jTable"><thead>
-        <tr style="color:#c6d6ff"><th align="left">Date</th><th align="left">Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>P/L</th><th>Notes</th></tr>
-      </thead><tbody></tbody></table>
+    <div class="row" style="margin-top:8px">
+      <span id="status" class="badge">Ready.</span>
+      <span class="sub">Press <span class="kbd">Enter</span> in the ticker box or click Analyze.</span>
     </div>
 
-    <div class="card" id="voiceCard">
-      <h3>Voice lookup (Pro/Lifetime)</h3>
-      <p class="mut">Type a ticker and we’ll read bias, confidence, RSI and levels (Daily).</p>
-      <div class="row"><input id="voiceSym" placeholder="AAPL, NVDA, EURUSD, BTC"/><button class="btn" id="voiceAnalyze">Get voice</button></div>
-      <pre id="voiceOut" class="mono" style="margin-top:8px"></pre>
-      <div class="overlay" id="voiceGate" style="display:none">
-        <div class="overlayBox">
-          <div style="font-weight:800">Voice is included with Pro/Lifetime</div>
-          <div class="mut" style="margin-top:6px">Get friendly voice summaries and Alexa directions.</div>
-          <div style="margin-top:10px"><a class="btn purple" href="#pricing">Start Free Trial</a></div>
-        </div>
-      </div>
-    </div>
-  </section>
+    <div id="bigSignal"></div>
+    <div id="output" class="out" style="margin-top:8px"></div>
+  </div>
 
-  <section id="pricing" class="card" style="margin-top:18px">
-    <h3>Pricing</h3>
-    <div class="row" style="flex-wrap:wrap;gap:16px">
-      <div class="card" style="min-width:250px">
-        <h4>Basic — $59.99/mo</h4>
-        <ul class="mut">
-          <li>Reads any chart you open</li>
-          <li>Journal + Equity Curve</li>
-          <li>Over-trading guard</li>
-          <li><b>Analyzer demo (Daily/Weekly)</b></li>
-        </ul>
-        <a class="btn" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401">Start 3-Day Free</a>
-      </div>
-      <div class="card" style="min-width:250px;border-color:#7c5cff">
-        <h4>Pro — $99.99/mo</h4>
-        <ul class="mut"><li>Everything in Basic</li><li>Full Analyzer + Strategy Builder</li><li>Voice + Alexa directions</li></ul>
-        <a class="btn purple" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start 3-Day Free</a>
-      </div>
-      <div class="card" style="min-width:250px;border-color:#22c55e">
-        <h4>Lifetime — $999 one-time</h4>
-        <ul class="mut"><li>All Pro features forever</li><li>Future strategy packs included</li></ul>
-        <a class="btn" href="https://buy.stripe.com/bJe00jfiJ7ju3YVdcO38406">Start 3-Day Free</a>
-      </div>
+  <div class="row">
+    <div class="card" style="flex:1;min-width:320px">
+      <h3 style="margin:0 0 8px">Attach to any chart (bookmarklet)</h3>
+      <div class="sub">Drag this to your bookmarks bar, open any chart (TradingView, PocketOptions, TradeLocker, etc.), then click it:</div>
+      <div id="bmHolder" style="margin:6px 0 4px"></div>
+      <small class="mut">The overlay watches the page for symbol changes and speaks the signal. Later, we’ll ship this as a Chrome/Edge MV3 extension using the same code.</small>
     </div>
-  </section>
+
+    <div class="card" style="flex:1;min-width:320px">
+      <h3 style="margin:0 0 8px">Trade Journal (local, exportable)</h3>
+      <div class="row">
+        <button id="logFromLast">Log Last Signal</button>
+        <input id="journalNotes" placeholder="Notes (optional)" style="flex:1;min-width:140px">
+        <button id="exportCSV">Export CSV</button>
+        <button id="clearJournal" style="background:var(--bad);color:#fff">Clear</button>
+      </div>
+      <table class="tbl" id="journalTable">
+        <thead><tr>
+          <th>Time</th><th>Ticker</th><th>TF</th><th>Strategy</th><th>Action</th><th>Price</th><th>Notes</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <script>
-/* ================= PLAN & GATING ================= */
-const $=s=>document.querySelector(s);
-function getPlan(){ try{const p=new URL(location.href).searchParams.get('plan'); return (p||'basic').toLowerCase(); }catch{ return 'basic'; } }
-function setPlanUI(){
-  const plan=getPlan();
-  $('#planBadge').textContent=plan.charAt(0).toUpperCase()+plan.slice(1);
-  const isPro=/^(pro|lifetime|family)$/i.test(plan);
-  $('#demoRibbon').style.display = isPro ? 'none' : 'inline-block';
-  $('#autoSpeakWrap').style.display = isPro ? 'inline-block' : 'none';
-  $('#voiceRow').style.display = isPro ? 'flex' : 'none';
-  $('#voiceGate').style.display = isPro ? 'none' : 'flex';
-}
-setPlanUI();
+const el = id => document.getElementById(id);
+const tickerEl = el('ticker'), tfEl = el('timeframe'), stratEl = el('strategy');
+const btn = el('btnAnalyze'), out = el('output'), statusEl = el('status'), big = el('bigSignal');
+const auto = el('auto'), voice = el('voice');
+let lastResult = null;
 
-/* ============ DEMO LIMIT (Basic only) ============ */
-const DEMO_MAX = 6;
-function demoKey(){ const d=new Date(); return `tt_demo_${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
-function demoCount(){ return +(localStorage.getItem(demoKey())||0); }
-function incDemo(){ const n=demoCount()+1; localStorage.setItem(demoKey(), n); return n; }
-function enforceDemoGate(){
-  const isPro=/^(pro|lifetime|family)$/i.test(getPlan());
-  if(isPro){ $('#limitOverlay').style.display='none'; $('#run').disabled=false; return; }
-  if(demoCount()>=DEMO_MAX){ $('#limitOverlay').style.display='flex'; $('#run').disabled=true; }
-}
-enforceDemoGate();
+// Restore last choices
+(() => {
+  const s = JSON.parse(localStorage.getItem('ttai') || '{}');
+  if (s.ticker) tickerEl.value = s.ticker;
+  if (s.tf) tfEl.value = s.tf;
+  if (s.strat) stratEl.value = s.strat;
+})();
 
-/* ============ OVER-TRADING GUARD ============ */
-const clicks=[]; function markAnalyze(){const now=Date.now(); clicks.push(now);
-  while(clicks[0]<now-60*60*1e3)clicks.shift();
-  $('#otLabel').textContent=(clicks.filter(t=>t>now-15*60*1e3).length>10||clicks.length>25)?'Slow down':'Cool'}
-
-/* ============ DATA FETCHERS (CORS-friendly) ============ */
-/* Equities: Stooq CSV (daily/weekly) */
-async function fetchStooq(symbol, tf='Daily'){
-  const s = symbol.includes(':') ? symbol.split(':').pop() : symbol;
-  const code=s.toLowerCase() + (s.length<=5?'.us':'');
-  const i = (tf==='Weekly') ? 'w' : 'd';
-  const url = `https://stooq.com/q/d/l/?s=${code}&i=${i}`;
-  const r=await fetch(url); if(!r.ok) throw new Error('stooq '+r.status);
-  const csv=await r.text(); const lines=csv.trim().split(/\r?\n/); if(lines.length<2) throw new Error('stooq empty');
-  const t=[],o=[],h=[],l=[],c=[]; for(let i2=1;i2<lines.length;i2++){ const [D,O,H,L,C]=lines[i2].split(',');
-    if(!C||C==='-') continue; t.push(Date.parse(D)/1000); o.push(+O); h.push(+H); l.push(+L); c.push(+C); }
-  return {t,c,h,l,o, note:'stooq'};
+function say(text){
+  if(!voice.checked) return;
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); speechSynthesis.speak(u);}catch{}
 }
 
-/* Forex: exchangerate.host timeseries (daily) */
-function parseFx(sym){
-  let s=sym.replace(/[^A-Za-z]/g,'').toUpperCase();
-  if(/^OANDA:([A-Z]{3})_?([A-Z]{3})$/.test(sym)) s=(RegExp.$1+RegExp.$2).toUpperCase();
-  const m=s.match(/^([A-Z]{3})([A-Z]{3})$/); if(!m) throw new Error('FX pair not recognized'); return {base:m[1], quote:m[2]};
-}
-async function fetchFxDaily(symbol, tf='Daily'){
-  const {base,quote}=parseFx(symbol);
-  const end=new Date(), start=new Date(Date.now()-365*24*3600*1000);
-  const sd=start.toISOString().slice(0,10), ed=end.toISOString().slice(0,10);
-  const url=`https://api.exchangerate.host/timeseries?base=${base}&symbols=${quote}&start_date=${sd}&end_date=${ed}`;
-  const r=await fetch(url); if(!r.ok) throw new Error('fx '+r.status); const j=await r.json(); if(!j?.rates) throw new Error('fx empty');
-  const t=[], c=[], h=[], l=[], o=[];
-  const dates=Object.keys(j.rates).sort();
-  for(let i=0;i<dates.length;i++){ const d=dates[i], v=j.rates[d][quote]; if(!v) continue;
-    t.push(Date.parse(d)/1000); c.push(v); h.push(v); l.push(v); o.push(v); }
-  if(tf==='Weekly'){ return aggregateWeekly({t,c,h,l,o,note:'fx'}); }
-  return {t,c,h,l,o,note:'fx'};
-}
-
-/* Crypto: CoinGecko — search + OHLC (days<=365) */
-async function cgSearchId(query){
-  const r=await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(query)}`);
-  if(!r.ok) throw new Error('cg search'); const j=await r.json();
-  // Try exact ticker match first (e.g., BTC)
-  const q=query.toUpperCase();
-  const coinByTicker=j.coins?.find(c=>c.symbol.toUpperCase()===q);
-  if(coinByTicker) return coinByTicker.id;
-  // Otherwise, try name includes or first coin
-  return j.coins?.[0]?.id;
-}
-async function fetchCryptoDaily(symbol, tf='Daily'){
-  const q = symbol.replace(/[^A-Za-z0-9 ]/g,'').trim() || 'BTC';
-  const id = await cgSearchId(q);
-  if(!id) throw new Error('crypto id not found');
-  // OHLC daily for ~180 days (max 365)
-  const r=await fetch(`https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=usd&days=365`);
-  if(!r.ok) throw new Error('cg ohlc'); const arr=await r.json();
-  const t=[],o=[],h=[],l=[],c=[];
-  arr.forEach(row=>{ const [ms, O,H,L,C]=row; t.push(Math.floor(ms/1000)); o.push(+O); h.push(+H); l.push(+L); c.push(+C); });
-  if(tf==='Weekly') return aggregateWeekly({t,c,h,l,o,note:'coingecko'});
-  return {t,c,h,l,o,note:'coingecko'};
+function render(result){
+  lastResult = result || null;
+  if(!result){ out.textContent = 'No data.'; big.textContent=''; return; }
+  const sig = result.signals && result.signals[0];
+  big.textContent = sig ? `${sig.action}` : '';
+  big.className = sig ? (sig.action === 'BUY' ? 'buy' : 'sell') : '';
+  const lines = [
+    result.summary || '',
+    '',
+    'Checklist:',
+    ...(result.checklist || []).map(x=>'• '+x),
+    '',
+    sig ? `Signal: ${sig.action} — ${sig.reason} (conf ${(sig.confidence*100|0)}%)` : '',
+    '',
+    `Mode: ${result.mode || 'demo'}`
+  ];
+  out.textContent = lines.filter(Boolean).join('\n');
+  if (sig) say(`${sig.action}. ${sig.reason}. Confidence ${(sig.confidence*100|0)} percent.`);
 }
 
-/* Weekly aggregation from daily arrays */
-function aggregateWeekly({t,c,h,l,o,note}){
-  const C=[],H=[],L=[],O=[],T=[];
-  let wk=-1, first=true;
-  for(let i=0;i<t.length;i++){
-    const d=new Date(t[i]*1000); const w=`${d.getUTCFullYear()}-W${Math.ceil((d.getUTCDate()+((new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1)).getUTCDay()+6)%7))/7)}`;
-    if(w!==wk){ wk=w; T.push(t[i]); O.push(o[i]); H.push(h[i]); L.push(l[i]); C.push(c[i]); first=false; }
-    else{ H[H.length-1]=Math.max(H.at(-1),h[i]); L[L.length-1]=Math.min(L.at(-1),l[i]); C[C.length-1]=c[i]; }
-  }
-  return {t:T,c:C,h:H,l:L,o:O,note};
-}
-
-/* Master fetch (demo: Daily/Weekly only) */
-async function fetchCandles(symbol, timeframe){
-  const s = (symbol||'NVDA').trim().toUpperCase();
-  // Try equity (Stooq)
-  try { return await fetchStooq(s, timeframe); } catch(_){}
-  // Try FX
-  try { return await fetchFxDaily(s, timeframe); } catch(_){}
-  // Try Crypto
-  try { return await fetchCryptoDaily(s, timeframe); } catch(_){}
-  throw new Error('No data');
-}
-
-/* ============ INDICATORS & SIGNALS ============ */
-const num=(n,d=2)=> (n==null||isNaN(n))?'-':Number(n).toFixed(d);
-function ema(a,p){ if(!a.length) return []; const k=2/(p+1); let e=a[0]; return a.map((v,i)=> e = i? v*k + e*(1-k) : v); }
-function rsi(a,p=14){ if(a.length<p+1) return Array(a.length).fill(50); let g=0,lo=0; for(let i=1;i<=p;i++){const d=a[i]-a[i-1]; if(d>=0)g+=d; else lo-=d}
-  let ag=g/p, al=lo/p; const out=[...Array(p).fill(50), 100-100/(1+(ag/(al||1e-9)))];
-  for(let i=p+1;i<a.length;i++){ const d=a[i]-a[i-1], G=d>0?d:0, L=d<0?-d:0; ag=(ag*(p-1)+G)/p; al=(al*(p-1)+L)/p; out.push(100-100/(1+(ag/(al||1e-9)))) }
-  return out;
-}
-function macdHist(a){ const e12=ema(a,12), e26=ema(a,26), line=e12.map((v,i)=>v-(e26[i]||v)), sig=ema(line,9); return line.map((v,i)=>v-(sig[i]||0)); }
-function slope(a,n=6){ const s=a.slice(-n); if(s.length<2)return 0; return (s.at(-1)-s[0]) / Math.max(Math.abs(s[0]),1e-9) }
-function decide(strategy, c,h,l){
-  const n=c.length-1, price=c[n]; const ema9=ema(c,9), ema50=ema(c,50), r=rsi(c,14), m=macdHist(c);
-  const bull=ema9[n]>ema50[n], emaS=slope(ema50,6), rV=r[n], mH=m[n]; const reasons=[]; let action='HOLD', conf=50;
-  if(strategy==='cross'){ const up=ema9[n]>ema50[n]&&ema9[n-1]<=ema50[n-1], dn=ema9[n]<ema50[n]&&ema9[n-1]>=ema50[n-1];
-    if(up){action='BUY'; reasons.push('EMA9 crossed above EMA50')} if(dn){action='SELL'; reasons.push('EMA9 crossed below EMA50')}
-    conf=Math.min(95, Math.abs(emaS)*300 + (up||dn?25:0) + (mH>0?10:0));
-  } else if(strategy==='rsiReversal'){ if(rV<32){action='BUY'; reasons.push('RSI near oversold')} else if(rV>68){action='SELL'; reasons.push('RSI near overbought')} else reasons.push('RSI mid-range');
-    conf=Math.min(92, 80-(70-Math.abs(50-rV)) + (mH>0?8:0));
-  } else if(strategy==='breakout'){ const HH=Math.max(...h.slice(-20,-1)), LL=Math.min(...l.slice(-20,-1));
-    if(price>HH){action='BUY'; reasons.push('Breaking 20-bar high')} else if(price<LL){action='SELL'; reasons.push('Breaking 20-bar low')} else reasons.push('Still inside range');
-    conf=Math.min(90, (price>HH||price<LL?70:40) + (mH>0?6:0) + (bull?6:-2));
-  } else { // trendline
-    if(emaS>0 && price>=ema9[n]){action='BUY'; reasons.push('EMA50 slope up + above EMA9')}
-    else if(emaS<0 && price<=ema9[n]){action='SELL'; reasons.push('EMA50 slope down + below EMA9')}
-    else reasons.push('No clean alignment');
-    conf=Math.min(93, Math.abs(emaS)*400 + (mH>0?10:0) + (bull?8:-4));
-  }
-  conf=Math.max(5,Math.min(98,Math.round(conf)));
-  return {action,confidence:conf,reasons, price, ema9:ema9[n], ema50:ema50[n], rsi:rV, macdHist:mH};
-}
-function targets(sig){ const p=sig.price; if(sig.action==='BUY') return {entry:p, stop:p*0.98, tp:p*1.03}; if(sig.action==='SELL') return {entry:p, stop:p*1.02, tp:p*0.97}; return {} }
-function voiceLine(symbol, tf, sig,note){ const mood=sig.confidence>80?'high confidence':sig.confidence>60?'good confidence':'low confidence';
-  return `On ${symbol} ${tf}, price around ${num(sig.price)}. Signal is ${sig.action.toLowerCase()} with ${sig.confidence}% confidence, ${mood}. ${note?`Source ${note}. `:''}Reasons: ${sig.reasons.slice(0,3).join('; ')}.` }
-
-/* ============ ANALYZER RUN ============ */
-async function runAnalysis(symbol, timeframe, strategy){
-  const isPro=/^(pro|lifetime|family)$/i.test(getPlan());
-  if(!isPro){ if(demoCount()>=DEMO_MAX){ enforceDemoGate(); return; } }
-  markAnalyze();
-  $('#answer').textContent=`Analyzing ${symbol} (${timeframe})…`;
+async function analyze(){
+  const payload = {
+    ticker: (tickerEl.value || 'EURUSD').trim(),
+    timeframe: tfEl.value,
+    strategy: stratEl.value
+  };
+  localStorage.setItem('ttai', JSON.stringify({ticker:payload.ticker, tf:payload.timeframe, strat:payload.strategy}));
+  btn.disabled = true; statusEl.textContent = 'Analyzing…';
   try{
-    const o=await fetchCandles(symbol,timeframe);
-    const sig=decide(strategy,o.c,o.h,o.l);
-    const tgt=targets(sig);
-    const lines=[];
-    lines.push(`Symbol: ${symbol} (${timeframe})   Source: ${o.note}`);
-    lines.push(`Price: ${num(sig.price)}   High: ${num(o.h.at(-1))}   Low: ${num(o.l.at(-1))}`);
-    lines.push(`Signal: ${sig.action}   Confidence: ${sig.confidence}%`);
-    if(tgt.entry) lines.push(`Entry: ${num(tgt.entry)}   Stop: ${num(tgt.stop)}   TP: ${num(tgt.tp)}`);
-    lines.push('— Reasons —'); sig.reasons.forEach(r=>lines.push('• '+r));
-    $('#answer').textContent=lines.join('\n');
-    if(isPro){
-      $('#speakBtn').onclick=()=> speak( voiceLine(symbol,timeframe,sig,o.note) );
-      if($('#autoSpeak').checked) speak( voiceLine(symbol,timeframe,sig,o.note) );
-    }
-    if(!isPro){ if(incDemo()>=DEMO_MAX){ enforceDemoGate(); } }
-  }catch(e){ $('#answer').textContent='Error: '+(e.message||e); }
+    const res = await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data = await res.json().catch(()=>({}));
+    statusEl.textContent = (data.mode || 'demo');
+    render(data);
+  }catch(e){
+    statusEl.textContent = 'fallback';
+    render({
+      summary:`Fallback analysis for ${payload.ticker} (${payload.timeframe}) — ${payload.strategy}.`,
+      checklist:['Trend stable (fallback)','Momentum stable (fallback)','Risk: conservative'],
+      signals:[{action:'BUY',reason:'Fallback signal',confidence:.55,ttlSec:900}],
+      mode:'fallback'
+    });
+  } finally { btn.disabled = false; }
 }
-$('#run').onclick=()=> runAnalysis(($('#symbol').value||'NVDA').trim(), $('#timeframe').value||'Daily', $('#strategy').value||'trendline');
 
-/* ============ VOICE LOOKUP ============ */
-function pickMaleVoice(){ const vs=speechSynthesis.getVoices(); const pref=[/Daniel/i,/Alex/i,/Google UK English Male/i,/Male/i];
-  for(const p of pref){ const v=vs.find(v=>p.test(v.name)); if(v) return v; } return vs[0]; }
-function speak(text){ try{ const u=new SpeechSynthesisUtterance(text); const v=pickMaleVoice(); if(v) u.voice=v; u.rate=1.02; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch{} }
-$('#voiceAnalyze').onclick=async ()=>{
-  const plan=getPlan(); if(!/^(pro|lifetime|family)$/i.test(plan)){ $('#voiceOut').textContent='Voice requires Pro/Lifetime. Use ?plan=pro to test.'; return; }
-  const s=($('#voiceSym').value||'AAPL').trim(); $('#voiceOut').textContent='Fetching
+btn.addEventListener('click', analyze);
+[tickerEl, tfEl, stratEl].forEach(x=>x.addEventListener('change',()=>{ if(auto.checked) analyze(); }));
+tickerEl.addEventListener('keydown', e=>{ if(e.key==='Enter') analyze(); });
+
+// ---------- Journal ----------
+const tbody = document.querySelector('#journalTable tbody');
+function loadJournal(){
+  const rows = JSON.parse(localStorage.getItem('ttai_journal') || '[]');
+  tbody.innerHTML = rows.map(r=>`<tr>
+    <td>${r.time}</td><td>${r.ticker}</td><td>${r.tf}</td><td>${r.strategy}</td>
+    <td>${r.action}</td><td>${r.price ?? ''}</td><td>${r.notes ?? ''}</td>
+  </tr>`).join('');
+}
+function saveJournal(rows){ localStorage.setItem('ttai_journal', JSON.stringify(rows)); loadJournal(); }
+loadJournal();
+
+el('logFromLast').addEventListener('click', ()=>{
+  if(!lastResult || !(lastResult.signals||[])[0]) return alert('No signal yet.');
+  const sig = lastResult.signals[0];
+  const rows = JSON.parse(localStorage.getItem('ttai_journal') || '[]');
+  rows.unshift({
+    time: new Date().toLocaleString(),
+    ticker: tickerEl.value || '',
+    tf: tfEl.value,
+    strategy: stratEl.value,
+    action: sig.action,
+    price: lastResult.price || '',
+    notes: el('journalNotes').value || ''
+  });
+  saveJournal(rows);
+  el('journalNotes').value='';
+});
+el('exportCSV').addEventListener('click', ()=>{
+  const rows = JSON.parse(localStorage.getItem('ttai_journal') || '[]');
+  const header = ['Time','Ticker','TF','Strategy','Action','Price','Notes'];
+  const csv = [header.join(','), ...rows.map(r=>[r.time,r.ticker,r.tf,r.strategy,r.action,r.price||'',(r.notes||'').replace(/,/g,';')].join(','))].join('\n');
+  const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'TrueTrend_Journal.csv'; a.click(); URL.revokeObjectURL(url);
+});
+el('clearJournal').addEventListener('click', ()=>{
+  if(confirm('Clear the journal?')) saveJournal([]);
+});
+
+// ---------- “Attach to any chart” bookmarklet ----------
+(function buildBookmarklet(){
+  const ORIGIN = window.location.origin; // your deployed domain
+  const code = `
+    (function(){
+      if(window.__TTAI_OVERLAY__){return;}
+      const API='${ORIGIN}/api/analyze';
+      const css=\`
+        #ttai-ov{all:initial;position:fixed;z-index:999999;right:14px;bottom:14px;width:320px;
+        font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;color:#e9eeff;background:#121935;
+        border:1px solid #29336b;border-radius:12px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+        #ttai-ov *{all:unset;display:revert}
+        #ttai-ov input,#ttai-ov select,#ttai-ov button{background:#0e1538;border:1px solid #29336b;color:#e9eeff;border-radius:8px;height:34px;padding:0 8px}
+        #ttai-ov button{background:#22c55e;color:#04220f;font-weight:700;cursor:pointer}
+        #ttai-ov .t{font-size:12px;color:#93a7d9;margin-top:6px}
+        #ttai-ov .sig{font-weight:900;margin-top:6px}
+        #ttai-ov .buy{color:#22c55e}#ttai-ov .sell{color:#ff7373}
+      \`;
+      const s=document.createElement('style');s.textContent=css;document.head.appendChild(s);
+      const box=document.createElement('div');box.id='ttai-ov';
+      box.innerHTML='<div style="display:flex;gap:6px;margin-bottom:6px"><input id="tt-sym" placeholder="Symbol" style="flex:1"><select id="tt-tf"><option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option></select><button id="tt-go">Go</button></div><div style="display:flex;gap:6px"><select id="tt-str"><option>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option><option>Stoch + Williams %R</option><option>RSI + MACD</option><option>Break of Structure</option><option>Pullback Continuation</option><option>Mean Reversion</option></select><label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="tt-voice" checked>Voice</label></div><div class="t" id="tt-st">Attached. Watching page…</div><div id="tt-out" class="t"></div><div id="tt-s" class="sig"></div>';
+      document.body.appendChild(box); window.__TTAI_OVERLAY__=true;
+      const q=(x)=>box.querySelector(x); const sym=q('#tt-sym'), tf=q('#tt-tf'), str=q('#tt-str'), st=q('#tt-st'), out=q('#tt-out'), sig=q('#tt-s'), voice=q('#tt-voice');
+      function speak(t){try{if(!voice.checked)return;speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(t));}catch{}}
+      function guessSym(){
+        const u=new URL(location.href); const sp=u.searchParams.get('symbol'); if(sp) return decodeURIComponent(sp).replace(/[:_]/g,'').replace(/-.*/,'');
+        const m=location.pathname.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR)?/); if(m) return m[0];
+        const t=document.title.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR)?/); return t?t[0]:'';
+      }
+      sym.value=guessSym()||sym.value||'EURUSD';
+      async function run(){
+        st.textContent='Analyzing…';
+        try{
+          const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticker:sym.value,timeframe:tf.value,strategy:str.value})});
+          const j=await r.json(); const s=j.signals&&j.signals[0]; out.textContent=(j.summary||'')+'  ['+(j.mode||'')+']';
+          sig.textContent=s? s.action+' — '+s.reason+' ('+Math.round((s.confidence||0)*100)+'%)':'';
+          sig.className='sig '+(s?(s.action==='BUY'?'buy':'sell'):''); if(s) speak(s.action+'. '+s.reason);
+        }catch(e){ st.textContent='Error. Fallback.'; }
+        st.textContent='Watching page…';
+      }
+      q('#tt-go').addEventListener('click',run); sym.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+      let href=location.href, tit=document.title; setInterval(()=>{ if(location.href!==href||document.title!==tit){ href=location.href; tit=document.title; const g=guessSym(); if(g && g!==sym.value){ sym.value=g; run(); } } },1500);
+      run();
+    })();
+  `.replace(/\n+/g,' ');
+  const a=document.createElement('a');
+  a.className='book';
+  a.textContent='Attach TrueTrend to this page';
+  a.href='javascript:'+encodeURIComponent(code);
+  document.getElementById('bmHolder').appendChild(a);
+})();
+</script>
+</body>
+</html>
