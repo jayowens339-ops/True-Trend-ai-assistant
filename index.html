@@ -4,120 +4,103 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>TrueTrend AI — Learn money. Earn money. Own money.</title>
-<meta name="description" content="TrueTrend AI reads any chart, explains the why, and tells you what’s changing—no Telegrams, WhatsApp, or gurus needed."/>
-<link rel="preconnect" href="https://query1.finance.yahoo.com" crossorigin>
+<meta name="description" content="TrueTrend AI reads your chart, explains why, and tells you what’s changing—no Telegrams, WhatsApp, or gurus needed."/>
 <style>
-  :root{
-    --bg:#070b14;--ink:#ecf1ff;--mut:#97a5c7;--card:#0d1324;--line:#1a2340;
-    --acc:#22c55e;--acc2:#7c5cff;--chip:#111a33;--glow:0 10px 24px rgba(124,92,255,.25)
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;background:linear-gradient(180deg,#070b14 0%,#0a1130 100%);color:var(--ink);
-    font:16px/1.45 Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
-  a{color:#9cc1ff;text-decoration:none}
+  :root{--bg:#070b14;--ink:#ecf1ff;--mut:#99a7c9;--card:#0d1324;--line:#1a2340;--acc:#22c55e;--acc2:#7c5cff}
+  *{box-sizing:border-box} html,body{margin:0;background:#070b14;color:var(--ink);font:16px/1.45 Inter,ui-sans-serif,system-ui}
   .wrap{max-width:1180px;margin:0 auto;padding:22px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .brand{display:flex;align-items:center;gap:10px}
-  .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(45deg,var(--acc2),#36d399);box-shadow:0 0 18px #7c5cff}
-  nav a{margin:0 10px;color:var(--mut)}
-  .btn{background:var(--acc);color:#062613;border:0;padding:12px 16px;border-radius:12px;font-weight:800;cursor:pointer}
-  .btn.ghost{background:#121a33;color:#cfe0ff;border:1px solid var(--line)}
-  .btn.purple{background:var(--acc2);color:#0a0720;box-shadow:var(--glow)}
-  .tag{display:inline-block;background:#0c1530;border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:#cde1ff;margin:4px 6px 0 0;font-size:.86rem}
-  .grid{display:grid;gap:20px;grid-template-columns:1.05fr 1fr;margin-top:18px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;position:relative}
-  h1{font-size:40px;line-height:1.07;margin:8px 0 6px}
-  .sub{color:var(--mut)}
-  input,select,textarea{background:#0b1430;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:11px 12px}
+  header{display:flex;align-items:center;justify-content:space-between}
+  nav a{color:var(--mut);margin:0 10px;text-decoration:none}
+  .btn{background:var(--acc);color:#062613;border:0;padding:11px 14px;border-radius:12px;font-weight:800;cursor:pointer}
+  .btn.ghost{background:#111a33;color:#cfe0ff;border:1px solid var(--line)}
+  .btn.purple{background:var(--acc2);color:#0a0720}
+  .grid{display:grid;gap:18px;grid-template-columns:1.05fr 1fr;margin-top:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .pill{background:#0f1a3a;border:1px solid var(--line);padding:6px 10px;border-radius:999px}
+  .tag{display:inline-block;background:#0c1530;border:1px solid var(--line);padding:6px 10px;border-radius:999px;color:#cde1ff;margin:4px 6px 0 0;font-size:.86rem}
+  h1{margin:6px 0 6px;font-size:38px}
   .mut{color:var(--mut)} .mono{font-family:ui-monospace,Consolas,Menlo,monospace}
-  .divider{height:1px;background:var(--line);margin:16px 0}
-  .lockable{position:relative}
-  .lockOverlay{position:absolute;inset:0;background:rgba(6,10,20,.72);display:flex;align-items:center;justify-content:center;border-radius:16px}
+  input,select{background:#0b1430;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 12px}
+  pre{white-space:pre-wrap}
+  .lockOverlay{position:absolute;inset:0;background:rgba(8,12,24,.7);display:flex;align-items:center;justify-content:center;border-radius:14px}
   .lockInner{background:#0b1222;border:1px solid var(--line);padding:14px;border-radius:12px;text-align:center}
-  .modal{position:fixed;inset:0;background:rgba(2,4,10,.58);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
-  .sheet{max-width:900px;width:100%;background:#0d1326;border:1px solid var(--line);border-radius:16px;padding:16px}
-  canvas{max-width:100%} table{width:100%;border-collapse:collapse} th,td{padding:6px;border-bottom:1px solid var(--line)}
-  footer{margin:40px 0 16px;color:var(--mut);text-align:center}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="brand"><span class="dot"></span><strong>TrueTrend AI</strong><span id="planBadge" class="tag">Checking plan…</span></div>
-    <nav><a href="#strategies">Strategies</a><a href="#pricing">Pricing</a><a href="#" id="openGuide">How-to</a></nav>
+    <div><strong>TrueTrend AI</strong> <span id="planBadge" class="tag">Checking plan…</span></div>
+    <nav><a href="#strategies">Strategies</a><a href="#pricing">Pricing</a></nav>
     <div><a class="btn purple" href="#pricing">Start 3-Day Free</a></div>
   </header>
 
   <section class="grid">
     <div class="card">
       <h1>Learn money. Earn money. Own money.</h1>
-      <p class="sub">Read <b>any chart</b>, get buy/sell with reasons, track wins & losses—<b>no Telegrams, WhatsApp, or gurus needed</b>.</p>
-      <div class="divider"></div>
-      <div class="mut">Works with charting:</div>
-      <div><span class="tag">TradingView</span><span class="tag">Thinkorswim</span><span class="tag">Webull</span><span class="tag">MooMoo</span><span class="tag">MT4/5</span><span class="tag">TradeStation</span><span class="tag">TradeLocker</span></div>
-      <div class="mut" style="margin:10px 0 6px">And brokers/exchanges:</div>
-      <div><span class="tag">Schwab</span><span class="tag">Fidelity</span><span class="tag">OANDA (FX)</span><span class="tag">Binance</span></div>
-      <div class="divider"></div>
-      <div class="row"><a class="btn" href="#pricing">Try 3-Day Free</a><button class="btn ghost" id="openStrategies">See Strategies & How-to</button></div>
+      <p class="mut">TrueTrend reads live data, explains the <b>why</b>, and tells you what’s changing—no Telegrams, WhatsApp, or gurus needed.</p>
+      <div class="mut" style="margin:8px 0 4px">Works with any chart:</div>
+      <div>
+        <span class="tag">TradingView</span><span class="tag">Thinkorswim</span><span class="tag">Webull</span>
+        <span class="tag">MooMoo</span><span class="tag">PocketOptions</span><span class="tag">MT4/5</span>
+        <span class="tag">TradeStation</span><span class="tag">TradeLocker</span>
+      </div>
+      <div class="mut" style="margin:8px 0 4px">And brokers/exchanges:</div>
+      <div><span class="tag">Schwab</span><span class="tag">Fidelity</span><span class="tag">OANDA</span><span class="tag">Binance</span></div>
+      <div class="row" style="margin-top:10px"><a class="btn" href="#pricing">Try 3-Day Free</a></div>
     </div>
 
-    <div class="card lockable" id="proPanel">
-      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Analyzer (Pro/Lifetime)</h3><div class="pill">Over-trading: <b id="otLabel">Cool</b></div></div>
-      <div class="row" style="margin-top:10px">
-        <input id="symbol" placeholder="Ticker e.g. NVDA, EURUSD, BTCUSD" style="flex:1" aria-label="Symbol"/>
-        <select id="timeframe" aria-label="Timeframe">
-          <option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option><option>Weekly</option>
-        </select>
-        <select id="strategy" aria-label="Strategy">
-          <option value="trendline">Trendline (short-term)</option>
-          <option value="cross">Crossing EMAs (swing)</option>
-          <option value="rsiReversal">RSI Reversal (short-term)</option>
-          <option value="breakout">Range Breakout (any)</option>
+    <div class="card" id="proPanel" style="position:relative">
+      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Analyzer (Pro/Lifetime)</h3><div class="tag">Over-trading: <b id="otLabel">Cool</b></div></div>
+      <div class="row" style="margin-top:8px">
+        <input id="symbol" placeholder="Ticker e.g., NVDA, EURUSD, BTCUSD" style="flex:1"/>
+        <select id="timeframe"><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option><option>Weekly</option></select>
+        <select id="strategy">
+          <option value="trendline">Trendline</option>
+          <option value="cross">Crossing EMAs</option>
+          <option value="rsiReversal">RSI Reversal</option>
+          <option value="breakout">Range Breakout</option>
         </select>
         <button class="btn" id="run">Analyze</button>
       </div>
-      <div class="row" style="margin-top:8px">
+      <div class="row" style="margin-top:6px">
         <label class="mut"><input type="checkbox" id="autoAnalyze" checked> Auto analyze on chart change</label>
         <label class="mut"><input type="checkbox" id="autoSpeak"> Auto voice</label>
       </div>
-      <pre id="answer" class="mono" style="margin-top:10px;white-space:pre-wrap"></pre>
-      <div id="voiceRow" class="row" style="margin-top:6px;display:none"><button class="btn ghost" id="speakBtn">🔊 Read it</button><span class="mut">Friendlier male voice</span></div>
+      <pre id="answer" class="mono" style="margin-top:8px"></pre>
+      <div id="voiceRow" class="row" style="display:none;margin-top:6px"><button class="btn ghost" id="speakBtn">🔊 Read it</button><span class="mut">Friendlier male voice</span></div>
     </div>
   </section>
 
-  <!-- Live TradingView chart (synced to analyzer) -->
-  <section class="card" id="chartHost" style="margin-top:16px">
+  <section class="card" style="margin-top:16px">
     <h3 style="margin:0 0 8px">Live Chart</h3>
-    <div id="tvchart" style="height:520px"></div>
+    <div id="tvchart" style="height:480px"></div>
   </section>
 
-  <section class="grid" style="margin-top:18px">
+  <section class="grid" style="margin-top:16px">
     <div class="card" id="journalCard">
       <h3>Trade Journal & Equity Curve (All plans)</h3>
       <div class="row" style="gap:8px;margin:6px 0">
         <input id="jSym" placeholder="Symbol" style="width:120px">
         <input id="jEntry" type="number" step="0.0001" placeholder="Entry">
-        <input id="jExit" type="number" step="0.0001" placeholder="Exit">
+        <input id="jExit"  type="number" step="0.0001" placeholder="Exit">
         <select id="jSide"><option>BUY</option><option>SELL</option></select>
         <input id="jNotes" placeholder="Why win/lose?">
         <button class="btn" id="addJ">Add</button>
       </div>
       <canvas id="equity" height="120"></canvas>
-      <div class="divider"></div>
-      <table id="jTable"><thead><tr style="color:#c6d6ff"><th align="left">Date</th><th align="left">Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>P/L</th><th align="left">Notes</th></tr></thead><tbody></tbody></table>
+      <div style="margin:10px 0;border-bottom:1px solid var(--line)"></div>
+      <table id="jTable"><thead><tr style="color:#c6d6ff"><th align="left">Date</th><th align="left">Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>P/L</th><th>Notes</th></tr></thead><tbody></tbody></table>
     </div>
 
-    <div class="card">
+    <div class="card" id="voiceCard">
       <h3>Voice lookup (Pro/Lifetime)</h3>
-      <p class="mut">Ask TrueTrend for a ticker and it reads bias, confidence, RSI, and levels.</p>
+      <p class="mut">Type a ticker and we’ll read bias, confidence, RSI and levels (Daily).</p>
       <div class="row"><input id="voiceSym" placeholder="AAPL, NVDA, EURUSD"/><button class="btn" id="voiceAnalyze">Get voice</button></div>
-      <pre id="voiceOut" class="mono" style="margin-top:8px;white-space:pre-wrap"></pre>
+      <pre id="voiceOut" class="mono" style="margin-top:8px"></pre>
     </div>
   </section>
 
-  <section id="pricing" class="card" style="margin-top:24px">
+  <section id="pricing" class="card" style="margin-top:18px">
     <h3>Pricing</h3>
     <div class="row" style="flex-wrap:wrap;gap:16px">
       <div class="card" style="min-width:250px">
@@ -125,7 +108,7 @@
         <ul class="mut"><li>Reads any chart you open</li><li>Journal + Equity Curve</li><li>Over-trading guard</li></ul>
         <a class="btn" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401">Start 3-Day Free</a>
       </div>
-      <div class="card" style="min-width:250px;border-color:#7c5cff;box-shadow:var(--glow)">
+      <div class="card" style="min-width:250px;border-color:#7c5cff">
         <h4>Pro — $99.99/mo</h4>
         <ul class="mut"><li>Everything in Basic</li><li>Analyzer + Strategy Builder</li><li>Voice + Alexa directions</li></ul>
         <a class="btn purple" href="https://buy.stripe.com/3cI7sLfiJ33efHDdcO38400">Start 3-Day Free</a>
@@ -137,61 +120,35 @@
       </div>
     </div>
   </section>
-
-  <footer>© <span id="year"></span> TrueTrend AI</footer>
-</div>
-
-<!-- Strategies / How-to -->
-<div class="modal" id="guide">
-  <div class="sheet">
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <h3 id="strategies" style="margin:0">Strategies & How-to</h3>
-      <button class="btn ghost" id="closeGuide">Close</button>
-    </div>
-    <div class="divider"></div>
-    <h4>Built-in strategies</h4>
-    <ul class="mut">
-      <li><b>Trendline (short-term):</b> EMA slope proxy + pullback confirm.</li>
-      <li><b>Crossing EMAs (swing):</b> EMA-9 over/under EMA-50 + momentum thrust.</li>
-      <li><b>RSI Reversal (short-term):</b> RSI(14) crosses 30/70 with momentum.</li>
-      <li><b>Range Breakout (any):</b> break of recent high/low with retest.</li>
-      <li><b>Multi-TF filter:</b> optional higher-TF slope check.</li>
-    </ul>
-    <div class="divider"></div>
-    <h4>Alexa voice hookup (Pro/Lifetime)</h4>
-    <ol class="mut">
-      <li>Enable Voice in TrueTrend settings.</li>
-      <li>In Alexa app, add a Custom Skill: invocation “TrueTrend”.</li>
-      <li>Say: “Alexa, ask TrueTrend if NVDA is a buy on daily.”</li>
-    </ol>
-    <div class="divider"></div>
-    <h4>How to analyze</h4>
-    <ol class="mut"><li>Enter <b>Ticker</b> → pick <b>Timeframe</b> → choose <b>Strategy</b>.</li><li>Click <b>Analyze</b> (or turn on Auto analyze).</li><li>Log the trade in <b>Journal</b> to build your equity curve.</li></ol>
-  </div>
 </div>
 
 <script>
-/* ---------- helpers & plan gate ---------- */
-const $=s=>document.querySelector(s); const num=(n,d=2)=> (n==null||isNaN(n))?'-':Number(n).toFixed(d);
-function getQueryPlan(){ try{const p=new URL(location.href).searchParams.get('plan'); return p&&['basic','pro','lifetime','family'].includes(p)?p:null;}catch{return null} }
-async function gate(){
-  let plan = getQueryPlan() || 'basic';
-  $('#planBadge').textContent = plan==='pro'?'Pro':plan==='lifetime'?'Lifetime':plan==='family'?'Family':'Basic';
-  const pro = (plan==='pro'||plan==='lifetime'||plan==='family');
+/* ====== PLAN GATE (use ?plan=pro or ?plan=lifetime to test voice/analyzer) ====== */
+const $=s=>document.querySelector(s);
+function getPlan(){ try{const p=new URL(location.href).searchParams.get('plan'); return p||'basic'; }catch{ return 'basic'; } }
+function setPlanUI(){
+  const plan=getPlan(); $('#planBadge').textContent=plan.charAt(0).toUpperCase()+plan.slice(1);
+  const pro = /^(pro|lifetime|family)$/i.test(plan);
   if(!pro){
+    // lock analyzer & voice UI but keep journal free
     if(!$('#proPanel').querySelector('.lockOverlay')){
-      $('#proPanel').insertAdjacentHTML('beforeend','<div class="lockOverlay"><div class="lockInner"><b>Pro/Lifetime required</b><div style="margin-top:8px"><a class="btn purple" href="#pricing">Start 3-Day Free</a></div></div></div>');
+      $('#proPanel').insertAdjacentHTML('beforeend',
+        '<div class="lockOverlay"><div class="lockInner"><b>Pro/Lifetime required</b><div style="margin-top:8px"><a class="btn purple" href="#pricing">Start Free Trial</a></div></div></div>');
     }
-  } else { $('#voiceRow').style.display='flex'; }
+    $('#voiceCard').insertAdjacentHTML('beforeend',
+      '<div class="lockOverlay"><div class="lockInner"><b>Pro/Lifetime required</b><div style="margin-top:8px"><a class="btn purple" href="#pricing">Start Free Trial</a></div></div></div>');
+  }else{
+    $('#voiceRow').style.display='flex';
+  }
 }
-gate();
-$('#openGuide').onclick=$('#openStrategies').onclick=()=>{$('#guide').style.display='flex'}; $('#closeGuide').onclick=()=>{$('#guide').style.display='none'};
-$('#year').textContent=new Date().getFullYear();
+setPlanUI();
 
-/* ---------- Over-trading guard ---------- */
-const clicks=[]; function markAnalyze(){const now=Date.now();clicks.push(now);while(clicks[0]<now-60*60*1e3)clicks.shift();$('#otLabel').textContent=(clicks.filter(t=>t>now-15*60*1e3).length>10||clicks.length>25)?'Slow down':'Cool'}
+/* ====== OVER-TRADING GUARD ====== */
+const clicks=[]; function markAnalyze(){const now=Date.now(); clicks.push(now);
+  while(clicks[0]<now-60*60*1e3)clicks.shift();
+  $('#otLabel').textContent=(clicks.filter(t=>t>now-15*60*1e3).length>10||clicks.length>25)?'Slow down':'Cool'}
 
-/* ---------- Robust candle fetch (direct + 2 CORS fallbacks) ---------- */
+/* ====== DATA FETCH (Yahoo + Stooq fallback) ====== */
 function toYahoo(sym){
   if(/^OANDA:([A-Z]{3})_([A-Z]{3})$/.test(sym)) return RegExp.$1+RegExp.$2+'=X';
   if(/^BINANCE:([A-Z]+)USDT$/i.test(sym)) return RegExp.$1.toUpperCase()+'-USD';
@@ -205,42 +162,52 @@ function tfParams(tf){ switch(tf){
   case 'Weekly':return{interval:'1wk',range:'2y',agg:1};
   default:    return{interval:'1d',range:'6mo',agg:1};
 }}
-async function fetchWithFallbacks(urlPath){
-  const hosts=['https://query1.finance.yahoo.com','https://query2.finance.yahoo.com'];
-  const builds=[
-    (h)=>`${h}${urlPath}`, // direct
-    (h)=>`https://r.jina.ai/https:${h.replace('https://','')}${urlPath}`, // CORS-friendly proxy 1
-    (h)=>`https://cors.isomorphic-git.org/${h}${urlPath}`, // CORS-friendly proxy 2
-  ];
-  let lastErr;
-  for(const h of hosts){
-    for(const b of builds){
-      const url=b(h);
-      try{
-        const r=await fetch(url,{headers:{'accept':'application/json'}});
-        if(!r.ok) throw new Error('HTTP '+r.status);
-        return await r.json();
-      }catch(e){ lastErr=e; /* try next */ }
-    }
-  }
-  throw lastErr||new Error('Fetch failed');
-}
+async function fetchJSON(u){ const r=await fetch(u,{headers:{accept:'application/json'}}); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
 async function fetchYahoo(sym,tf){
   const p=tfParams(tf), y=encodeURIComponent(toYahoo(sym));
-  const path=`/v8/finance/chart/${y}?range=${p.range}&interval=${p.interval}`;
-  const j=await fetchWithFallbacks(path);
-  const rt=j?.chart?.result?.[0]; const q=rt?.indicators?.quote?.[0];
-  if(!rt||!q||!Array.isArray(rt.timestamp)) throw new Error('No data');
-  let c=q.close,h=q.high,l=q.low,o=q.open,t=rt.timestamp;
-  if(tf==='4h'){ const C=[],H=[],L=[],O=[],T=[];
-    for(let i=0;i<c.length;i+=4){ const slice=c.slice(i,i+4); if(slice.length<4) break;
-      C.push(slice.at(-1)); H.push(Math.max(...h.slice(i,i+4))); L.push(Math.min(...l.slice(i,i+4))); O.push(o[i]); T.push(t[i]); }
-    c=C;h=H;l=L;o=O;t=T;
+  const qs=`range=${p.range}&interval=${p.interval}&region=US&lang=en-US`;
+  const urls=[
+    `https://query1.finance.yahoo.com/v8/finance/chart/${y}?${qs}`,
+    `https://query2.finance.yahoo.com/v8/finance/chart/${y}?${qs}`,
+    `https://r.jina.ai/https:query1.finance.yahoo.com/v8/finance/chart/${y}?${qs}`,
+    `https://r.jina.ai/https:query2.finance.yahoo.com/v8/finance/chart/${y}?${qs}`,
+    `https://cors.isomorphic-git.org/https://query1.finance.yahoo.com/v8/finance/chart/${y}?${qs}`
+  ];
+  let lastErr;
+  for(const u of urls){
+    try{
+      const j=await fetchJSON(u);
+      const rt=j?.chart?.result?.[0]; const q=rt?.indicators?.quote?.[0];
+      if(!rt||!q||!Array.isArray(rt.timestamp)) throw new Error('no data');
+      let c=q.close,h=q.high,l=q.low,o=q.open,t=rt.timestamp;
+      if(tf==='4h'){ const C=[],H=[],L=[],O=[],T=[]; for(let i=0;i<c.length;i+=4){ const sl=c.slice(i,i+4); if(sl.length<4) break;
+        C.push(sl.at(-1)); H.push(Math.max(...h.slice(i,i+4))); L.push(Math.min(...l.slice(i,i+4))); O.push(o[i]); T.push(t[i]); }
+        c=C;h=H;l=L;o=O;t=T; }
+      return {t,c,h,l,o, note:'yahoo'};
+    }catch(e){ lastErr=e; }
   }
-  return {t,c,h,l,o};
+  throw lastErr||new Error('No data');
+}
+// Stooq CSV fallback (Daily/Weekly, equities only)
+async function fetchStooq(sym, tf='Daily'){
+  const s = sym.includes(':') ? sym.split(':').pop() : sym;
+  const code=s.toLowerCase()+ (s.length<=5?'.us':''); // crude guess for US stocks
+  const i=(tf==='Weekly')?'w':'d';
+  const url=`https://stooq.com/q/d/l/?s=${code}&i=${i}`;
+  const r=await fetch(url); if(!r.ok) throw new Error('stooq '+r.status);
+  const csv=await r.text(); const lines=csv.trim().split(/\r?\n/); if(lines.length<2) throw new Error('stooq empty');
+  const t=[],o=[],h=[],l=[],c=[]; for(let i=1;i<lines.length;i++){ const [D,O,H,L,C]=lines[i].split(',');
+    if(!C||C==='-') continue; t.push(Date.parse(D)/1000); o.push(+O); h.push(+H); l.push(+L); c.push(+C); }
+  return {t,c,h,l,o, note:'stooq'};
+}
+// Unified
+async function fetchCandles(sym, tf){
+  try{ return await fetchYahoo(sym, tf); }
+  catch{ if(tf==='Daily'||tf==='Weekly') return await fetchStooq(sym, tf); throw new Error('No data'); }
 }
 
-/* ---------- Indicators & strategies ---------- */
+/* ====== INDICATORS & STRATEGIES ====== */
+const num=(n,d=2)=> (n==null||isNaN(n))?'-':Number(n).toFixed(d);
 function ema(a,p){ if(!a.length) return []; const k=2/(p+1); let e=a[0]; return a.map((v,i)=> e = i? v*k + e*(1-k) : v); }
 function rsi(a,p=14){ if(a.length<p+1) return Array(a.length).fill(50); let g=0,lo=0; for(let i=1;i<=p;i++){const d=a[i]-a[i-1]; if(d>=0)g+=d; else lo-=d}
   let ag=g/p, al=lo/p; const out=[...Array(p).fill(50), 100-100/(1+(ag/(al||1e-9)))];
@@ -270,100 +237,75 @@ function decide(strategy, c,h,l){
   return {action,confidence:conf,reasons, price, ema9:ema9[n], ema50:ema50[n], rsi:rV, macdHist:mH};
 }
 function targets(sig){ const p=sig.price; if(sig.action==='BUY') return {entry:p, stop:p*0.98, tp:p*1.03}; if(sig.action==='SELL') return {entry:p, stop:p*1.02, tp:p*0.97}; return {} }
-function voiceLine(symbol, tf, sig){ const mood=sig.confidence>80?'high confidence':sig.confidence>60?'good confidence':'low confidence'; return `On ${symbol} ${tf}, price around ${num(sig.price)}. Signal is ${sig.action.toLowerCase()} with ${sig.confidence} percent, ${mood}. Reasons: ${sig.reasons.slice(0,3).join('; ')}.` }
+function voiceLine(symbol, tf, sig,note){ const mood=sig.confidence>80?'high confidence':sig.confidence>60?'good confidence':'low confidence';
+  return `On ${symbol} ${tf}, price around ${num(sig.price)}. Signal is ${sig.action.toLowerCase()} with ${sig.confidence}% confidence, ${mood}. ${note?`Source ${note}. `:''}Reasons: ${sig.reasons.slice(0,3).join('; ')}.` }
 
-/* ---------- Reusable analysis ---------- */
+/* ====== ANALYZER ====== */
 async function runAnalysis(symbol, timeframe, strategy){
   markAnalyze();
-  $('#symbol').value = symbol; $('#timeframe').value = timeframe; $('#strategy').value = strategy;
-  $('#answer').textContent = `Analyzing ${symbol} (${timeframe})…`;
-  const o   = await fetchYahoo(symbol, timeframe);
-  const sig = decide(strategy, o.c, o.h, o.l);
-  const tgt = targets(sig);
-  const lines=[];
-  lines.push(`Symbol: ${symbol} (${timeframe})`);
-  lines.push(`Price: ${num(sig.price)}   High: ${num(o.h.at(-1))}   Low: ${num(o.l.at(-1))}`);
-  lines.push(`Signal: ${sig.action}   Confidence: ${sig.confidence}%`);
-  if(tgt.entry) lines.push(`Entry: ${num(tgt.entry)}   Stop: ${num(tgt.stop)}   TP: ${num(tgt.tp)}`);
-  lines.push('— Reasons —'); sig.reasons.forEach(r=>lines.push('• '+r));
-  $('#answer').textContent = lines.join('\n');
-  try{ if('Notification' in window){ if(Notification.permission==='default') await Notification.requestPermission();
-    if(Notification.permission==='granted'){ new Notification(`TrueTrend: ${sig.action}`, { body:`${symbol} ${timeframe} · ${sig.confidence}%` }); } } }catch{}
-  $('#speakBtn').onclick=()=> speak( voiceLine(symbol,timeframe,sig) );
-  if($('#voiceRow').style.display==='flex' && $('#autoSpeak').checked) speak( voiceLine(symbol,timeframe,sig) );
-  setTimeout(syncChart, 60);
+  $('#answer').textContent=`Analyzing ${symbol} (${timeframe})…`;
+  try{
+    const o=await fetchCandles(symbol,timeframe);
+    const sig=decide(strategy,o.c,o.h,o.l);
+    const tgt=targets(sig);
+    const lines=[];
+    lines.push(`Symbol: ${symbol} (${timeframe})   Source: ${o.note}`);
+    lines.push(`Price: ${num(sig.price)}   High: ${num(o.h.at(-1))}   Low: ${num(o.l.at(-1))}`);
+    lines.push(`Signal: ${sig.action}   Confidence: ${sig.confidence}%`);
+    if(tgt.entry) lines.push(`Entry: ${num(tgt.entry)}   Stop: ${num(tgt.stop)}   TP: ${num(tgt.tp)}`);
+    lines.push('— Reasons —'); sig.reasons.forEach(r=>lines.push('• '+r));
+    $('#answer').textContent=lines.join('\n');
+    $('#speakBtn').onclick=()=> speak( voiceLine(symbol,timeframe,sig,o.note) );
+    if($('#voiceRow').style.display==='flex' && $('#autoSpeak').checked) speak( voiceLine(symbol,timeframe,sig,o.note) );
+  }catch(e){ $('#answer').textContent='Error: '+(e.message||e); }
 }
+$('#run').onclick=()=> runAnalysis(($('#symbol').value||'NVDA').trim(), $('#timeframe').value||'Daily', $('#strategy').value||'trendline');
 
-/* ---------- Buttons ---------- */
-document.addEventListener('DOMContentLoaded', ()=>{
-  $('#run').addEventListener('click', ()=>{
-    const s=($('#symbol').value||'NVDA').trim(), tf=$('#timeframe').value||'Daily', st=$('#strategy').value||'trendline';
-    runAnalysis(s,tf,st).catch(e=>$('#answer').textContent='Error: '+(e.message||e));
-  }, {passive:true});
-
-  $('#voiceAnalyze').addEventListener('click', async ()=>{
-    const s=($('#voiceSym').value||'AAPL').trim(); $('#voiceOut').textContent='Fetching '+s+'…';
-    try{
-      const o=await fetchYahoo(s,'Daily'); const sig=decide('trendline',o.c,o.h,o.l);
-      const v=voiceLine(s,'Daily',sig); $('#voiceOut').textContent=v; if($('#voiceRow').style.display==='flex') speak(v);
-    }catch(e){ $('#voiceOut').textContent='Error: '+(e.message||'Failed'); }
-  }, {passive:true});
-});
-
-/* ---------- Voice (friendlier male) ---------- */
-function pickMaleVoice(){ const vs=speechSynthesis.getVoices();
-  const pref=[/Daniel/i,/Alex/i,/UK English Male/i,/Google UK English Male/i,/Male/i];
+/* ====== VOICE LOOKUP (always speaks on button for Pro/Lifetime) ====== */
+function pickMaleVoice(){ const vs=speechSynthesis.getVoices(); const pref=[/Daniel/i,/Alex/i,/Google UK English Male/i,/Male/i];
   for(const p of pref){ const v=vs.find(v=>p.test(v.name)); if(v) return v; } return vs[0]; }
-function speak(text){ if(!('speechSynthesis' in window)) return; const u=new SpeechSynthesisUtterance(text);
-  const v=pickMaleVoice(); if(v) u.voice=v; u.rate=1.02; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u) }
-requestIdleCallback?.(()=>speechSynthesis.getVoices());
+function speak(text){ try{ const u=new SpeechSynthesisUtterance(text); const v=pickMaleVoice(); if(v) u.voice=v; u.rate=1.02; u.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch{} }
 
-/* ---------- Journal ---------- */
+$('#voiceAnalyze').onclick=async ()=>{
+  const plan=getPlan(); if(!/^(pro|lifetime|family)$/i.test(plan)){ $('#voiceOut').textContent='Voice requires Pro/Lifetime. Add ?plan=pro to test.'; return; }
+  const s=($('#voiceSym').value||'AAPL').trim(); $('#voiceOut').textContent='Fetching '+s+'…';
+  try{
+    const o=await fetchCandles(s,'Daily'); const sig=decide('trendline',o.c,o.h,o.l); const v=voiceLine(s,'Daily',sig,o.note);
+    $('#voiceOut').textContent=v; speak(v);
+  }catch(e){ $('#voiceOut').textContent='Error: '+(e.message||'No data'); }
+};
+
+/* ====== JOURNAL ====== */
 const storeKey='tt_journal_v1'; let journal=null;
+const eqCanvas=document.getElementById('equity'), eqCtx=eqCanvas.getContext('2d');
 function ensureJournal(){ if(journal) return; journal=JSON.parse(localStorage.getItem(storeKey)||'[]'); renderJournal(); }
 function renderJournal(){ const tb=$('#jTable tbody'); tb.innerHTML=''; let eq=0; const pts=[0];
-  journal.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${new Date(r.ts).toLocaleString()}</td><td>${r.sym}</td><td align="center">${r.side}</td><td align="right" class="mono">${num(+r.entry,4)}</td><td align="right" class="mono">${num(+r.exit,4)}</td><td align="right" class="mono">${num(r.pnl,2)}</td><td>${r.notes||''}</td>`; tb.appendChild(tr); eq+=r.pnl; pts.push(eq); }); drawEquity(pts); }
-function drawEquity(pts){ const c=$('#equity'), ctx=c.getContext('2d'); const w=c.width=c.clientWidth, h=c.height; ctx.clearRect(0,0,w,h); if(pts.length<2)return;
-  const mx=Math.max(...pts), mn=Math.min(...pts), R=(mx-mn)||1; ctx.strokeStyle='#7c5cff'; ctx.lineWidth=2; ctx.beginPath();
-  pts.forEach((v,i)=>{ const x=i/(pts.length-1)*w; const y=h-((v-mn)/R)*h; if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y) }); ctx.stroke(); }
-$('#addJ').onclick=()=>{ ensureJournal(); const sym=$('#jSym').value.trim()||'—', entry=parseFloat($('#jEntry').value||'0'), exit=parseFloat($('#jExit').value||'0'), side=$('#jSide').value, notes=$('#jNotes').value.trim();
+  journal.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${new Date(r.ts).toLocaleString()}</td><td>${r.sym}</td><td align="center">${r.side}</td>
+    <td align="right">${num(+r.entry,4)}</td><td align="right">${num(+r.exit,4)}</td><td align="right">${num(r.pnl,2)}</td><td>${r.notes||''}</td>`; tb.appendChild(tr);
+    eq+=r.pnl; pts.push(eq); }); drawEquity(pts); }
+function drawEquity(pts){ const w=eqCanvas.width=eqCanvas.clientWidth, h=eqCanvas.height; eqCtx.clearRect(0,0,w,h); if(pts.length<2) return;
+  const mx=Math.max(...pts), mn=Math.min(...pts), R=(mx-mn)||1; eqCtx.strokeStyle='#7c5cff'; eqCtx.lineWidth=2; eqCtx.beginPath();
+  pts.forEach((v,i)=>{ const x=i/(pts.length-1)*w; const y=h-((v-mn)/R)*h; if(i===0)eqCtx.moveTo(x,y); else eqCtx.lineTo(x,y) }); eqCtx.stroke(); }
+$('#addJ').onclick=()=>{ ensureJournal(); const sym=($('#jSym').value||'—').toUpperCase(), entry=parseFloat($('#jEntry').value||'0'), exit=parseFloat($('#jExit').value||'0'), side=$('#jSide').value, notes=$('#jNotes').value.trim();
   if(!entry||!exit){alert('Entry & Exit required');return} const pnl=(side==='BUY')?(exit-entry):(entry-exit);
-  journal.push({ts:Date.now(),sym:sym.toUpperCase(),entry,exit,side,notes,pnl}); localStorage.setItem(storeKey,JSON.stringify(journal)); renderJournal() };
+  journal.push({ts:Date.now(),sym,entry,exit,side,notes,pnl}); localStorage.setItem(storeKey,JSON.stringify(journal)); renderJournal(); };
 new IntersectionObserver((es)=>{ if(es[0].isIntersecting) ensureJournal(); }, {rootMargin:"200px"}).observe($('#journalCard'));
 
-/* ---------- TradingView embed & auto-analyze ---------- */
+/* ====== TRADINGVIEW EMBED + AUTO-ANALYZE ====== */
 (function(){
-  const scriptUrl="https://s3.tradingview.com/tv.js";
-  function loadTV(cb){ if(window.TradingView?.widget) return cb(); const s=document.createElement("script"); s.src=scriptUrl; s.onload=cb; document.head.appendChild(s); }
-  function tfToTV(tf){ return tf==="15m"?"15":tf==="1h"?"60":tf==="4h"?"240":tf==="Weekly"?"W":"D" }
-  function tvToTf(intv){ return intv==='15'?'15m':intv==='60'?'1h':intv==='240'?'4h':intv==='W'?'Weekly':'Daily'; }
-  function normSymbol(s){ if(/^OANDA:([A-Z]{3})_([A-Z]{3})$/.test(s)) return "OANDA:"+RegExp.$1+RegExp.$2; if(/^([A-Z]+)USD$/i.test(s)) return RegExp.$1.toUpperCase()+"USD"; return s.toUpperCase(); }
-
-  function createChart(){
-    const symbol = normSymbol($('#symbol')?.value || "NVDA");
-    const interval = tfToTV($('#timeframe')?.value || "Daily");
+  const script="https://s3.tradingview.com/tv.js";
+  function loadTV(cb){ if(window.TradingView?.widget) return cb(); const s=document.createElement('script'); s.src=script; s.onload=cb; document.head.appendChild(s); }
+  function tfToTV(tf){ return tf==='15m'?'15':tf==='1h'?'60':tf==='4h'?'240':tf==='Weekly'?'W':'D' }
+  function tvToTf(iv){ return iv==='15'?'15m':iv==='60'?'1h':iv==='240'?'4h':iv==='W'?'Weekly':'Daily' }
+  function normSymbol(s){ if(/^OANDA:([A-Z]{3})_([A-Z]{3})$/.test(s)) return 'OANDA:'+RegExp.$1+RegExp.$2; if(/^([A-Z]+)USD$/i.test(s)) return RegExp.$1.toUpperCase()+'USD'; return s.toUpperCase(); }
+  function create(){ const sym=normSymbol($('#symbol')?.value||'NVDA'), intv=tfToTV($('#timeframe')?.value||'Daily');
     // eslint-disable-next-line no-undef
-    window.tvWidget = new TradingView.widget({
-      symbol, interval, container_id:"tvchart", autosize:true, timezone:"Etc/UTC", theme:"dark", style:"1",
-      hide_top_toolbar:false, hide_legend:false, studies:["MACD@tv-basicstudies","RSI@tv-basicstudies"]
-    });
-    wireAutoAnalyze();
-  }
-  function syncNow(){ if(!window.tvWidget) return; const sym=normSymbol($('#symbol')?.value||"NVDA"); const tf=tfToTV($('#timeframe')?.value||"Daily"); window.tvWidget?.setSymbol(sym, tf); }
-  window.syncChart=syncNow;
-
-  function wireAutoAnalyze(){
-    if(!window.tvWidget) return;
-    window.tvWidget.onChartReady(()=>{
-      const ch=window.tvWidget.activeChart();
-      ch.onSymbolChanged().subscribe(null,(s)=>{ if($('#autoAnalyze').checked){ const sym=(s?.name)||($('#symbol').value||'NVDA'); runAnalysis(sym,$('#timeframe').value||'Daily',$('#strategy').value||'trendline').catch(e=>$('#answer').textContent='Error: '+(e.message||e)); } });
-      ch.onIntervalChanged().subscribe(null,(iv)=>{ if($('#autoAnalyze').checked){ const tf=tvToTf(iv); runAnalysis($('#symbol').value||'NVDA',tf,$('#strategy').value||'trendline').catch(e=>$('#answer').textContent='Error: '+(e.message||e)); } });
-    });
-  }
-  loadTV(createChart);
-  document.addEventListener("DOMContentLoaded", ()=>{
-    $('#timeframe')?.addEventListener("change", ()=> setTimeout(syncNow, 50), {passive:true});
-  });
+    window.tvWidget = new TradingView.widget({symbol:sym,interval:intv,container_id:'tvchart',autosize:true,theme:'dark',style:'1',timezone:'Etc/UTC'}); wire(); }
+  function wire(){ window.tvWidget?.onChartReady(()=>{ const ch=window.tvWidget.activeChart();
+      ch.onSymbolChanged().subscribe(null,(s)=>{ if($('#autoAnalyze').checked){ runAnalysis((s?.name)||($('#symbol').value||'NVDA'), $('#timeframe').value||'Daily', $('#strategy').value||'trendline'); } });
+      ch.onIntervalChanged().subscribe(null,(iv)=>{ if($('#autoAnalyze').checked){ runAnalysis($('#symbol').value||'NVDA', tvToTf(iv), $('#strategy').value||'trendline'); } });
+  }); }
+  loadTV(create);
 })();
 </script>
 </body>
