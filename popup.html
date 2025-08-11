@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TrueTrend AI</title>
+<style>
+body{width:360px;margin:0;font:14px Inter,system-ui,Segoe UI,Roboto;background:#0a0f1f;color:#eaf0ff}
+.wrap{padding:12px}
+h1{font-size:16px;margin:0 0 8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input,select,button{height:32px;border-radius:8px;border:1px solid #24306a;background:#0e1538;color:#eaf0ff;padding:0 8px}
+button{background:#22c55e;color:#04220f;font-weight:800;border:none;cursor:pointer}
+small{color:#9eb0df}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+td,th{border-bottom:1px solid #23306a;padding:6px;text-align:left;font-size:12px}
+.actions{display:flex;gap:6px;margin-top:8px}
+a{color:#cfe1ff;text-decoration:none}
+.logo{display:flex;align-items:center;gap:8px}
+.logo img{width:18px;height:18px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo"><img src="icons/truetrend-48.png" alt=""> <h1 style="margin:0">TrueTrend AI</h1></div>
+
+  <div class="row" style="margin-top:8px">
+    <label>API <input id="apiBase" placeholder="https://YOUR-DOMAIN" style="width:170px"></label>
+    <label>TF
+      <select id="tf"><option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option></select>
+    </label>
+    <label>Strategy
+      <select id="str">
+        <option selected>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option>
+        <option>Stoch + Williams %R</option><option>RSI + MACD</option><option>Break of Structure</option>
+        <option>Pullback Continuation</option><option>Mean Reversion</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="voice" checked> Voice</label>
+    <button id="save">Save</button>
+  </div>
+
+  <div class="actions">
+    <button id="attach">Attach to this page</button>
+    <a id="openApp" href="#" target="_blank">Open App</a>
+  </div>
+
+  <h1 style="margin-top:10px">Journal</h1>
+  <div class="actions">
+    <button id="export">Export CSV</button>
+    <button id="clear" style="background:#ef4444;color:white">Clear</button>
+  </div>
+  <table id="tbl"><thead><tr><th>Time</th><th>Ticker</th><th>TF</th><th>Strat</th><th>Action</th><th>Price</th></tr></thead><tbody></tbody></table>
+  <small>Journal is local to your browser. CSV export recommended.</small>
+</div>
+
+<script>
+// ---------- settings ----------
+const defaults = {
+  apiBase: 'https://YOUR-DOMAIN', // <-- change to your deployed domain (with /api/analyze)
+  timeframe: 'Daily',
+  strategy: 'Trendline',
+  voice: true
+};
+const q = id => document.getElementById(id);
+
+async function loadSettings() {
+  const s = await chrome.storage.sync.get(defaults);
+  q('apiBase').value = s.apiBase;
+  q('tf').value = s.timeframe;
+  q('str').value = s.strategy;
+  q('voice').checked = s.voice;
+  const rows = (await chrome.storage.local.get({ ttai_journal: [] })).ttai_journal;
+  renderRows(rows);
+  q('openApp').href = s.apiBase.replace(/\/$/,'') + '/app.html';
+}
+q('save').addEventListener('click', async () => {
+  await chrome.storage.sync.set({
+    apiBase: q('apiBase').value.replace(/\/$/,''),
+    timeframe: q('tf').value,
+    strategy: q('str').value,
+    voice: q('voice').checked
+  });
+  alert('Saved.');
+});
+
+// ---------- attach (inject overlay) ----------
+q('attach').addEventListener('click', async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return;
+
+  const opts = await chrome.storage.sync.get(defaults);
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: injectedOverlay,
+    args: [opts]
+  });
+});
+
+// ---------- journal controls in popup ----------
+function renderRows(rows) {
+  const tb = document.querySelector('#tbl tbody');
+  tb.innerHTML = rows.map(r => `<tr>
+    <td>${r.time||''}</td><td>${r.ticker||''}</td><td>${r.tf||''}</td>
+    <td>${r.strategy||''}</td><td>${r.action||''}</td><td>${r.price||''}</td>
+  </tr>`).join('');
+}
+q('export').addEventListener('click', async () => {
+  const rows = (await chrome.storage.local.get({ ttai_journal: [] })).ttai_journal;
+  const header = ['Time','Ticker','TF','Strategy','Action','Price'];
+  const csv = [header.join(','), ...rows.map(r => [r.time,r.ticker,r.tf,r.strategy,r.action,r.price||''].join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'TrueTrend_Journal.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+q('clear').addEventListener('click', async () => {
+  if (!confirm('Clear the journal?')) return;
+  await chrome.storage.local.set({ ttai_journal: [] });
+  renderRows([]);
+});
+
+loadSettings();
+
+// ============ INJECTED CODE (runs on the page) ============
+function injectedOverlay(opts) {
+  if (window.__TTAI_OVERLAY__) return; window.__TTAI_OVERLAY__ = true;
+
+  // OTC-aware symbol guesser
+  function guessSym() {
+    const u = new URL(location.href);
+    const sp = u.searchParams.get('symbol') || u.searchParams.get('ticker');
+    if (sp) {
+      const raw = decodeURIComponent(sp).toUpperCase();
+      const m = raw.match(/(?:OTC(?:MKTS)?|PINK|OTCQB|OTCQX|GREY):([A-Z.\-]+)/i);
+      if (m) return m[1].toUpperCase();
+      return raw.replace(/[:_]/g,'').replace(/-.*/,'');
+    }
+    const m2 = location.pathname.match(/(?:OTC(?:MKTS)?|PINK|OTCQB|OTCQX|GREY):([A-Z.\-]+)/i);
+    if (m2) return m2[1].toUpperCase();
+    const m3 = location.pathname.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR|CAD|AUD|CHF|F|Y)?/);
+    if (m3) return m3[0].toUpperCase();
+    const t1 = document.title.match(/(?:OTC(?:MKTS)?|PINK|OTCQB|OTCQX|GREY):([A-Z.\-]+)/i);
+    if (t1) return t1[1].toUpperCase();
+    const t2 = document.title.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR|CAD|AUD|CHF|F|Y)?/);
+    return t2 ? t2[0].toUpperCase() : '';
+  }
+
+  const css = `
+    #ttai-ov{all:initial;position:fixed;z-index:2147483647;right:14px;bottom:14px;width:330px;
+      font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;color:#e9eeff;background:#121935;
+      border:1px solid #29336b;border-radius:12px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+    #ttai-ov *{all:unset;display:revert}
+    #ttai-ov .row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+    #ttai-ov input,#ttai-ov select,#ttai-ov button{background:#0e1538;border:1px solid #29336b;color:#e9eeff;border-radius:8px;height:34px;padding:0 8px}
+    #ttai-ov button{background:#22c55e;color:#04220f;font-weight:700;cursor:pointer}
+    #ttai-ov .t{font-size:12px;color:#93a7d9;margin-top:4px}
+    #ttai-ov .sig{font-weight:900;margin-top:6px}
+    #ttai-ov .buy{color:#22c55e} #ttai-ov .sell{color:#ff7373}
+    #ttai-ov .mut{color:#a9b7e2;font-size:11px}
+    #ttai-ov .link{color:#cfe1ff;text-decoration:underline;cursor:pointer}
+  `;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+
+  const box = document.createElement('div'); box.id = 'ttai-ov';
+  box.innerHTML = `
+    <div class="row">
+      <input id="tt-sym" placeholder="Symbol (AAPL, EURUSD, BTCUSDT, HMBL)" style="flex:1">
+      <select id="tt-tf"><option>5m</option><option>15m</option><option>1h</option><option>4h</option>
+        <option ${opts.timeframe==='Daily'?'selected':''}>Daily</option></select>
+      <button id="tt-go">Go</button>
+    </div>
+    <div class="row">
+      <select id="tt-str">
+        <option ${opts.strategy==='Trendline'?'selected':''}>Trendline</option>
+        <option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option>
+        <option>Stoch + Williams %R</option><option>RSI + MACD</option>
+        <option>Break of Structure</option><option>Pullback Continuation</option><option>Mean Reversion</option>
+      </select>
+      <label class="mut"><input type="checkbox" id="tt-voice" ${opts.voice?'checked':''}> Voice</label>
+      <span class="link" id="tt-hide">×</span>
+    </div>
+    <div class="t" id="tt-st">Attached. Watching…</div>
+    <div id="tt-out" class="t"></div>
+    <div id="tt-sig" class="sig"></div>
+    <div class="t"><span class="link" id="tt-log">Log last</span></div>
+  `;
+  document.body.appendChild(box);
+
+  const q = s => box.querySelector(s);
+  const symEl = q('#tt-sym'), tfEl = q('#tt-tf'), strEl = q('#tt-str');
+  const stEl = q('#tt-st'), outEl = q('#tt-out'), sigEl = q('#tt-sig');
+  const voiceEl = q('#tt-voice');
+
+  function speak(text) { try { if (!voiceEl.checked) return; speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); } catch {} }
+
+  async function logEntry(entry) {
+    const key = 'ttai_journal';
+    const data = await chrome.storage.local.get({ [key]: [] });
+    const rows = data[key]; rows.unshift(entry);
+    await chrome.storage.local.set({ [key]: rows.slice(0, 2000) });
+  }
+
+  async function run() {
+    const API = (opts.apiBase || 'https://example.com').replace(/\/$/,'') + '/api/analyze';
+    stEl.textContent = 'Analyzing…';
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ ticker: symEl.value.trim() || 'EURUSD', timeframe: tfEl.value, strategy: strEl.value })
+      });
+      const j = await res.json();
+      const s = (j.signals && j.signals[0]) || null;
+      outEl.textContent = (j.summary || '') + '  [' + (j.mode || '') + ']';
+      sigEl.textContent = s ? `${s.action} — ${s.reason} (${Math.round((s.confidence||0)*100)}%)` : '';
+      sigEl.className = 'sig ' + (s ? (s.action === 'BUY' ? 'buy' : 'sell') : '');
+      if (s) {
+        speak(`${s.action}. ${s.reason}`);
+        await logEntry({
+          time: new Date().toLocaleString(),
+          ticker: symEl.value.toUpperCase(),
+          tf: tfEl.value, strategy: strEl.value,
+          action: s.action, price: j.price || '', notes: ''
+        });
+        chrome.storage.sync.set({ timeframe: tfEl.value, strategy: strEl.value, voice: voiceEl.checked });
+      }
+    } catch (e) {
+      outEl.textContent = 'Error. Try again.';
+    }
+    stEl.textContent = 'Watching…';
+  }
+
+  q('#tt-go').addEventListener('click', run);
+  symEl.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+  q('#tt-hide').addEventListener('click', () => { box.remove(); window.__TTAI_OVERLAY__ = false; });
+  q('#tt-log').addEventListener('click', () => {
+    const action = (sigEl.textContent.split(' ')[0] || '').toUpperCase();
+    logEntry({ time:new Date().toLocaleString(), ticker:symEl.value.toUpperCase(), tf:tfEl.value, strategy:strEl.value, action, price:'', notes:'' });
+    stEl.textContent = 'Logged.'; setTimeout(()=>stEl.textContent='Watching…', 800);
+  });
+
+  symEl.value = guessSym() || 'EURUSD';
+  if (opts.autoRun !== false) run();
+
+  let href = location.href, tit = document.title;
+  setInterval(() => {
+    if (location.href !== href || document.title !== tit) {
+      href = location.href; tit = document.title;
+      const g = guessSym(); if (g && g !== symEl.value) { symEl.value = g; run(); }
+    }
+  }, 1500);
+}
+</script>
+</body>
+</html>
