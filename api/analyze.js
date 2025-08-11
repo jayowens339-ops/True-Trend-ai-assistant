@@ -1,6 +1,54 @@
+// api/analyze.js
 // Next.js Pages API route (Vercel). Live data via FINNHUB_API_KEY. Optional OPENAI_API_KEY fallback.
+import crypto from 'crypto';
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Licensing (Owner override + Signed license verification)
+// ───────────────────────────────────────────────────────────────────────────────
+const OWNER_LICENSE = process.env.OWNER_LICENSE || '';
+const LICENSE_SECRET = process.env.LICENSE_SECRET || '';
+
+function getAuthToken(req) {
+  const h = req.headers.authorization || req.headers.Authorization || '';
+  const [scheme, token] = String(h).split(' ');
+  return scheme === 'Bearer' ? (token || '') : '';
+}
+
+function isOwner(req) {
+  const token = getAuthToken(req);
+  return Boolean(OWNER_LICENSE) && token === OWNER_LICENSE;
+}
+
+// Verify HMAC-JWT style token issued by our server: base64url(header).base64url(payload).sig
+function verifySignedLicense(token) {
+  try {
+    if (!token) return { ok: false, reason: 'missing' };
+    if (!LICENSE_SECRET) return { ok: false, reason: 'server_missing_secret' };
+
+    const parts = token.split('.');
+    if (parts.length !== 3) return { ok: false, reason: 'format' };
+    const [h, p, sig] = parts;
+
+    const expect = crypto.createHmac('sha256', LICENSE_SECRET)
+      .update(`${h}.${p}`).digest('base64url');
+    if (sig !== expect) return { ok: false, reason: 'bad_signature' };
+
+    const payload = JSON.parse(Buffer.from(p, 'base64url').toString('utf8'));
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && now > payload.exp) return { ok: false, reason: 'expired' };
+
+    // Optionally gate by plan here (starter/pro/lifetime/owner)
+    return { ok: true, payload };
+  } catch {
+    return { ok: false, reason: 'invalid' };
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// API handler
+// ───────────────────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  // CORS so bookmarklet/extension can call from any site:
+  // CORS so extension/bookmarklet can call from any site:
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -10,11 +58,25 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Use POST' });
   }
 
+  // ── License gate
+  let callerPlan = 'unknown';
+  if (isOwner(req)) {
+    callerPlan = 'owner';
+  } else {
+    const token = getAuthToken(req);
+    const lic = verifySignedLicense(token);
+    if (!lic.ok) {
+      // 402 keeps semantics: Payment/License required
+      return res.status(402).json({ error: 'license_required', detail: lic.reason });
+    }
+    callerPlan = lic.payload?.plan || 'customer';
+  }
+
   const { ticker = 'EURUSD', timeframe = 'Daily', strategy = 'Trendline' } = req.body || {};
   const FINN = process.env.FINNHUB_API_KEY;
   const OPENAI = process.env.OPENAI_API_KEY || process.env.GPT_API_KEY;
 
-  // ---- utilities ----
+  // ── utils
   const nowSec = () => Math.floor(Date.now()/1000);
   const pct = (a,b)=> (b===0?0:(a-b)/b);
   const ema = (period, arr)=>{ const k=2/(period+1); let prev=arr[0]; const out=[prev];
@@ -42,7 +104,7 @@ export default async function handler(req, res) {
     return 'D';
   };
 
-  // ---- Finnhub candles ----
+  // ── Finnhub candles
   async function getCandles(sym, tf) {
     if (!FINN) return { ok:false, error:'Missing FINNHUB_API_KEY' };
     const type = classify(sym);
@@ -63,7 +125,7 @@ export default async function handler(req, res) {
     return { ok:true, symbol, resolution, t:j.t, o:j.o, h:j.h, l:j.l, c:j.c };
   }
 
-  // ---- Strategy engine ----
+  // ── Strategy engine
   function decide(closes, strategyName){
     const e9=ema(9,closes), e50=ema(50,closes);
     const last=closes.at(-1), p9=e9.at(-1), p50=e50.at(-1);
@@ -96,7 +158,7 @@ export default async function handler(req, res) {
     return { action, reason, confidence: conf };
   }
 
-  // ---- Run analysis ----
+  // ── Run analysis
   async function run(){
     const data = await getCandles(ticker, timeframe);
     if (!data.ok) return { ok:false, error:data.error, meta:data.meta };
@@ -107,6 +169,7 @@ export default async function handler(req, res) {
     return {
       ok:true,
       mode:'live-data',
+      plan: callerPlan,
       summary: `${ticker.toUpperCase()} • ${timeframe} • ${strategy} — ${sig.action}.`,
       checklist: [
         `EMA9 ${ema(9,closes).at(-1) > ema(50,closes).at(-1) ? 'above' : 'below'} EMA50`,
@@ -121,7 +184,7 @@ export default async function handler(req, res) {
 
   let result = await run();
 
-  // Optional: if live data failed but OPENAI is present, produce a generic JSON summary
+  // OpenAI fallback if live data fails
   if (!result.ok && OPENAI) {
     try{
       const prompt = `You are TrueTrend AI. JSON only with fields: summary, checklist(3), signals([ {action, reason, confidence, ttlSec} ]).
@@ -135,14 +198,14 @@ export default async function handler(req, res) {
         ]})
       });
       const j = await r.json(); const raw = j?.choices?.[0]?.message?.content || '';
-      try { const parsed = JSON.parse(raw); return res.status(200).json({ ok:true, mode:'live-llm', ...parsed }); }
-      catch { return res.status(200).json({ ok:true, mode:'live-llm', raw }); }
+      try { const parsed = JSON.parse(raw); return res.status(200).json({ ok:true, plan: callerPlan, mode:'live-llm', ...parsed }); }
+      catch { return res.status(200).json({ ok:true, plan: callerPlan, mode:'live-llm', raw }); }
     }catch(e){ /* fall through */ }
   }
 
   if (!result.ok) {
     return res.status(200).json({
-      ok:true, mode:'fallback',
+      ok:true, plan: callerPlan, mode:'fallback',
       summary:`Fallback analysis for ${ticker} on ${timeframe} — ${strategy}.`,
       checklist:['Trend check unavailable','Data fetch failed','Use conservative risk'],
       signals:[{action:'BUY', reason:'Fallback signal', confidence:.55, ttlSec:900}],
