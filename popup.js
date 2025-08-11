@@ -6,8 +6,7 @@
 "use strict";
 
 // ====== 1) OWNER TOKEN (paste your exact token between quotes) ======
-const OWNER_EMBEDDED = "Truetrendtrading4u!";
-
+ const OWNER_EMBEDDED = "YOUR_OWNER_TOKEN_EXACTLY";
 // ====== 2) POPUP (settings, journal, attach) ======
 const DEFAULTS = {
   apiBase: "https://true-trend-ai-assistant.vercel.app",
