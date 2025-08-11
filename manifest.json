@@ -1,16 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "TrueTrend AI",
-  "short_name": "TrueTrend AI",
-  "version": "1.2.0",
-  "description": "Attach TrueTrend AI to any chart. Voice BUY/SELL, 9 strategies, OTC support, and a built-in trade journal. Paid access via license key.",
-
-  "icons": {
-    "16": "icons/truetrend-16.png",
-    "48": "icons/truetrend-48.png",
-    "128": "icons/truetrend-128.png"
-  },
-
+  "name": "TrueTrend AI (Owner Draggable)",
+  "short_name": "TrueTrend Owner",
+  "version": "1.2.8",
+  "description": "Owner-only build. Token baked in. Draggable overlay, voice alerts, journal & CSV export.",
   "action": {
     "default_title": "TrueTrend AI",
     "default_popup": "popup.html",
@@ -20,27 +13,12 @@
       "128": "icons/truetrend-128.png"
     }
   },
-
-  "permissions": [
-    "storage",
-    "activeTab",
-    "scripting"
-  ],
-
-  "host_permissions": [
-    "https://true-trend-ai-assistant.vercel.app/*"
-  ],
-
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "icons/truetrend-16.png",
-        "icons/truetrend-48.png",
-        "icons/truetrend-128.png"
-      ],
-      "matches": ["<all_urls>"]
-    }
-  ],
-
+  "icons": {
+    "16": "icons/truetrend-16.png",
+    "48": "icons/truetrend-48.png",
+    "128": "icons/truetrend-128.png"
+  },
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://true-trend-ai-assistant.vercel.app/*"],
   "minimum_chrome_version": "114"
 }
