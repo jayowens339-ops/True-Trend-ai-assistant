@@ -1,102 +1,76 @@
-// api/analyze.js
-// Next.js Pages API route (Vercel). Live data via FINNHUB_API_KEY. Optional OPENAI_API_KEY fallback.
-import crypto from 'crypto';
+// Next.js (Vercel) API route: /api/analyze
+// - CORS for extension/bookmarklet
+// - Owner token guard (Authorization: Bearer <token> OR X-Owner-Key)
+// - Live Finnhub candles -> simple strategy engine
+// - Optional OpenAI fallback
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Licensing (Owner override + Signed license verification)
-// ───────────────────────────────────────────────────────────────────────────────
-const OWNER_LICENSE = process.env.OWNER_LICENSE || '';
-const LICENSE_SECRET = process.env.LICENSE_SECRET || '';
-
-function getAuthToken(req) {
-  const h = req.headers.authorization || req.headers.Authorization || '';
-  const [scheme, token] = String(h).split(' ');
-  return scheme === 'Bearer' ? (token || '') : '';
-}
-
-function isOwner(req) {
-  const token = getAuthToken(req);
-  return Boolean(OWNER_LICENSE) && token === OWNER_LICENSE;
-}
-
-// Verify HMAC-JWT style token issued by our server: base64url(header).base64url(payload).sig
-function verifySignedLicense(token) {
-  try {
-    if (!token) return { ok: false, reason: 'missing' };
-    if (!LICENSE_SECRET) return { ok: false, reason: 'server_missing_secret' };
-
-    const parts = token.split('.');
-    if (parts.length !== 3) return { ok: false, reason: 'format' };
-    const [h, p, sig] = parts;
-
-    const expect = crypto.createHmac('sha256', LICENSE_SECRET)
-      .update(`${h}.${p}`).digest('base64url');
-    if (sig !== expect) return { ok: false, reason: 'bad_signature' };
-
-    const payload = JSON.parse(Buffer.from(p, 'base64url').toString('utf8'));
-    const now = Math.floor(Date.now() / 1000);
-    if (payload.exp && now > payload.exp) return { ok: false, reason: 'expired' };
-
-    // Optionally gate by plan here (starter/pro/lifetime/owner)
-    return { ok: true, payload };
-  } catch {
-    return { ok: false, reason: 'invalid' };
-  }
-}
-
-// ───────────────────────────────────────────────────────────────────────────────
-// API handler
-// ───────────────────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  // CORS so extension/bookmarklet can call from any site:
+  // ---- CORS ----
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Owner-Key');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST, OPTIONS');
-    return res.status(405).json({ error: 'Use POST' });
+    return res.status(405).json({ ok: false, error: 'Use POST' });
   }
 
-  // ── License gate
-  let callerPlan = 'unknown';
-  if (isOwner(req)) {
-    callerPlan = 'owner';
-  } else {
-    const token = getAuthToken(req);
-    const lic = verifySignedLicense(token);
-    if (!lic.ok) {
-      // 402 keeps semantics: Payment/License required
-      return res.status(402).json({ error: 'license_required', detail: lic.reason });
-    }
-    callerPlan = lic.payload?.plan || 'customer';
+  // ---- OWNER TOKEN GUARD ----
+  // Make sure your Vercel env has OWNER_LICENSE = Truetrendtrading4u! (no spaces/newlines)
+  const OWNER = (process.env.OWNER_LICENSE || '').trim();
+  const authHeader = (req.headers.authorization || '').toString();
+  const bearer = authHeader.replace(/^Bearer\s+/i, '').trim();
+  const alt = (req.headers['x-owner-key'] || '').toString().trim();
+  const incoming = bearer || alt;
+
+  if (OWNER && incoming !== OWNER) {
+    return res.status(401).json({ ok: false, error: 'OWNER token invalid' });
   }
 
-  const { ticker = 'EURUSD', timeframe = 'Daily', strategy = 'Trendline' } = req.body || {};
+  // ---- Read inputs ----
+  const body = typeof req.body === 'object' && req.body ? req.body : {};
+  const {
+    ticker = 'EURUSD',
+    timeframe = 'Daily',
+    strategy = 'Trendline'
+  } = body;
+
   const FINN = process.env.FINNHUB_API_KEY;
-  const OPENAI = process.env.OPENAI_API_KEY || process.env.GPT_API_KEY;
+  const OPENAI = process.env.OPENAI_API_KEY || process.env.GPT_API_KEY || '';
 
-  // ── utils
-  const nowSec = () => Math.floor(Date.now()/1000);
-  const pct = (a,b)=> (b===0?0:(a-b)/b);
-  const ema = (period, arr)=>{ const k=2/(period+1); let prev=arr[0]; const out=[prev];
-    for(let i=1;i<arr.length;i++){ prev = arr[i]*k + prev*(1-k); out.push(prev); } return out; };
+  // ---- utilities ----
+  const nowSec = () => Math.floor(Date.now() / 1000);
+  const pct = (a, b) => (b === 0 ? 0 : (a - b) / b);
+  const ema = (period, arr) => {
+    const k = 2 / (period + 1);
+    let prev = arr[0];
+    const out = [prev];
+    for (let i = 1; i < arr.length; i++) {
+      prev = arr[i] * k + prev * (1 - k);
+      out.push(prev);
+    }
+    return out;
+  };
+
   const classify = (sym) => {
-    const s=(sym||'').toUpperCase().replace(/\s+/g,'');
+    const s = (sym || '').toUpperCase().replace(/\s+/g, '');
     if (s.includes(':')) return 'explicit';
     if (/^[A-Z]{6,7}$/.test(s) || /[A-Z]+\/[A-Z]+/.test(s) || /(XAU|XAG|WTI|BRENT)/.test(s)) return 'forex';
     if (/USDT$/.test(s) || /(BTC|ETH|SOL|DOGE|ADA)/.test(s)) return 'crypto';
     return 'stock';
   };
   const mapToFinnhub = (sym, type) => {
-    const s=sym.toUpperCase().replace(/\s+/g,'');
-    if (type==='explicit') return s;
-    if (type==='forex') { const base=s.slice(0,3), quote=s.slice(-3); return `OANDA:${base}_${quote}`; }
-    if (type==='crypto') return s.includes(':')?s:`BINANCE:${s}`;
-    return s; // stock
+    const s = sym.toUpperCase().replace(/\s+/g, '');
+    if (type === 'explicit') return s;
+    if (type === 'forex') {
+      const base = s.slice(0, 3), quote = s.slice(-3);
+      return `OANDA:${base}_${quote}`;
+    }
+    if (type === 'crypto') return s.includes(':') ? s : `BINANCE:${s}`;
+    return s; // stock & OTC
   };
   const reso = (tf) => {
-    const m=String(tf).toLowerCase();
+    const m = String(tf).toLowerCase();
     if (m.includes('5m')) return '5';
     if (m.includes('15m')) return '15';
     if (m.includes('1h')) return '60';
@@ -104,113 +78,143 @@ export default async function handler(req, res) {
     return 'D';
   };
 
-  // ── Finnhub candles
+  // ---- Finnhub candles ----
   async function getCandles(sym, tf) {
-    if (!FINN) return { ok:false, error:'Missing FINNHUB_API_KEY' };
+    if (!FINN) return { ok: false, error: 'Missing FINNHUB_API_KEY' };
+
     const type = classify(sym);
     const symbol = mapToFinnhub(sym, type);
     const resolution = reso(tf);
     const now = nowSec();
-    const lookback = (resolution==='D')? 3600*24*400 : (resolution==='240'?3600*24*60 : 3600*24*7);
+
+    // lookbacks sized for each res
+    const lookback =
+      resolution === 'D' ? 3600 * 24 * 400 :
+      resolution === '240' ? 3600 * 24 * 60 :
+      3600 * 24 * 7;
     const from = now - lookback;
+
     const base = 'https://finnhub.io/api/v1';
     let path = '/stock/candle';
-    if (type==='forex' || symbol.startsWith('OANDA:')) path='/forex/candle';
-    if (type==='crypto' || symbol.startsWith('BINANCE:')) path='/crypto/candle';
+    if (type === 'forex' || symbol.startsWith('OANDA:')) path = '/forex/candle';
+    if (type === 'crypto' || symbol.startsWith('BINANCE:')) path = '/crypto/candle';
+
     const url = `${base}${path}?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${from}&to=${now}&token=${FINN}`;
     const r = await fetch(url);
-    if (!r.ok) return { ok:false, error:`Finnhub ${r.status}` };
+    if (!r.ok) return { ok: false, error: `Finnhub ${r.status}` };
     const j = await r.json();
-    if (j.s!=='ok' || !Array.isArray(j.c) || j.c.length<60) return { ok:false, error:'No candles', meta:{symbol,resolution}};
-    return { ok:true, symbol, resolution, t:j.t, o:j.o, h:j.h, l:j.l, c:j.c };
+    if (j.s !== 'ok' || !Array.isArray(j.c) || j.c.length < 60)
+      return { ok: false, error: 'No candles', meta: { symbol, resolution } };
+
+    return { ok: true, symbol, resolution, t: j.t, o: j.o, h: j.h, l: j.l, c: j.c };
   }
 
-  // ── Strategy engine
-  function decide(closes, strategyName){
-    const e9=ema(9,closes), e50=ema(50,closes);
-    const last=closes.at(-1), p9=e9.at(-1), p50=e50.at(-1);
+  // ---- Strategy engine ----
+  function decide(closes, strategyName) {
+    const e9 = ema(9, closes), e50 = ema(50, closes);
+    const last = closes.at(-1), p9 = e9.at(-1), p50 = e50.at(-1);
     const slope = closes.at(-1) - closes.at(-6);
-    const up = p9>p50 && slope>0, down = p9<p50 && slope<0;
-    let action = up ? 'BUY' : (down ? 'SELL' : (last>=p9?'SELL':'BUY'));
-    let reason = up?'Above EMA50 with rising EMA9':(down?'Below EMA50 with falling EMA9':'Mean reversion toward EMA9');
+    const up = p9 > p50 && slope > 0, down = p9 < p50 && slope < 0;
 
-    const dist9 = Math.abs(pct(last,p9));
+    let action = up ? 'BUY' : (down ? 'SELL' : (last >= p9 ? 'SELL' : 'BUY'));
+    let reason = up
+      ? 'Above EMA50 with rising EMA9'
+      : (down ? 'Below EMA50 with falling EMA9' : 'Mean reversion toward EMA9');
+
+    const dist9 = Math.abs(pct(last, p9));
+
     if (/ema touch/i.test(strategyName)) {
       if (dist9 < 0.002) action = up ? 'BUY' : 'SELL';
       else action = 'WAIT';
-      reason = `Distance to EMA9: ${(dist9*100).toFixed(2)}%`;
+      reason = `Distance to EMA9: ${(dist9 * 100).toFixed(2)}%`;
     } else if (/orb/i.test(strategyName)) {
       reason = 'Use first 15m range break; trade in break direction';
     } else if (/support\/resistance/i.test(strategyName)) {
-      reason = up?'Buy pullbacks to prior resistance':'Sell bounces to prior support';
+      reason = up ? 'Buy pullbacks to prior resistance' : 'Sell bounces to prior support';
     } else if (/stoch/i.test(strategyName) || /williams/i.test(strategyName)) {
-      reason = (up?'Stoch/W%R up with trend':'Stoch/W%R down with trend');
+      reason = up ? 'Stoch/W%R up with trend' : 'Stoch/W%R down with trend';
     } else if (/rsi.*macd/i.test(strategyName)) {
-      reason = up?'RSI>50 & MACD>0':'RSI<50 & MACD<0';
+      reason = up ? 'RSI>50 & MACD>0' : 'RSI<50 & MACD<0';
     } else if (/break of structure/i.test(strategyName)) {
-      reason = up?'Higher highs; buy on BOS retest':'Lower lows; sell on BOS retest';
+      reason = up ? 'Higher highs; buy on BOS retest' : 'Lower lows; sell on BOS retest';
     } else if (/pullback continuation/i.test(strategyName)) {
-      reason = up?'Buy EMA9 pullbacks in uptrend':'Sell EMA9 pullbacks in downtrend';
+      reason = up ? 'Buy EMA9 pullbacks in uptrend' : 'Sell EMA9 pullbacks in downtrend';
     } else if (/mean reversion/i.test(strategyName)) {
-      action = last>p9 ? 'SELL' : 'BUY'; reason='Fade back to EMA9';
+      action = last > p9 ? 'SELL' : 'BUY';
+      reason = 'Fade back to EMA9';
     }
-    const conf = Math.max(0.5, Math.min(0.92, 0.55 + (up||down?0.2:0) + Math.abs(pct(p9,p50))*0.6));
+
+    const conf = Math.max(0.5, Math.min(0.92, 0.55 + (up || down ? 0.2 : 0) + Math.abs(pct(p9, p50)) * 0.6));
     return { action, reason, confidence: conf };
   }
 
-  // ── Run analysis
-  async function run(){
+  // ---- Run analysis ----
+  async function run() {
     const data = await getCandles(ticker, timeframe);
-    if (!data.ok) return { ok:false, error:data.error, meta:data.meta };
+    if (!data.ok) return { ok: false, error: data.error, meta: data.meta };
 
     const closes = data.c.slice(-300);
     const sig = decide(closes, strategy);
 
     return {
-      ok:true,
-      mode:'live-data',
-      plan: callerPlan,
+      ok: true,
+      mode: 'live-data',
       summary: `${ticker.toUpperCase()} • ${timeframe} • ${strategy} — ${sig.action}.`,
       checklist: [
-        `EMA9 ${ema(9,closes).at(-1) > ema(50,closes).at(-1) ? 'above' : 'below'} EMA50`,
-        `Last close ${closes.at(-1) >= ema(9,closes).at(-1) ? 'above' : 'below'} EMA9`,
+        `EMA9 ${ema(9, closes).at(-1) > ema(50, closes).at(-1) ? 'above' : 'below'} EMA50`,
+        `Last close ${closes.at(-1) >= ema(9, closes).at(-1) ? 'above' : 'below'} EMA9`,
         `Slope ${closes.at(-1) - closes.at(-6) > 0 ? 'up' : (closes.at(-1) - closes.at(-6) < 0 ? 'down' : 'flat')} (last 5 bars)`
       ],
-      signals: [ { ...sig, ttlSec: 900 } ],
+      signals: [{ ...sig, ttlSec: 900 }],
       price: closes.at(-1),
       note: { finnhubSymbol: data.symbol, resolution: data.resolution }
     };
   }
 
+  // try finnhub
   let result = await run();
 
-  // OpenAI fallback if live data fails
+  // ---- Optional OpenAI fallback if data failed ----
   if (!result.ok && OPENAI) {
-    try{
+    try {
       const prompt = `You are TrueTrend AI. JSON only with fields: summary, checklist(3), signals([ {action, reason, confidence, ttlSec} ]).
       Context: ticker ${ticker}, timeframe ${timeframe}, strategy ${strategy}.`;
-      const r = await fetch('https://api.openai.com/v1/chat/completions',{
-        method:'POST',
-        headers:{'Authorization':`Bearer ${OPENAI}`,'Content-Type':'application/json'},
-        body:JSON.stringify({model:'gpt-4o-mini',temperature:0.2,messages:[
-          {role:'system',content:'Return strict JSON; concise and tradable.'},
-          {role:'user',content:prompt}
-        ]})
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${OPENAI}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          temperature: 0.2,
+          messages: [
+            { role: 'system', content: 'Return strict JSON; concise and tradable.' },
+            { role: 'user', content: prompt }
+          ]
+        })
       });
-      const j = await r.json(); const raw = j?.choices?.[0]?.message?.content || '';
-      try { const parsed = JSON.parse(raw); return res.status(200).json({ ok:true, plan: callerPlan, mode:'live-llm', ...parsed }); }
-      catch { return res.status(200).json({ ok:true, plan: callerPlan, mode:'live-llm', raw }); }
-    }catch(e){ /* fall through */ }
+      const j = await r.json();
+      const raw = j?.choices?.[0]?.message?.content || '';
+      try {
+        const parsed = JSON.parse(raw);
+        return res.status(200).json({ ok: true, mode: 'live-llm', ...parsed });
+      } catch {
+        return res.status(200).json({ ok: true, mode: 'live-llm', raw });
+      }
+    } catch (e) {
+      // fall through to fallback
+    }
   }
 
+  // ---- Final fallback ----
   if (!result.ok) {
     return res.status(200).json({
-      ok:true, plan: callerPlan, mode:'fallback',
-      summary:`Fallback analysis for ${ticker} on ${timeframe} — ${strategy}.`,
-      checklist:['Trend check unavailable','Data fetch failed','Use conservative risk'],
-      signals:[{action:'BUY', reason:'Fallback signal', confidence:.55, ttlSec:900}],
+      ok: true,
+      mode: 'fallback',
+      summary: `Fallback analysis for ${ticker} on ${timeframe} — ${strategy}.`,
+      checklist: ['Trend check unavailable', 'Data fetch failed', 'Use conservative risk'],
+      signals: [{ action: 'BUY', reason: 'Fallback signal', confidence: 0.55, ttlSec: 900 }],
       error: result.error || 'Unknown'
     });
   }
+
   return res.status(200).json(result);
 }
