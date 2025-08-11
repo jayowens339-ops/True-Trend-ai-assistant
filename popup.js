@@ -1,110 +1,257 @@
-/***** OWNER BUILD SWITCH **********************************************
- * Put your private owner token here for a personal build that never
- * asks for a license. Leave it as '' for the public/store build.
- **********************************************************************/
-const OWNER_EMBEDDED = ''; // e.g. 'b2a7b2f0-...'; keep this private in your personal build
+/* popup.js — TrueTrend AI (Owner build, single file)
+   1) Paste your OWNER token below
+   2) Load extension (chrome://extensions → Developer Mode → Reload)
+*/
 
-// ---------- settings ----------
-const defaults = {
-  apiBase: 'https://true-trend-ai-assistant.vercel.app',
-  timeframe: 'Daily',
-  strategy: 'Trendline',
+"use strict";
+
+// ====== 1) OWNER TOKEN (paste your exact token between quotes) ======
+const OWNER_EMBEDDED = "Truetrendtrading4u!";
+
+// ====== 2) POPUP (settings, journal, attach) ======
+const DEFAULTS = {
+  apiBase: "https://true-trend-ai-assistant.vercel.app",
+  timeframe: "Daily",
+  strategy: "Trendline",
   voice: true,
-  license: '' // used only in the store build (OWNER_EMBEDDED === '')
+  license: "" // ignored if OWNER_EMBEDDED is set
 };
 
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
 async function loadSettings() {
-  const s = await chrome.storage.sync.get(defaults);
+  const s = await chrome.storage.sync.get(DEFAULTS);
+  const apiBase = $("apiBase");
+  const tf = $("tf");
+  const str = $("str");
+  const voice = $("voice");
+  const openApp = $("openApp");
 
-  $('apiBase').value = s.apiBase;
-  $('tf').value = s.timeframe;
-  $('str').value = s.strategy;
-  $('voice').checked = s.voice;
+  if (apiBase) apiBase.value = s.apiBase;
+  if (tf) tf.value = s.timeframe;
+  if (str) str.value = s.strategy;
+  if (voice) voice.checked = !!s.voice;
+  if (openApp) openApp.href = s.apiBase.replace(/\/$/, "") + "/app.html";
 
-  // Use embedded token for owner build; otherwise use saved license
-  $('license').value = OWNER_EMBEDDED || s.license || '';
+  // Optional: if your popup.html still has a license row, hide it when owner token is set
+  const licRow = document.getElementById("licRow");
+  if (licRow && hasOwnerToken()) licRow.style.display = "none";
 
-  // Hide license row in owner build
-  if (OWNER_EMBEDDED) {
-    const licRow = $('licRow');
-    if (licRow) licRow.style.display = 'none';
-  }
-
+  // Render any existing journal
   const rows = (await chrome.storage.local.get({ ttai_journal: [] })).ttai_journal;
   renderRows(rows);
-  $('openApp').href = s.apiBase.replace(/\/$/, '') + '/app.html';
 }
 
-$('save').addEventListener('click', async () => {
-  await chrome.storage.sync.set({
-    apiBase: $('apiBase').value.replace(/\/$/, ''),
-    timeframe: $('tf').value,
-    strategy: $('str').value,
-    voice: $('voice').checked,
-    // In owner build we ignore/clear stored license (we use OWNER_EMBEDDED)
-    license: OWNER_EMBEDDED ? '' : $('license').value.trim()
-  });
-  alert('Saved.');
-});
+function hasOwnerToken() {
+  return OWNER_EMBEDDED && OWNER_EMBEDDED !== "PASTE_YOUR_OWNER_TOKEN_HERE";
+}
 
-// ---------- attach (inject overlay) ----------
-$('attach').addEventListener('click', async () => {
+function renderRows(rows) {
+  const tb = document.querySelector("#tbl tbody");
+  if (!tb) return;
+  tb.innerHTML = rows
+    .map(
+      (r) => `<tr>
+        <td>${r.time || ""}</td>
+        <td>${r.ticker || ""}</td>
+        <td>${r.tf || ""}</td>
+        <td>${r.strategy || ""}</td>
+        <td>${r.action || ""}</td>
+        <td>${r.price || ""}</td>
+      </tr>`
+    )
+    .join("");
+}
+
+async function saveSettings() {
+  await chrome.storage.sync.set({
+    apiBase: $("apiBase").value.replace(/\/$/, ""),
+    timeframe: $("tf").value,
+    strategy: $("str").value,
+    voice: $("voice").checked,
+    // keep license for store build compatibility, ignored if owner token is present
+    license: ($("license") && $("license").value.trim()) || ""
+  });
+  alert("Saved.");
+}
+
+async function exportCSV() {
+  const rows = (await chrome.storage.local.get({ ttai_journal: [] })).ttai_journal;
+  const header = ["Time", "Ticker", "TF", "Strategy", "Action", "Price"];
+  const csv = [header.join(","), ...rows.map((r) => [r.time, r.ticker, r.tf, r.strategy, r.action, r.price || ""].join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "TrueTrend_Journal.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function clearJournal() {
+  if (!confirm("Clear the journal?")) return;
+  await chrome.storage.local.set({ ttai_journal: [] });
+  renderRows([]);
+}
+
+// Attach overlay to active tab
+async function attachToPage() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return;
 
-  const opts = await chrome.storage.sync.get(defaults);
-  // carry effective token into page
-  opts.license = OWNER_EMBEDDED || opts.license || '';
+  const opts = await chrome.storage.sync.get(DEFAULTS);
+  opts.ownerToken = hasOwnerToken() ? OWNER_EMBEDDED : (opts.license || "");
+  // pass only serializable data to page
+  opts.apiBase = (opts.apiBase || DEFAULTS.apiBase).replace(/\/$/, "");
+  opts.timeframe = opts.timeframe || DEFAULTS.timeframe;
+  opts.strategy = opts.strategy || DEFAULTS.strategy;
+  opts.voice = !!opts.voice;
 
   await chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    func: injectedOverlay,
+    func: injectedOverlay, // defined below
     args: [opts]
   });
-});
-
-// ---------- journal controls ----------
-function renderRows(rows) {
-  const tb = document.querySelector('#tbl tbody');
-  tb.innerHTML = rows.map(r => `<tr>
-    <td>${r.time||''}</td><td>${r.ticker||''}</td><td>${r.tf||''}</td>
-    <td>${r.strategy||''}</td><td>${r.action||''}</td><td>${r.price||''}</td>
-  </tr>`).join('');
 }
 
-$('export').addEventListener('click', async () => {
-  const rows = (await chrome.storage.local.get({ ttai_journal: [] })).ttai_journal;
-  const header = ['Time','Ticker','TF','Strategy','Action','Price'];
-  const csv = [header.join(','), ...rows.map(r => [r.time,r.ticker,r.tf,r.strategy,r.action,r.price||''].join(','))].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'TrueTrend_Journal.csv'; a.click();
-  URL.revokeObjectURL(url);
+document.addEventListener("DOMContentLoaded", () => {
+  loadSettings();
+
+  $("save")?.addEventListener("click", saveSettings);
+  $("attach")?.addEventListener("click", attachToPage);
+  $("export")?.addEventListener("click", exportCSV);
+  $("clear")?.addEventListener("click", clearJournal);
 });
 
-$('clear').addEventListener('click', async () => {
-  if (!confirm('Clear the journal?')) return;
-  await chrome.storage.local.set({ ttai_journal: [] });
-  renderRows([]);
-});
-
-loadSettings();
-
-// ============ INJECTED CODE (runs on the page) ============
+// ====== 3) OVERLAY (runs in the page via chrome.scripting.executeScript) ======
 function injectedOverlay(opts) {
-  if (window.__TTAI_OVERLAY__) return; window.__TTAI_OVERLAY__ = true;
+  if (window.__TTAI_OVERLAY__) return;
+  window.__TTAI_OVERLAY__ = true;
 
-  // OTC-aware symbol guesser
+  // ---------- styles ----------
+  const css = `
+    #ttai-ov{
+      position:fixed; right:14px; bottom:14px; width:330px;
+      z-index:2147483647; font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;
+      color:#e9eeff; background:#121935; border:1px solid #29336b;
+      border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.4);
+      user-select:none;
+    }
+    #ttai-ov .head{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 10px; border-bottom:1px solid #29336b; cursor:move; font-weight:700;
+      background:#0f1733; border-top-left-radius:12px; border-top-right-radius:12px;
+    }
+    #ttai-ov .close{ cursor:pointer; padding:0 6px; font-size:18px; line-height:1 }
+    #ttai-ov .row{ display:flex; gap:6px; align-items:center; padding:10px }
+    #ttai-ov input, #ttai-ov select, #ttai-ov button{
+      height:34px; border-radius:8px; border:1px solid #29336b; background:#0e1538;
+      color:#e9eeff; padding:0 8px;
+    }
+    #ttai-ov button{ background:#22c55e; color:#04220f; font-weight:700; cursor:pointer }
+    #ttai-ov .t{ font-size:12px; color:#93a7d9; padding:0 10px 10px }
+    #ttai-ov .sig{ font-weight:900; padding:0 10px 8px }
+    #ttai-ov .buy{ color:#22c55e } 
+    #ttai-ov .sell{ color:#ff7373 }
+    #ttai-ov .mut{ color:#a9b7e2; font-size:11px }
+    #ttai-ov .link{ color:#cfe1ff; text-decoration:underline; cursor:pointer }
+    #ttai-ov .foot{ display:flex; gap:8px; align-items:center; padding:0 10px 10px }
+  `;
+  const st = document.createElement("style");
+  st.textContent = css;
+  document.documentElement.appendChild(st);
+
+  // ---------- UI ----------
+  const box = document.createElement("div");
+  box.id = "ttai-ov";
+  box.innerHTML = `
+    <div class="head" id="tt-head">
+      <span>TrueTrend AI</span>
+      <span class="close" id="tt-close">×</span>
+    </div>
+    <div class="row">
+      <input id="tt-sym" placeholder="Symbol (AAPL, EURUSD, BTCUSDT, HMBL)" style="flex:1">
+      <select id="tt-tf">
+        <option>5m</option><option>15m</option><option>1h</option><option>4h</option><option>Daily</option>
+      </select>
+      <button id="tt-go">Go</button>
+    </div>
+    <div class="row">
+      <select id="tt-str" style="flex:1">
+        <option>Trendline</option><option>EMA Touch</option><option>ORB</option>
+        <option>Support/Resistance</option><option>Stoch + Williams %R</option>
+        <option>RSI + MACD</option><option>Break of Structure</option>
+        <option>Pullback Continuation</option><option>Mean Reversion</option>
+      </select>
+      <label class="mut" style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="tt-voice" style="width:16px;height:16px"> Voice
+      </label>
+      <button id="tt-test" title="Test voice">🔊 Test</button>
+    </div>
+    <div class="t" id="tt-st">Attached. Watching…</div>
+    <div id="tt-out" class="t"></div>
+    <div id="tt-sig" class="sig"></div>
+    <div class="foot">
+      <span class="link" id="tt-log">Log last</span>
+      <span class="mut" id="tt-err"></span>
+    </div>
+  `;
+  document.documentElement.appendChild(box);
+
+  // ---------- refs ----------
+  const q = (s) => box.querySelector(s);
+  const head = q("#tt-head"), closeBtn = q("#tt-close");
+  const symEl = q("#tt-sym"), tfEl = q("#tt-tf"), strEl = q("#tt-str");
+  const goBtn = q("#tt-go"), voiceEl = q("#tt-voice"), testBtn = q("#tt-test");
+  const stEl = q("#tt-st"), outEl = q("#tt-out"), sigEl = q("#tt-sig"), errEl = q("#tt-err");
+
+  // init defaults
+  tfEl.value = opts.timeframe || "Daily";
+  strEl.value = opts.strategy || "Trendline";
+  voiceEl.checked = !!opts.voice;
+  symEl.value = guessSym() || "EURUSD";
+
+  // ---------- drag ----------
+  let dragging = false, sx=0, sy=0, startLeft=0, startTop=0;
+  head.addEventListener("mousedown", e => {
+    dragging = true;
+    const r = box.getBoundingClientRect();
+    startLeft = r.left; startTop = r.top; sx = e.clientX; sy = e.clientY;
+    box.style.left = r.left + "px";
+    box.style.top  = r.top + "px";
+    box.style.right = "auto";
+    box.style.bottom = "auto";
+    e.preventDefault();
+  });
+  window.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    const r = box.getBoundingClientRect();
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    const W = window.innerWidth, H = window.innerHeight;
+    const left = Math.min(Math.max(0, startLeft + dx), W - r.width);
+    const top  = Math.min(Math.max(0, startTop + dy),  H - r.height);
+    box.style.left = left + "px";
+    box.style.top  = top  + "px";
+  });
+  window.addEventListener("mouseup", () => { dragging = false; });
+
+  // ---------- helpers ----------
+  function speak(text) {
+    try {
+      if (!voiceEl.checked) return;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    } catch {}
+  }
+
   function guessSym() {
     const u = new URL(location.href);
-    const sp = u.searchParams.get('symbol') || u.searchParams.get('ticker');
+    const sp = u.searchParams.get("symbol") || u.searchParams.get("ticker");
     if (sp) {
       const raw = decodeURIComponent(sp).toUpperCase();
       const m = raw.match(/(?:OTC(?:MKTS)?|PINK|OTCQB|OTCQX|GREY):([A-Z.\-]+)/i);
       if (m) return m[1].toUpperCase();
-      return raw.replace(/[:_]/g,'').replace(/-.*/, '');
+      return raw.replace(/[:_]/g, "").replace(/-.*/, "");
     }
     const m2 = location.pathname.match(/(?:OTC(?:MKTS)?|PINK|OTCQB|OTCQX|GREY):([A-Z.\-]+)/i);
     if (m2) return m2[1].toUpperCase();
@@ -113,126 +260,80 @@ function injectedOverlay(opts) {
     const t1 = document.title.match(/(?:OTC(?:MKTS)?|PINK|OTCQB|OTCQX|GREY):([A-Z.\-]+)/i);
     if (t1) return t1[1].toUpperCase();
     const t2 = document.title.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR|CAD|AUD|CHF|F|Y)?/);
-    return t2 ? t2[0].toUpperCase() : '';
+    return t2 ? t2[0].toUpperCase() : "";
   }
 
-  const css = `
-    #ttai-ov{all:initial;position:fixed;z-index:2147483647;right:14px;bottom:14px;width:330px;
-      font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;color:#e9eeff;background:#121935;
-      border:1px solid #29336b;border-radius:12px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
-    #ttai-ov *{all:unset;display:revert}
-    #ttai-ov .row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
-    #ttai-ov input,#ttai-ov select,#ttai-ov button{background:#0e1538;border:1px solid #29336b;color:#e9eeff;border-radius:8px;height:34px;padding:0 8px}
-    #ttai-ov button{background:#22c55e;color:#04220f;font-weight:700;cursor:pointer}
-    #ttai-ov .t{font-size:12px;color:#93a7d9;margin-top:4px}
-    #ttai-ov .sig{font-weight:900;margin-top:6px}
-    #ttai-ov .buy{color:#22c55e} #ttai-ov .sell{color:#ff7373}
-    #ttai-ov .mut{color:#a9b7e2;font-size:11px}
-    #ttai-ov .link{color:#cfe1ff;text-decoration:underline;cursor:pointer}
-  `;
-  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-
-  const box = document.createElement('div'); box.id = 'ttai-ov';
-  box.innerHTML = `
-    <div class="row">
-      <input id="tt-sym" placeholder="Symbol (AAPL, EURUSD, BTCUSDT, HMBL)" style="flex:1">
-      <select id="tt-tf"><option>5m</option><option>15m</option><option>1h</option><option>4h</option><option>Daily</option></select>
-      <button id="tt-go">Go</button>
-    </div>
-    <div class="row">
-      <select id="tt-str">
-        <option>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option>
-        <option>Stoch + Williams %R</option><option>RSI + MACD</option>
-        <option>Break of Structure</option><option>Pullback Continuation</option><option>Mean Reversion</option>
-      </select>
-      <label class="mut"><input type="checkbox" id="tt-voice" ${opts.voice ? 'checked' : ''}> Voice</label>
-      <span class="link" id="tt-hide">×</span>
-    </div>
-    <div class="t" id="tt-st">Attached. Watching…</div>
-    <div id="tt-out" class="t"></div>
-    <div id="tt-sig" class="sig"></div>
-    <div class="t"><span class="link" id="tt-log">Log last</span></div>
-  `;
-  document.body.appendChild(box);
-
-  const q = s => box.querySelector(s);
-  const symEl = q('#tt-sym'), tfEl = q('#tt-tf'), strEl = q('#tt-str');
-  const stEl = q('#tt-st'), outEl = q('#tt-out'), sigEl = q('#tt-sig');
-  const voiceEl = q('#tt-voice');
-
-  tfEl.value = opts.timeframe || 'Daily';
-  strEl.value = opts.strategy || 'Trendline';
-
-  function speak(text){
-    try { if (!voiceEl.checked) return; speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); } catch {}
+  async function logEntry(entry) {
+    try {
+      const key = "ttai_journal";
+      const data = await chrome.storage.local.get({ [key]: [] });
+      const rows = data[key];
+      rows.unshift(entry);
+      await chrome.storage.local.set({ [key]: rows.slice(0, 2000) });
+    } catch {}
   }
 
-  async function logEntry(entry){
-    try{
-      const key='ttai_journal';
-      const data=await chrome.storage.local.get({[key]:[]});
-      const rows=data[key]; rows.unshift(entry);
-      await chrome.storage.local.set({[key]:rows.slice(0,2000)});
-    }catch(e){}
-  }
+  async function run() {
+    const API = (opts.apiBase || "https://true-trend-ai-assistant.vercel.app").replace(/\/$/, "") + "/api/analyze";
+    const token = opts.ownerToken || "";
 
-  async function run(){
-    const API=(opts.apiBase||'https://true-trend-ai-assistant.vercel.app').replace(/\/$/,'')+'/api/analyze';
-    const token = opts.license || '';  // already carries OWNER_EMBEDDED from popup if set
+    stEl.textContent = "Analyzing…";
+    errEl.textContent = "";
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = "Bearer " + token;
 
-    stEl.textContent='Analyzing…';
-    try{
-      const headers = { 'Content-Type':'application/json' };
-      if (token) headers['Authorization'] = 'Bearer ' + token;
-
-      const res = await fetch(API,{
-        method:'POST',
+      const res = await fetch(API, {
+        method: "POST",
         headers,
         body: JSON.stringify({
-          ticker: symEl.value.trim() || 'EURUSD',
+          ticker: symEl.value.trim() || "EURUSD",
           timeframe: tfEl.value,
           strategy: strEl.value
         })
       });
+      const j = await res.json().catch(() => ({}));
 
-      const j = await res.json();
-      if (!res.ok && (res.status===401 || res.status===402)){
-        outEl.textContent = 'License required. Purchase and paste your key in the popup.';
-        stEl.textContent = 'Locked.'; return;
+      if (!res.ok && (res.status === 401 || res.status === 402)) {
+        stEl.textContent = "Locked.";
+        outEl.textContent = "Owner token invalid or missing.";
+        errEl.textContent = "Check token / Vercel OWNER_LICENSE.";
+        return;
       }
 
-      const s = (j.signals||[])[0] || null;
-      outEl.textContent = (j.summary||'') + '  [' + (j.mode||'') + ']';
-      sigEl.textContent = s ? (s.action + ' — ' + s.reason + ' (' + Math.round((s.confidence||0)*100) + '%)') : '';
-      sigEl.className = 'sig ' + (s ? (s.action==='BUY'?'buy':'sell') : '');
-      if (s){
-        speak(s.action + '. ' + s.reason);
+      const s = (j.signals && j.signals[0]) || null;
+      outEl.textContent = (j.summary || "") + (j.mode ? ` [${j.mode}]` : "");
+      sigEl.textContent = s ? `${s.action} — ${s.reason} (${Math.round((s.confidence || 0) * 100)}%)` : "";
+      sigEl.className = "sig " + (s ? (s.action === "BUY" ? "buy" : "sell") : "");
+
+      if (s) {
+        speak(`${s.action}. ${s.reason}`);
         await logEntry({
           time: new Date().toLocaleString(),
           ticker: symEl.value.toUpperCase(),
-          tf: tfEl.value, strategy: strEl.value,
-          action: s.action, price: j.price || '', notes: ''
+          tf: tfEl.value,
+          strategy: strEl.value,
+          action: s.action,
+          price: j.price || "",
+          notes: ""
         });
-        chrome.storage.sync.set({ timeframe: tfEl.value, strategy: strEl.value, voice: voiceEl.checked });
+        try { chrome.storage.sync.set({ timeframe: tfEl.value, strategy: strEl.value, voice: voiceEl.checked }); } catch {}
       }
     } catch (e) {
-      outEl.textContent = 'Error. Try again.';
+      outEl.textContent = "Error. Try again.";
+      errEl.textContent = (e && e.message) ? e.message : "Network/permissions";
     }
-    stEl.textContent='Watching…';
+    stEl.textContent = "Watching…";
   }
 
-  q('#tt-go').addEventListener('click', run);
-  symEl.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
-  q('#tt-hide').addEventListener('click', () => { box.remove(); window.__TTAI_OVERLAY__ = false; });
-  q('#tt-log').addEventListener('click', () => {
-    const action = (sigEl.textContent.split(' ')[0] || '').toUpperCase();
-    logEntry({ time:new Date().toLocaleString(), ticker:symEl.value.toUpperCase(), tf:tfEl.value, strategy:strEl.value, action, price:'', notes:'' });
-    stEl.textContent = 'Logged.'; setTimeout(()=>stEl.textContent='Watching…', 800);
-  });
+  // ---------- events ----------
+  q("#tt-go").addEventListener("click", run);
+  symEl.addEventListener("keydown", (e) => { if (e.key === "Enter") run(); });
+  q("#tt-test").addEventListener("click", () => speak("Voice is working."));
+  q("#tt-close").addEventListener("click", () => { box.remove(); window.__TTAI_OVERLAY__ = false; });
 
-  symEl.value = guessSym() || 'EURUSD';
+  // auto-run, and rerun on symbol change
   run();
-
   let href = location.href, tit = document.title;
   setInterval(() => {
     if (location.href !== href || document.title !== tit) {
