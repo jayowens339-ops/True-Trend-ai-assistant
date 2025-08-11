@@ -1,24 +1,25 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TrueTrend AI — App</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TrueTrend AI</title>
 <style>
-:root{--bg:#0b1020;--card:#121935;--line:#1f2754;--txt:#e8eeff;--mut:#8ea0c6;--ok:#22c55e;--bad:#ef4444}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px Inter,system-ui,Segoe UI,Roboto}
+:root{--bg:#0b1020;--card:#121935;--line:#1c2550;--txt:#e9eeff;--mut:#93a7d9;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--vio:#9b87f5}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);font:15px Inter,system-ui,Segoe UI,Roboto,sans-serif}
 .wrap{max-width:1100px;margin:28px auto;padding:0 16px}
-nav{display:flex;gap:12px;margin-bottom:12px}
-nav a{color:#cfe1ff;text-decoration:none;border:1px solid #2a3a7a;border-radius:10px;padding:6px 10px;background:#0f1738}
+h1{margin:0 0 4px;font-size:34px} .sub{color:var(--mut);margin-bottom:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 input,select,button,textarea{border-radius:10px;border:1px solid var(--line);background:#0e1538;color:var(--txt)}
-input,select,button{height:42px;padding:0 12px}textarea{padding:10px}
-button{background:var(--ok);color:#04220f;border:none;font-weight:800;cursor:pointer}
+input,select,button{height:42px;padding:0 12px} textarea{padding:10px}
+button{background:var(--ok);color:#04220f;border:none;font-weight:700;cursor:pointer}
 button[disabled]{opacity:.6;cursor:wait}
-.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:#0e1640;border:1px solid #263373;color:#cbd7ff}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:#0e1640;border:1px solid var(--line);color:#cbd7ff}
+.kbd{font:12px ui-monospace,Menlo,Consolas,monospace;background:#0e1640;border:1px solid var(--line);padding:1px 6px;border-radius:6px}
 .out{white-space:pre-wrap;line-height:1.5}
 #bigSignal{font-size:28px;font-weight:900;margin-top:8px}
-.buy{color:var(--ok)}.sell{color:#ff7373}
+.buy{color:var(--ok)} .sell{color:#ff7373}
 .tbl{width:100%;border-collapse:collapse;margin-top:8px}
 .tbl th,.tbl td{padding:8px;border-bottom:1px solid #26306a;text-align:left;font-size:13px}
 small.mut{color:var(--mut)}
@@ -27,26 +28,38 @@ a.book{color:#a3b6ff;text-decoration:none;border:1px dashed #2a3a7a;padding:6px 
 </head>
 <body>
 <div class="wrap">
-  <nav>
-    <a href="/">Home</a>
-    <a href="/app.html">App</a>
-    <a href="/access.html" target="_blank">Access</a>
-  </nav>
 
   <div class="card" style="margin-bottom:12px">
-    <h2 style="margin:0 0 6px">TrueTrend AI <span class="badge" id="status">Ready</span></h2>
+    <h1>TrueTrend AI <span class="badge">Live</span></h1>
+    <div class="sub">Reads the market, says <b>BUY</b>/<b>SELL</b> out loud, and logs your trades. Works with any platform.</div>
+
     <div class="row">
       <input id="ticker" placeholder="Ticker / Pair e.g., EURUSD, AAPL, BTCUSDT" style="flex:1;min-width:220px">
-      <select id="timeframe"><option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option></select>
+      <select id="timeframe">
+        <option>5m</option><option>15m</option><option>1h</option><option>4h</option>
+        <option selected>Daily</option>
+      </select>
       <select id="strategy">
-        <option selected>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option>
-        <option>Stoch + Williams %R</option><option>RSI + MACD</option><option>Break of Structure</option>
-        <option>Pullback Continuation</option><option>Mean Reversion</option>
+        <option selected>Trendline</option>
+        <option>EMA Touch</option>
+        <option>ORB</option>
+        <option>Support/Resistance</option>
+        <option>Stoch + Williams %R</option>
+        <option>RSI + MACD</option>
+        <option>Break of Structure</option>
+        <option>Pullback Continuation</option>
+        <option>Mean Reversion</option>
       </select>
       <button id="btnAnalyze">Analyze</button>
-      <label><input type="checkbox" id="auto" checked> Auto</label>
+      <label><input type="checkbox" id="auto" checked> Auto analyze on change</label>
       <label><input type="checkbox" id="voice" checked> Voice</label>
     </div>
+
+    <div class="row" style="margin-top:8px">
+      <span id="status" class="badge">Ready.</span>
+      <span class="sub">Press <span class="kbd">Enter</span> in the ticker box or click Analyze.</span>
+    </div>
+
     <div id="bigSignal"></div>
     <div id="output" class="out" style="margin-top:8px"></div>
   </div>
@@ -54,13 +67,13 @@ a.book{color:#a3b6ff;text-decoration:none;border:1px dashed #2a3a7a;padding:6px 
   <div class="row">
     <div class="card" style="flex:1;min-width:320px">
       <h3 style="margin:0 0 8px">Attach to any chart (bookmarklet)</h3>
-      <p class="mut">Drag this button to your bookmarks bar, open any chart, and click it.</p>
+      <div class="sub">Drag this to your bookmarks bar, open any chart (TradingView, PocketOptions, TradeLocker, etc.), then click it:</div>
       <div id="bmHolder" style="margin:6px 0 4px"></div>
-      <small class="mut">Works on TradingView, TradeLocker, TradeStation, Binance, Fidelity, Schwab, PocketOptions.</small>
+      <small class="mut">The overlay watches the page for symbol changes and speaks the signal. Later, we’ll ship this as a Chrome/Edge MV3 extension using the same code.</small>
     </div>
 
     <div class="card" style="flex:1;min-width:320px">
-      <h3 style="margin:0 0 8px">Trade Journal</h3>
+      <h3 style="margin:0 0 8px">Trade Journal (local, exportable)</h3>
       <div class="row">
         <button id="logFromLast">Log Last Signal</button>
         <input id="journalNotes" placeholder="Notes (optional)" style="flex:1;min-width:140px">
@@ -68,7 +81,9 @@ a.book{color:#a3b6ff;text-decoration:none;border:1px dashed #2a3a7a;padding:6px 
         <button id="clearJournal" style="background:var(--bad);color:#fff">Clear</button>
       </div>
       <table class="tbl" id="journalTable">
-        <thead><tr><th>Time</th><th>Ticker</th><th>TF</th><th>Strategy</th><th>Action</th><th>Price</th><th>Notes</th></tr></thead>
+        <thead><tr>
+          <th>Time</th><th>Ticker</th><th>TF</th><th>Strategy</th><th>Action</th><th>Price</th><th>Notes</th>
+        </tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -76,73 +91,161 @@ a.book{color:#a3b6ff;text-decoration:none;border:1px dashed #2a3a7a;padding:6px 
 </div>
 
 <script>
-const el=id=>document.getElementById(id);
-const tickerEl=el('ticker'), tfEl=el('timeframe'), stratEl=el('strategy');
-const btn=el('btnAnalyze'), out=el('output'), statusEl=el('status'), big=el('bigSignal');
-const auto=el('auto'), voice=el('voice'); let lastResult=null;
+const el = id => document.getElementById(id);
+const tickerEl = el('ticker'), tfEl = el('timeframe'), stratEl = el('strategy');
+const btn = el('btnAnalyze'), out = el('output'), statusEl = el('status'), big = el('bigSignal');
+const auto = el('auto'), voice = el('voice');
+let lastResult = null;
 
-// restore last selections
-(()=>{const s=JSON.parse(localStorage.getItem('ttai')||'{}'); if(s.ticker)tickerEl.value=s.ticker; if(s.tf)tfEl.value=s.tf; if(s.strat)stratEl.value=s.strat;})();
+// Restore last choices
+(() => {
+  const s = JSON.parse(localStorage.getItem('ttai') || '{}');
+  if (s.ticker) tickerEl.value = s.ticker;
+  if (s.tf) tfEl.value = s.tf;
+  if (s.strat) stratEl.value = s.strat;
+})();
 
-function say(t){ if(!voice.checked) return; try{ speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(t)); }catch{} }
+function say(text){
+  if(!voice.checked) return;
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); speechSynthesis.speak(u);}catch{}
+}
 
-function render(r){
-  lastResult=r||null; if(!r){ out.textContent='No data.'; big.textContent=''; return; }
-  const sig=(r.signals||[])[0]; big.textContent=sig?sig.action:''; big.className=sig?(sig.action==='BUY'?'buy':'sell'):'';
-  const lines=[ r.summary||'', '', 'Checklist:', ...(r.checklist||[]).map(x=>'• '+x), '', sig?`Signal: ${sig.action} — ${sig.reason} (conf ${(sig.confidence*100|0)}%)`:'', '', `Mode: ${r.mode||'demo'}` ];
-  out.textContent=lines.filter(Boolean).join('\n');
-  if(sig) say(`${sig.action}. ${sig.reason}. Confidence ${(sig.confidence*100|0)} percent.`);
+function render(result){
+  lastResult = result || null;
+  if(!result){ out.textContent = 'No data.'; big.textContent=''; return; }
+  const sig = result.signals && result.signals[0];
+  big.textContent = sig ? `${sig.action}` : '';
+  big.className = sig ? (sig.action === 'BUY' ? 'buy' : 'sell') : '';
+  const lines = [
+    result.summary || '',
+    '',
+    'Checklist:',
+    ...(result.checklist || []).map(x=>'• '+x),
+    '',
+    sig ? `Signal: ${sig.action} — ${sig.reason} (conf ${(sig.confidence*100|0)}%)` : '',
+    '',
+    `Mode: ${result.mode || 'demo'}`
+  ];
+  out.textContent = lines.filter(Boolean).join('\n');
+  if (sig) say(`${sig.action}. ${sig.reason}. Confidence ${(sig.confidence*100|0)} percent.`);
 }
 
 async function analyze(){
-  const payload={ ticker:(tickerEl.value||'EURUSD').trim(), timeframe:tfEl.value, strategy:stratEl.value };
-  localStorage.setItem('ttai',JSON.stringify({ticker:payload.ticker,tf:payload.timeframe,strat:payload.strategy}));
-  btn.disabled=true; statusEl.textContent='Analyzing…';
+  const payload = {
+    ticker: (tickerEl.value || 'EURUSD').trim(),
+    timeframe: tfEl.value,
+    strategy: stratEl.value
+  };
+  localStorage.setItem('ttai', JSON.stringify({ticker:payload.ticker, tf:payload.timeframe, strat:payload.strategy}));
+  btn.disabled = true; statusEl.textContent = 'Analyzing…';
   try{
-    const res=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const data=await res.json().catch(()=>({})); statusEl.textContent=data.mode||'demo'; render(data);
+    const res = await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data = await res.json().catch(()=>({}));
+    statusEl.textContent = (data.mode || 'demo');
+    render(data);
   }catch(e){
-    statusEl.textContent='fallback'; render({summary:`Fallback analysis for ${payload.ticker} (${payload.timeframe}) — ${payload.strategy}.`,
+    statusEl.textContent = 'fallback';
+    render({
+      summary:`Fallback analysis for ${payload.ticker} (${payload.timeframe}) — ${payload.strategy}.`,
       checklist:['Trend stable (fallback)','Momentum stable (fallback)','Risk: conservative'],
-      signals:[{action:'BUY',reason:'Fallback signal',confidence:.55,ttlSec:900}],mode:'fallback'});
-  } finally { btn.disabled=false; }
+      signals:[{action:'BUY',reason:'Fallback signal',confidence:.55,ttlSec:900}],
+      mode:'fallback'
+    });
+  } finally { btn.disabled = false; }
 }
 
 btn.addEventListener('click', analyze);
-[tickerEl,tfEl,stratEl].forEach(x=>x.addEventListener('change',()=>{if(auto.checked)analyze();}));
-tickerEl.addEventListener('keydown',e=>{if(e.key==='Enter')analyze();});
+[tickerEl, tfEl, stratEl].forEach(x=>x.addEventListener('change',()=>{ if(auto.checked) analyze(); }));
+tickerEl.addEventListener('keydown', e=>{ if(e.key==='Enter') analyze(); });
 
-// Journal
-const tbody=document.querySelector('#journalTable tbody');
-function loadJournal(){ const rows=JSON.parse(localStorage.getItem('ttai_journal')||'[]');
-  tbody.innerHTML=rows.map(r=>`<tr><td>${r.time}</td><td>${r.ticker}</td><td>${r.tf}</td><td>${r.strategy}</td><td>${r.action}</td><td>${r.price??''}</td><td>${r.notes??''}</td></tr>`).join(''); }
-function saveJournal(rows){ localStorage.setItem('ttai_journal',JSON.stringify(rows)); loadJournal(); }
+// ---------- Journal ----------
+const tbody = document.querySelector('#journalTable tbody');
+function loadJournal(){
+  const rows = JSON.parse(localStorage.getItem('ttai_journal') || '[]');
+  tbody.innerHTML = rows.map(r=>`<tr>
+    <td>${r.time}</td><td>${r.ticker}</td><td>${r.tf}</td><td>${r.strategy}</td>
+    <td>${r.action}</td><td>${r.price ?? ''}</td><td>${r.notes ?? ''}</td>
+  </tr>`).join('');
+}
+function saveJournal(rows){ localStorage.setItem('ttai_journal', JSON.stringify(rows)); loadJournal(); }
 loadJournal();
-el('logFromLast').addEventListener('click',()=>{ if(!lastResult||(lastResult.signals||[]).length===0) return alert('No signal yet.');
-  const sig=lastResult.signals[0]; const rows=JSON.parse(localStorage.getItem('ttai_journal')||'[]');
-  rows.unshift({time:new Date().toLocaleString(),ticker:tickerEl.value||'',tf:tfEl.value,strategy:stratEl.value,action:sig.action,price:lastResult.price||'',notes:el('journalNotes').value||''});
-  saveJournal(rows); el('journalNotes').value=''; });
-el('exportCSV').addEventListener('click',()=>{ const rows=JSON.parse(localStorage.getItem('ttai_journal')||'[]');
-  const header=['Time','Ticker','TF','Strategy','Action','Price','Notes']; const csv=[header.join(','),...rows.map(r=>[r.time,r.ticker,r.tf,r.strategy,r.action,r.price||'',(r.notes||'').replace(/,/g,';')].join(','))].join('\n');
-  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='TrueTrend_Journal.csv'; a.click(); URL.revokeObjectURL(url); });
-el('clearJournal').addEventListener('click',()=>{ if(confirm('Clear the journal?')) saveJournal([]); });
 
-// Bookmarklet
+el('logFromLast').addEventListener('click', ()=>{
+  if(!lastResult || !(lastResult.signals||[])[0]) return alert('No signal yet.');
+  const sig = lastResult.signals[0];
+  const rows = JSON.parse(localStorage.getItem('ttai_journal') || '[]');
+  rows.unshift({
+    time: new Date().toLocaleString(),
+    ticker: tickerEl.value || '',
+    tf: tfEl.value,
+    strategy: stratEl.value,
+    action: sig.action,
+    price: lastResult.price || '',
+    notes: el('journalNotes').value || ''
+  });
+  saveJournal(rows);
+  el('journalNotes').value='';
+});
+el('exportCSV').addEventListener('click', ()=>{
+  const rows = JSON.parse(localStorage.getItem('ttai_journal') || '[]');
+  const header = ['Time','Ticker','TF','Strategy','Action','Price','Notes'];
+  const csv = [header.join(','), ...rows.map(r=>[r.time,r.ticker,r.tf,r.strategy,r.action,r.price||'',(r.notes||'').replace(/,/g,';')].join(','))].join('\n');
+  const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'TrueTrend_Journal.csv'; a.click(); URL.revokeObjectURL(url);
+});
+el('clearJournal').addEventListener('click', ()=>{
+  if(confirm('Clear the journal?')) saveJournal([]);
+});
+
+// ---------- “Attach to any chart” bookmarklet ----------
 (function buildBookmarklet(){
-  const ORIGIN=window.location.origin;
-  const code=`(function(){ if(window.__TTAI_OVERLAY__){return;} const API='${ORIGIN}/api/analyze';
-    const css='#ttai-ov{all:initial;position:fixed;z-index:999999;right:14px;bottom:14px;width:320px;font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;color:#e9eeff;background:#121935;border:1px solid #29336b;border-radius:12px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.4)}#ttai-ov *{all:unset;display:revert}#ttai-ov input,#ttai-ov select,#ttai-ov button{background:#0e1538;border:1px solid #29336b;color:#e9eeff;border-radius:8px;height:34px;padding:0 8px}#ttai-ov button{background:#22c55e;color:#04220f;font-weight:700;cursor:pointer}#ttai-ov .t{font-size:12px;color:#93a7d9;margin-top:6px}#ttai-ov .sig{font-weight:900;margin-top:6px}.buy{color:#22c55e}.sell{color:#ff7373}';
-    const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
-    const box=document.createElement('div');box.id='ttai-ov';box.innerHTML='<div style="display:flex;gap:6px;margin-bottom:6px"><input id="tt-sym" placeholder="Symbol" style="flex:1"><select id="tt-tf"><option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option></select><button id="tt-go">Go</button></div><div style="display:flex;gap:6px"><select id="tt-str"><option>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option><option>Stoch + Williams %R</option><option>RSI + MACD</option><option>Break of Structure</option><option>Pullback Continuation</option><option>Mean Reversion</option></select><label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="tt-voice" checked>Voice</label></div><div class="t" id="tt-st">Attached. Watching…</div><div id="tt-out" class="t"></div><div id="tt-s" class="sig"></div>';
-    document.body.appendChild(box); window.__TTAI_OVERLAY__=true;
-    const q=s=>box.querySelector(s),sym=q('#tt-sym'),tf=q('#tt-tf'),str=q('#tt-str'),st=q('#tt-st'),out=q('#tt-out'),sig=q('#tt-s'),voice=q('#tt-voice');
-    function speak(t){try{if(!voice.checked)return;speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(t));}catch{}}
-    function guess(){const u=new URL(location.href);const sp=u.searchParams.get('symbol');if(sp)return decodeURIComponent(sp).replace(/[:_]/g,'').replace(/-.*/,'');const m=location.pathname.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR)?/);if(m)return m[0];const t=document.title.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR)?/);return t?t[0]:'';}
-    sym.value=guess()||'EURUSD';
-    async function run(){st.textContent='Analyzing…';try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticker:sym.value,timeframe:tf.value,strategy:str.value})});const j=await r.json();const s=j.signals&&j.signals[0];out.textContent=(j.summary||'')+'  ['+(j.mode||'')+']';sig.textContent=s? s.action+' — '+s.reason+' ('+Math.round((s.confidence||0)*100)+'%)':'';sig.className='sig '+(s?(s.action==='BUY'?'buy':'sell'):'' );if(s) speak(s.action+'. '+s.reason);}catch(e){st.textContent='Error. Try again.';}st.textContent='Watching…';}
-    q('#tt-go').addEventListener('click',run);sym.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
-    let href=location.href,tit=document.title;setInterval(()=>{if(location.href!==href||document.title!==tit){href=location.href;tit=document.title;const g=guess();if(g&&g!==sym.value){sym.value=g;run();}}},1500);run(); })();`;
-  const a=document.createElement('a');a.className='book';a.textContent='Attach TrueTrend to this page';a.href='javascript:'+encodeURIComponent(code);
+  const ORIGIN = window.location.origin; // your deployed domain
+  const code = `
+    (function(){
+      if(window.__TTAI_OVERLAY__){return;}
+      const API='${ORIGIN}/api/analyze';
+      const css=\`
+        #ttai-ov{all:initial;position:fixed;z-index:999999;right:14px;bottom:14px;width:320px;
+        font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;color:#e9eeff;background:#121935;
+        border:1px solid #29336b;border-radius:12px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+        #ttai-ov *{all:unset;display:revert}
+        #ttai-ov input,#ttai-ov select,#ttai-ov button{background:#0e1538;border:1px solid #29336b;color:#e9eeff;border-radius:8px;height:34px;padding:0 8px}
+        #ttai-ov button{background:#22c55e;color:#04220f;font-weight:700;cursor:pointer}
+        #ttai-ov .t{font-size:12px;color:#93a7d9;margin-top:6px}
+        #ttai-ov .sig{font-weight:900;margin-top:6px}
+        #ttai-ov .buy{color:#22c55e}#ttai-ov .sell{color:#ff7373}
+      \`;
+      const s=document.createElement('style');s.textContent=css;document.head.appendChild(s);
+      const box=document.createElement('div');box.id='ttai-ov';
+      box.innerHTML='<div style="display:flex;gap:6px;margin-bottom:6px"><input id="tt-sym" placeholder="Symbol" style="flex:1"><select id="tt-tf"><option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option></select><button id="tt-go">Go</button></div><div style="display:flex;gap:6px"><select id="tt-str"><option>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option><option>Stoch + Williams %R</option><option>RSI + MACD</option><option>Break of Structure</option><option>Pullback Continuation</option><option>Mean Reversion</option></select><label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="tt-voice" checked>Voice</label></div><div class="t" id="tt-st">Attached. Watching page…</div><div id="tt-out" class="t"></div><div id="tt-s" class="sig"></div>';
+      document.body.appendChild(box); window.__TTAI_OVERLAY__=true;
+      const q=(x)=>box.querySelector(x); const sym=q('#tt-sym'), tf=q('#tt-tf'), str=q('#tt-str'), st=q('#tt-st'), out=q('#tt-out'), sig=q('#tt-s'), voice=q('#tt-voice');
+      function speak(t){try{if(!voice.checked)return;speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(t));}catch{}}
+      function guessSym(){
+        const u=new URL(location.href); const sp=u.searchParams.get('symbol'); if(sp) return decodeURIComponent(sp).replace(/[:_]/g,'').replace(/-.*/,'');
+        const m=location.pathname.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR)?/); if(m) return m[0];
+        const t=document.title.match(/[A-Z]{2,6}(?:USDT|USD|JPY|GBP|EUR)?/); return t?t[0]:'';
+      }
+      sym.value=guessSym()||sym.value||'EURUSD';
+      async function run(){
+        st.textContent='Analyzing…';
+        try{
+          const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticker:sym.value,timeframe:tf.value,strategy:str.value})});
+          const j=await r.json(); const s=j.signals&&j.signals[0]; out.textContent=(j.summary||'')+'  ['+(j.mode||'')+']';
+          sig.textContent=s? s.action+' — '+s.reason+' ('+Math.round((s.confidence||0)*100)+'%)':'';
+          sig.className='sig '+(s?(s.action==='BUY'?'buy':'sell'):''); if(s) speak(s.action+'. '+s.reason);
+        }catch(e){ st.textContent='Error. Fallback.'; }
+        st.textContent='Watching page…';
+      }
+      q('#tt-go').addEventListener('click',run); sym.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+      let href=location.href, tit=document.title; setInterval(()=>{ if(location.href!==href||document.title!==tit){ href=location.href; tit=document.title; const g=guessSym(); if(g && g!==sym.value){ sym.value=g; run(); } } },1500);
+      run();
+    })();
+  `.replace(/\n+/g,' ');
+  const a=document.createElement('a');
+  a.className='book';
+  a.textContent='Attach TrueTrend to this page';
+  a.href='javascript:'+encodeURIComponent(code);
   document.getElementById('bmHolder').appendChild(a);
 })();
 </script>
