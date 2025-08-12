@@ -1,58 +1,64 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>TrueTrend AI</title>
+  <meta charset="utf-8">
+  <title>TrueTrend AI (Owner)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    body{width:360px;margin:0;font:14px Inter,system-ui,Segoe UI,Roboto;background:#0a0f1f;color:#eaf0ff}
-    .wrap{padding:12px}
-    h1{font-size:16px;margin:0 0 8px}
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    input,select,button{height:32px;border-radius:8px;border:1px solid #24306a;background:#0e1538;color:#eaf0ff;padding:0 8px}
-    button{background:#22c55e;color:#04220f;font-weight:800;border:none;cursor:pointer}
-    small{color:#9eb0df}
-    table{width:100%;border-collapse:collapse;margin-top:8px}
-    td,th{border-bottom:1px solid #23306a;padding:6px;text-align:left;font-size:12px}
-    .actions{display:flex;gap:6px;margin-top:8px}
-    a{color:#cfe1ff;text-decoration:none}
-    .logo{display:flex;align-items:center;gap:8px}
-    .logo img{width:18px;height:18px;border-radius:4px}
+    :root { --bg:#0a0f1f; --card:#101735; --muted:#8ea0c6; --txt:#e8eeff; --accent:#22c55e; --purple:#a78bfa; --danger:#ef4444; }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,Segoe UI,Inter,Roboto,sans-serif}
+    .wrap{padding:12px;width:420px}
+    h1{font-size:18px;margin:0 0 10px}
+    .row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
+    input,select,button{height:40px;border-radius:10px;border:1px solid #24306a;background:#0e1538;color:#eaf0ff;padding:0 10px}
+    button{cursor:pointer;font-weight:700}
+    .go{background:var(--accent);color:#06200f;border:none}
+    .vision{background:var(--purple);border:none}
+    .exit{background:var(--danger);border:none}
+    .muted{color:var(--muted)}
+    textarea{width:100%;height:220px;background:#0b1333;border:1px solid #27316c;border-radius:10px;color:#cfe1ff;padding:10px;white-space:pre}
+    .chip{background:#0d1538;border:1px solid #26326f;color:#cfe0ff;border-radius:8px;padding:6px 10px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="logo"><img src="icons/truetrend-48.png" alt=""> <h1 style="margin:0">TrueTrend AI</h1></div>
-
-    <div class="row" style="margin-top:8px">
-      <label>API <input id="apiBase" placeholder="https://true-trend-ai-assistant.vercel.app" style="width:170px"></label>
-      <label>TF
-        <select id="tf">
-          <option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option>
-        </select>
-      </label>
-      <label>Strategy
-        <select id="str">
-          <option selected>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option>
-          <option>Stoch + Williams %R</option><option>RSI + MACD</option><option>Break of Structure</option>
-          <option>Pullback Continuation</option><option>Mean Reversion</option>
-        </select>
-      </label>
-      <label><input type="checkbox" id="voice" checked> Voice</label>
-      <button id="save">Save</button>
+    <div class="row" style="justify-content:space-between">
+      <h1>TrueTrend AI (Owner)</h1>
+      <label class="row" style="gap:6px"><input type="checkbox" id="voice" checked> <span class="muted">Voice</span></label>
+      <button class="exit" id="btnExit">Exit</button>
     </div>
 
-    <div class="actions">
-      <button id="attach">Attach to this page</button>
-      <a id="openApp" href="#" target="_blank">Open App</a>
+    <div class="row">
+      <input id="symbol" placeholder="Symbol (auto)" style="flex:1">
+      <select id="tf">
+        <option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option>
+      </select>
     </div>
 
-    <h1 style="margin-top:10px">Journal</h1>
-    <div class="actions">
-      <button id="export">Export CSV</button>
-      <button id="clear" style="background:#ef4444;color:white">Clear</button>
+    <div class="row">
+      <select id="strategy" style="flex:1">
+        <option selected>Trendline</option>
+        <option>EMA Touch</option>
+        <option>ORB</option>
+        <option>Support/Resistance</option>
+        <option>RSI + MACD</option>
+        <option>Break of Structure</option>
+        <option>Pullback Continuation</option>
+        <option>Mean Reversion</option>
+        <option>Stoch + Williams %R</option>
+      </select>
+      <button class="go" id="btnGo">Go</button>
+      <button class="vision" id="btnVision">Vision</button>
     </div>
-    <table id="tbl"><thead><tr><th>Time</th><th>Ticker</th><th>TF</th><th>Strat</th><th>Action</th><th>Price</th></tr></thead><tbody></tbody></table>
-    <small>Journal is local to your browser. CSV export recommended.</small>
+
+    <div class="row">
+      <button class="chip" id="btnAttach">Attach</button>
+      <button class="chip" id="btnExport">Export CSV</button>
+      <button class="chip" id="btnClear">Clear</button>
+    </div>
+
+    <div class="muted">Output</div>
+    <textarea id="out" spellcheck="false">Ready.</textarea>
   </div>
 
   <script src="popup.js"></script>
