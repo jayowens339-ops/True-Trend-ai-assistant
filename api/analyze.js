@@ -1,7 +1,19 @@
-// api/analyze.js — TrueTrend AI unified endpoint (CommonJS for Vercel Functions, Node 18+)
+// TrueTrend AI — single-file backend
+// Drop this at:  api/analyze.js
+//
+// REQUIRED ENV on Vercel:
+//   OWNER_TOKEN           (e.g. "Truetrendtrading4u!")
+//   ENFORCE_LICENSE=1     (set 0 to temporarily skip license checks)
+//   FINNHUB_API_KEY       (for live candles)
+//   OPENAI_API_KEY        (optional; vision + LLM fallback)
+//   LICENSE_ALLOWLIST     (optional CSV of customer tokens)
+//
+// POST JSON body:
+//   { ticker, timeframe, strategy, imageDataURL?, alexaUrl? }
+//   Use header: Authorization: Bearer <token>  (OWNER_TOKEN or allowlisted token)
 
 const OWNER = process.env.OWNER_TOKEN || 'Truetrendtrading4u!';
-const ENFORCE = (process.env.ENFORCE_LICENSE || '1') !== '0'; // set 0 to skip license gate
+const ENFORCE = (process.env.ENFORCE_LICENSE || '1') !== '0';
 const ALLOWLIST = (process.env.LICENSE_ALLOWLIST || '')
   .split(',').map(s => s.trim()).filter(Boolean);
 const FINN = process.env.FINNHUB_API_KEY || '';
@@ -10,7 +22,7 @@ const OPENAI = process.env.OPENAI_API_KEY || process.env.GPT_API_KEY || '';
 const nowSec = () => Math.floor(Date.now() / 1000);
 const pct = (a,b)=> (b===0?0:(a-b)/b);
 const ema = (period, arr)=>{
-  if (!arr?.length) return [];
+  if (!arr || !arr.length) return [];
   const k = 2/(period+1);
   let prev = arr[0];
   const out = [prev];
@@ -49,16 +61,16 @@ const entryExitFromSignal = (action, price, tf) => {
   if (action==='BUY') {
     return {
       entry: `Break above ${(p*(1+buf)).toFixed(4)} or pullback near ${(p*(1-buf)).toFixed(4)}`,
-      stop: `Protect below ${(p*(1-r)).toFixed(4)}`,
-      tp1:  `Take profit near ${(p*(1+r*1.5)).toFixed(4)}`,
-      tp2:  `Stretch target ${(p*(1+r*3)).toFixed(4)}`
+      stop:  `Protect below ${(p*(1-r)).toFixed(4)}`,
+      tp1:   `Take profit near ${(p*(1+r*1.5)).toFixed(4)}`,
+      tp2:   `Stretch target ${(p*(1+r*3)).toFixed(4)}`
     };
   } else if (action==='SELL') {
     return {
       entry: `Break below ${(p*(1-buf)).toFixed(4)} or pullback near ${(p*(1+buf)).toFixed(4)}`,
-      stop: `Protect above ${(p*(1+r)).toFixed(4)}`,
-      tp1:  `Take profit near ${(p*(1-r*1.5)).toFixed(4)}`,
-      tp2:  `Stretch target ${(p*(1-r*3)).toFixed(4)}`
+      stop:  `Protect above ${(p*(1+r)).toFixed(4)}`,
+      tp1:   `Take profit near ${(p*(1-r*1.5)).toFixed(4)}`,
+      tp2:   `Stretch target ${(p*(1-r*3)).toFixed(4)}`
     };
   }
   return { entry:`WAIT — re-run when price moves ±${(p*r).toFixed(4)}`, stop:'', tp1:'', tp2:'' };
@@ -132,7 +144,7 @@ async function visionAnalyze(imageDataURL, context) {
   try {
     const prompt = `
 You are TrueTrend AI. Return STRICT JSON:
-{{ "summary": string, "checklist": [string,string,string], "signals":[{{"action":"BUY|SELL|WAIT","reason":string,"confidence":0.0-1.0,"ttlSec":900}}] }}
+{ "summary": string, "checklist": [string,string,string], "signals":[{"action":"BUY|SELL|WAIT","reason":string,"confidence":0.0-1.0,"ttlSec":900}] }
 Context: ticker ${context.ticker||''}, timeframe ${context.timeframe||''}, strategy ${context.strategy||''}.
 Focus on one clear action with a tradable reason. Keep it concise.`;
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -186,27 +198,21 @@ module.exports = async (req, res) => {
     return res.status(405).json({ ok:false, error:'Use POST' });
   }
 
-  // body
-  const body = typeof req.body === 'string' ? (req.body ? JSON.parse(req.body) : {}) : (req.body || {});
-  const {
-    ticker = '',
-    timeframe = 'Daily',
-    strategy = 'Trendline',
-    imageDataURL = '',
-    alexaUrl = ''
-  } = body;
+  // Parse body
+  let body = req.body;
+  if (typeof body === 'string') { try { body = JSON.parse(body||'{}'); } catch { body = {}; } }
+  body = body || {};
+  const { ticker = '', timeframe = 'Daily', strategy = 'Trendline', imageDataURL = '', alexaUrl = '' } = body;
 
   const auth = (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
 
   // License gate
   if (ENFORCE) {
     const ok = auth && (auth === OWNER || ALLOWLIST.includes(auth));
-    if (!ok) {
-      return res.status(auth ? 401 : 402).json({ ok:false, error:'license_required' });
-    }
+    if (!ok) return res.status(auth ? 401 : 402).json({ ok:false, error:'license_required' });
   }
 
-  // 1) Vision path
+  // Vision path
   if (imageDataURL) {
     const v = await visionAnalyze(imageDataURL, { ticker, timeframe, strategy });
     if (v.ok) {
@@ -223,10 +229,10 @@ module.exports = async (req, res) => {
         entryExit: ex
       });
     }
-    // else fall through to live-data path
+    // fall-through to data path
   }
 
-  // 2) Live-data path
+  // Data path
   let data = { ok:false, error:'No data' };
   if (ticker) data = await getCandles(ticker, timeframe);
 
@@ -252,11 +258,10 @@ module.exports = async (req, res) => {
     });
   }
 
-  // 3) LLM fallback
+  // LLM fallback
   if (OPENAI) {
     try {
-      const prompt = `You are TrueTrend AI. JSON only with fields: summary, checklist(3), signals([{action,reason,confidence,ttlSec}]).
-Context: ticker ${ticker||''}, timeframe ${timeframe}, strategy ${strategy}.`;
+      const prompt = `You are TrueTrend AI. JSON only with fields: summary, checklist(3), signals([{action,reason,confidence,ttlSec}]). Context: ticker ${ticker||''}, timeframe ${timeframe}, strategy ${strategy}.`;
       const r = await fetch('https://api.openai.com/v1/chat/completions', {
         method:'POST',
         headers:{'Authorization':`Bearer ${OPENAI}`,'Content-Type':'application/json'},
@@ -276,7 +281,7 @@ Context: ticker ${ticker||''}, timeframe ${timeframe}, strategy ${strategy}.`;
     } catch {}
   }
 
-  // 4) Hard fallback
+  // Hard fallback
   return res.status(200).json({
     ok:true, mode:'fallback',
     ticker, timeframe, strategy,
@@ -284,6 +289,6 @@ Context: ticker ${ticker||''}, timeframe ${timeframe}, strategy ${strategy}.`;
     checklist:['Trend check unavailable','Data fetch failed','Use conservative risk'],
     signals:[{action:'BUY', reason:'Fallback signal', confidence:.55, ttlSec:900}],
     entryExit: entryExitFromSignal('BUY', 0, timeframe),
-    error: data.error || 'Unknown'
+    error: 'No live data'
   });
 };
