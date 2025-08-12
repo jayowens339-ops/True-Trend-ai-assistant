@@ -1,24 +1,24 @@
 {
   "manifest_version": 3,
-  "name": "TrueTrend AI (Owner Draggable)",
-  "short_name": "TrueTrend Owner",
-  "version": "1.2.8",
-  "description": "Owner-only build. Token baked in. Draggable overlay, voice alerts, journal & CSV export.",
-  "action": {
-    "default_title": "TrueTrend AI",
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/truetrend-16.png",
-      "48": "icons/truetrend-48.png",
-      "128": "icons/truetrend-128.png"
-    }
-  },
+  "name": "TrueTrend AI (Owner)",
+  "description": "Owner build — attaches to any chart, Vision screenshots, voice, journal. No license check.",
+  "version": "1.3.2",
+  "action": { "default_popup": "popup.html", "default_title": "TrueTrend AI (Owner)" },
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://true-trend-ai-assistant.vercel.app/*"
+  ],
   "icons": {
     "16": "icons/truetrend-16.png",
     "48": "icons/truetrend-48.png",
     "128": "icons/truetrend-128.png"
   },
-  "permissions": ["storage", "activeTab", "scripting"],
-  "host_permissions": ["https://true-trend-ai-assistant.vercel.app/*"],
-  "minimum_chrome_version": "114"
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
