@@ -1,65 +1,74 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>TrueTrend AI (Owner)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <title>TrueTrend AI — Owner</title>
   <style>
-    :root { --bg:#0a0f1f; --card:#101735; --muted:#8ea0c6; --txt:#e8eeff; --accent:#22c55e; --purple:#a78bfa; --danger:#ef4444; }
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,Segoe UI,Inter,Roboto,sans-serif}
-    .wrap{padding:12px;width:420px}
-    h1{font-size:18px;margin:0 0 10px}
-    .row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
-    input,select,button{height:40px;border-radius:10px;border:1px solid #24306a;background:#0e1538;color:#eaf0ff;padding:0 10px}
-    button{cursor:pointer;font-weight:700}
-    .go{background:var(--accent);color:#06200f;border:none}
-    .vision{background:var(--purple);border:none}
-    .exit{background:var(--danger);border:none}
-    .muted{color:var(--muted)}
-    textarea{width:100%;height:220px;background:#0b1333;border:1px solid #27316c;border-radius:10px;color:#cfe1ff;padding:10px;white-space:pre}
-    .chip{background:#0d1538;border:1px solid #26326f;color:#cfe0ff;border-radius:8px;padding:6px 10px}
+    body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:#0a0d16;color:#eaeef5;margin:12px;min-width:380px}
+    h1{font-size:20px;margin:0 0 8px}
+    label{display:block;margin:10px 0 6px;font-size:12px;opacity:.9}
+    input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #334;background:#0f1424;color:#eaeef5}
+    .row{display:flex;gap:10px;align-items:center}.row>div{flex:1}
+    .buttons{display:flex;gap:10px;margin:12px 0}
+    button{flex:1;padding:12px;border:0;border-radius:12px;font-weight:700;cursor:pointer}
+    .go{background:#1fc46b}.vision{background:#3a3f53}.test{background:#6f42c1}.detect{background:#2e7bd6}.save{background:#157347}.exit{background:#f55757}
+    pre{background:#0f1424;border:1px solid #223;min-height:120px;border-radius:12px;padding:12px;overflow:auto}
+    details{margin-top:8px}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="row" style="justify-content:space-between">
-      <h1>TrueTrend AI (Owner)</h1>
-      <label class="row" style="gap:6px"><input type="checkbox" id="voice" checked> <span class="muted">Voice</span></label>
-      <button class="exit" id="btnExit">Exit</button>
-    </div>
+  <h1>TrueTrend AI <span style="opacity:.7;font-size:12px">(Owner)</span></h1>
 
-    <div class="row">
-      <input id="symbol" placeholder="Symbol (auto)" style="flex:1">
-      <select id="tf">
-        <option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option>
-      </select>
-    </div>
+  <label>API Base <input id="apiBase" placeholder="https://true-trend-ai-assistant.vercel.app" /></label>
 
-    <div class="row">
-      <select id="strategy" style="flex:1">
-        <option selected>Trendline</option>
-        <option>EMA Touch</option>
-        <option>ORB</option>
-        <option>Support/Resistance</option>
-        <option>RSI + MACD</option>
-        <option>Break of Structure</option>
-        <option>Pullback Continuation</option>
-        <option>Mean Reversion</option>
-        <option>Stoch + Williams %R</option>
-      </select>
-      <button class="go" id="btnGo">Go</button>
-      <button class="vision" id="btnVision">Vision</button>
+  <div class="row">
+    <div><label>Timeframe
+      <select id="timeframe">
+        <option value="1min">1m</option><option value="5min" selected>5m</option>
+        <option value="15min">15m</option><option value="60min">60m</option>
+        <option value="daily">Daily</option>
+      </select></label>
     </div>
-
-    <div class="row">
-      <button class="chip" id="btnAttach">Attach</button>
-      <button class="chip" id="btnExport">Export CSV</button>
-      <button class="chip" id="btnClear">Clear</button>
+    <div><label>Trade Type
+      <select id="tradeType">
+        <option>Scalp</option><option selected>Day Trade</option><option>Swing</option>
+      </select></label>
     </div>
-
-    <div class="muted">Output</div>
-    <textarea id="out" spellcheck="false">Ready.</textarea>
   </div>
+
+  <label><input type="checkbox" id="voice" checked /> Voice</label>
+
+  <div class="row">
+    <div><label>Symbol <input id="symbol" placeholder="AAPL" /></label></div>
+    <button class="detect" id="detect">Detect</button>
+  </div>
+
+  <label>Strategy
+    <select id="strategy">
+      <option>Trendline</option><option selected>EMA</option><option>ORB</option><option>PriceAction</option>
+    </select>
+  </label>
+  <label>Style
+    <select id="style">
+      <option selected>Day</option><option>Night</option>
+    </select>
+  </label>
+
+  <details>
+    <summary><b>API Keys</b></summary>
+    <label>Twelve Data Key <input id="tdKey" placeholder="TWELVEDATA_KEY" /></label>
+    <label>Finnhub Key <input id="fhKey" placeholder="FINNHUB_KEY (optional)" /></label>
+    <button class="save" id="saveKeys">Save Keys</button>
+  </details>
+
+  <div class="buttons">
+    <button class="go" id="go">Go</button>
+    <button class="vision" id="vision">Vision</button>
+    <button class="test" id="testVoice">Test Voice</button>
+    <button class="exit" id="exit">Exit</button>
+  </div>
+
+  <pre id="output">{ "ok": true, "owner": true, "msg": "Owner build active." }</pre>
 
   <script src="popup.js"></script>
 </body>
