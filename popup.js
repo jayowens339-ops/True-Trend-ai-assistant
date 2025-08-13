@@ -1,239 +1,346 @@
-/* ============ OWNER BUILD FLAGS (baked) ============ */
-const BUILD = 'owner';
-const OWNER_TOKEN = 'Truetrendtrading4u!'; // your owner token
+// /api/analyze.js
+// Owner-aware endpoint. Uses Twelve Data first, Finnhub fallback, optional OpenAI vision fallback.
+// CORS + POST JSON.
 
-/* ============ SETTINGS ============ */
-const API_BASE = 'https://true-trend-ai-assistant.vercel.app'; // change if you move your API
-const ANALYZE_URL = `${API_BASE}/api/analyze`;
+export default async function handler(req, res) {
+  // ---------- CORS ----------
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST, OPTIONS');
+    return res.status(405).json({ error: 'Use POST' });
+  }
 
-const qs = id => document.getElementById(id);
-const $symbol = qs('symbol');
-const $tf     = qs('tf');
-const $strat  = qs('strategy');
-const $go     = qs('btnGo');
-const $vision = qs('btnVision');
-const $attach = qs('btnAttach');
-const $export = qs('btnExport');
-const $clear  = qs('btnClear');
-const $voice  = qs('voice');
-const $exit   = qs('btnExit');
-const $out    = qs('out');
+  // ---------- config / env ----------
+  const OWNER = process.env.OWNER_TOKEN || '';
+  const ENFORCE = String(process.env.ENFORCE_LICENSE || '0') === '1';
+  const TD_KEY = process.env.TWELVEDATA_API_KEY || '';
+  const TD_CRYPTO_EX = process.env.TWELVEDATA_CRYPTO_EXCHANGE || 'Binance';
+  const FINN = process.env.FINNHUB_API_KEY || '';
+  const OPENAI = process.env.OPENAI_API_KEY || '';
 
-function say(text){
-  try{
-    if (!$voice.checked) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(String(text).replace(/\s+/g,' ').trim());
-    speechSynthesis.speak(u);
-  }catch{}
-}
-function log(o){ $out.value = typeof o === 'string' ? o : JSON.stringify(o,null,2); }
+  // ---------- license gate (store build turns this on) ----------
+  try {
+    const auth = req.headers['authorization'] || '';
+    const bearer = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+    if (ENFORCE && bearer !== OWNER) {
+      return res.status(200).json({ ok: false, error: 'license_required' });
+    }
+  } catch {}
 
-/* ============ API HELPERS ============ */
-async function postAnalyze(body){
-  const res = await fetch(ANALYZE_URL, {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization': `Bearer ${OWNER_TOKEN}` // owner bypass
-    },
-    body: JSON.stringify(body)
-  });
-  return res.json();
-}
+  // ---------- parse body ----------
+  let body = {};
+  try { body = req.body || {}; } catch {}
+  const { ticker = '', timeframe = 'Daily', strategy = 'Trendline', style = 'Day', image } = body;
 
-/* ============ ANALYZE + VISION ============ */
-async function runAnalyze(kind){
-  const payload = {
-    ticker: ($symbol.value || '').trim(),
-    timeframe: $tf.value,
-    strategy: $strat.value
+  // ---------- utils ----------
+  const nowSec = () => Math.floor(Date.now() / 1000);
+  const pct = (a, b) => (b === 0 ? 0 : (a - b) / b);
+  const ema = (period, arr) => {
+    if (!arr?.length) return [];
+    const k = 2 / (period + 1);
+    let prev = arr[0]; const out = [prev];
+    for (let i = 1; i < arr.length; i++) { prev = arr[i] * k + prev * (1 - k); out.push(prev); }
+    return out;
   };
-  log(`Waiting for ${kind}…`);
-  try{
-    if (kind === 'vision'){
-      // capture tab as dataURL png
-      const tab = await chrome.tabs.query({active:true,currentWindow:true});
-      if(!tab[0]) throw new Error('No active tab');
-      const dataUrl = await chrome.tabs.captureVisibleTab({format:'png'});
-      payload.image = dataUrl; // the API accepts { image: dataURL }
-      payload.vision = true;
-    }
-    const j = await postAnalyze(payload);
 
-    // pretty print + voice
-    log(j);
-    const s = j?.signals?.[0];
-    const ex = j?.entryExit || {};
-    if (s){
-      say(`${s.action}. ${s.reason || ''}. Entry ${ex.entry || 'unknown'}. Stop ${ex.stop || 'unknown'}. Take profit ${ex.tp1 || ex.tp2 || 'unknown'}.`);
-      // journal
-      await appendJournal({
-        time: new Date().toLocaleString(),
-        ticker: payload.ticker || '(auto)',
-        tf: payload.timeframe,
-        strat: payload.strategy,
-        action: s.action,
-        price: j.price || '',
-        entry: ex.entry||'',
-        stop: ex.stop||'',
-        tp1: ex.tp1||'',
-        tp2: ex.tp2||'',
-        why: s.reason||''
-      });
+  // Classify symbol (rough)
+  const classify = (sym) => {
+    const s = (sym || '').toUpperCase().replace(/\s+/g, '');
+    if (!s) return 'unknown';
+    if (s.includes(':')) return 'explicit';
+    if (/^[A-Z]{6,7}$/.test(s) || /[A-Z]+\/[A-Z]+/.test(s) || /(XAU|XAG|WTI|BRENT)/.test(s)) return 'forex';
+    if (/USDT$/.test(s) || /(BTC|ETH|SOL|DOGE|ADA)/.test(s)) return 'crypto';
+    return 'stock';
+  };
+
+  // Map timeframe to Twelve Data
+  const tdInterval = (tf) => {
+    const m = String(tf).toLowerCase();
+    if (m.includes('5m')) return '5min';
+    if (m.includes('15m')) return '15min';
+    if (m.includes('1h')) return '1h';
+    if (m.includes('4h')) return '4h';
+    return '1day';
+  };
+
+  // Format symbols for Twelve Data
+  function mapToTwelve(sym, type) {
+    let s = (sym || '').toUpperCase().replace(/\s+/g, '');
+    if (!s) return { symbol: '', extra: {} };
+
+    if (type === 'forex') {
+      // allow EURUSD → EUR/USD
+      if (/^[A-Z]{6}$/.test(s)) s = s.slice(0, 3) + '/' + s.slice(3);
+      if (!s.includes('/')) s = s.replace(/[_:]/g, '/');
+      return { symbol: s, extra: {} }; // e.g., EUR/USD
     }
-  }catch(e){
-    log(`TypeError: ${e?.message || e}`);
+    if (type === 'crypto') {
+      // BTCUSDT → BTC/USD (Twelve Data commonly uses /USD)
+      if (/^[A-Z]{6,10}$/.test(s)) {
+        const base = s.replace(/USDT|USD|USDC$/, '');
+        s = base + '/USD';
+      }
+      if (!s.includes('/')) s = s + '/USD';
+      return { symbol: s, extra: { exchange: TD_CRYPTO_EX } }; // e.g., BTC/USD&exchange=Binance
+    }
+    // stock – usually just AAPL; exchange optional
+    return { symbol: s, extra: {} };
   }
-}
 
-/* ============ JOURNAL ============ */
-async function appendJournal(row){
-  const key='ttai_journal';
-  const { [key]:rows=[] } = await chrome.storage.local.get({ [key]:[] });
-  rows.unshift(row);
-  await chrome.storage.local.set({ [key]: rows.slice(0,2000) });
-}
-async function exportCSV(){
-  const key='ttai_journal';
-  const { [key]:rows=[] } = await chrome.storage.local.get({ [key]:[] });
-  const header=['Time','Ticker','TF','Strategy','Action','Price','Entry','Stop','TP1','TP2','Why'];
-  const csv=[header.join(','),...rows.map(r=>[
-    r.time,r.ticker,r.tf,r.strat,r.action,r.price,r.entry,r.stop,r.tp1,r.tp2,(r.why||'').replace(/,/g,';')
-  ].join(','))].join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='TrueTrend_Journal.csv'; a.click();
-  URL.revokeObjectURL(url);
-}
+  // Twelve Data candles
+  async function getCandlesTwelveData(sym, tf) {
+    if (!TD_KEY) return { ok: false, error: 'Missing TWELVEDATA_API_KEY' };
+    const type = classify(sym);
+    const { symbol, extra } = mapToTwelve(sym, type);
+    if (!symbol) return { ok: false, error: 'No symbol' };
 
-/* ============ OVERLAY (Attach) ============ */
-function injectedOverlay(opts){
-  if (window.__TTAI_OVERLAY__) return; window.__TTAI_OVERLAY__=true;
-
-  const css=`
-  #ttai-ov{all:initial;position:fixed;z-index:2147483647;right:16px;bottom:16px;width:360px;background:#101735;color:#e9eeff;
-    font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;border:1px solid #27306b;border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-  #ttai-ov *{all:unset;display:revert}
-  #ttai-ov .row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-  #ttai-ov input,#ttai-ov select,#ttai-ov button{background:#0e1538;border:1px solid #28326e;color:#eaf0ff;border-radius:8px;height:34px;padding:0 8px}
-  #ttai-ov button.go{background:#22c55e;color:#04220f;font-weight:800}
-  #ttai-ov button.v{background:#a78bfa}
-  #ttai-ov .mut{color:#9fb2e2;font-size:12px}
-  #ttai-ov textarea{background:#0b1333;border:1px solid #27316c;border-radius:8px;width:100%;height:120px;color:#cfe1ff;padding:8px}
-  #ttai-ov .x{margin-left:auto;cursor:pointer}
-  `;
-  const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
-
-  const box=document.createElement('div'); box.id='ttai-ov';
-  box.innerHTML=`
-    <div class="row">
-      <strong>TrueTrend AI</strong>
-      <span class="x" id="tt-exit">×</span>
-    </div>
-    <div class="row">
-      <input id="tt-sym" placeholder="Symbol (auto)" style="flex:1">
-      <select id="tt-tf"><option>5m</option><option>15m</option><option>1h</option><option>4h</option><option selected>Daily</option></select>
-    </div>
-    <div class="row">
-      <select id="tt-str" style="flex:1">
-        <option selected>Trendline</option><option>EMA Touch</option><option>ORB</option><option>Support/Resistance</option>
-        <option>RSI + MACD</option><option>Break of Structure</option><option>Pullback Continuation</option><option>Mean Reversion</option><option>Stoch + Williams %R</option>
-      </select>
-      <button class="go" id="tt-go">Go</button>
-      <button class="v" id="tt-vis">Vision</button>
-    </div>
-    <div class="mut" id="tt-st">Attached. Watching…</div>
-    <textarea id="tt-out">Ready.</textarea>
-  `;
-  document.body.appendChild(box);
-
-  const q = s => box.querySelector(s);
-  const symEl=q('#tt-sym'), tfEl=q('#tt-tf'), strEl=q('#tt-str'), out=q('#tt-out'), st=q('#tt-st');
-
-  async function ownerFetch(body){
-    const r = await fetch('${ANALYZE_URL}', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer ${OWNER_TOKEN}'},
-      body: JSON.stringify(body)
+    const interval = tdInterval(tf);
+    const params = new URLSearchParams({
+      symbol,
+      interval,
+      outputsize: '500', // enough for strategy/EMAs
+      apikey: TD_KEY
     });
-    return r.json();
+    if (extra.exchange) params.set('exchange', extra.exchange);
+
+    const url = `https://api.twelvedata.com/time_series?${params.toString()}`;
+    const r = await fetch(url);
+    if (!r.ok) return { ok: false, error: `TwelveData ${r.status}` };
+    const j = await r.json();
+
+    if (j.status === 'error' || !Array.isArray(j.values)) {
+      return { ok: false, error: j?.message || 'TwelveData error', meta: { symbol, interval } };
+    }
+
+    // Twelve Data returns newest->oldest; reverse to oldest->newest
+    const vals = [...j.values].reverse();
+    const t = []; const o = []; const h = []; const l = []; const c = [];
+    for (const v of vals) {
+      const ts = Math.floor(new Date(v.datetime).getTime() / 1000);
+      t.push(ts); o.push(+v.open); h.push(+v.high); l.push(+v.low); c.push(+v.close);
+    }
+    if (c.length < 60) return { ok: false, error: 'Too few candles', meta: { symbol, interval } };
+    return { ok: true, vendor: 'twelvedata', symbol, interval, t, o, h, l, c };
   }
-  async function analyzeVision(v){
-    try{
-      st.textContent='Analyzing…';
-      const b={
-        ticker:(symEl.value||'').trim(),
-        timeframe:tfEl.value,
-        strategy:strEl.value
+
+  // Finnhub fallback
+  const resoFinn = (tf) => {
+    const m = String(tf).toLowerCase();
+    if (m.includes('5m')) return '5';
+    if (m.includes('15m')) return '15';
+    if (m.includes('1h')) return '60';
+    if (m.includes('4h')) return '240';
+    return 'D';
+  };
+  const mapToFinn = (sym) => {
+    const s = (sym || '').toUpperCase().replace(/\s+/g, '');
+    const type = classify(sym);
+    if (type === 'forex') {
+      const base = s.slice(0, 3), quote = s.slice(-3);
+      return `OANDA:${base}_${quote}`;
+    }
+    if (type === 'crypto') return s.includes(':') ? s : `BINANCE:${s}`;
+    return s;
+  };
+  async function getCandlesFinnhub(sym, tf) {
+    if (!FINN) return { ok: false, error: 'No Finnhub key' };
+    const symbol = mapToFinn(sym);
+    const resolution = resoFinn(tf);
+    const now = nowSec();
+    const lookback = (resolution === 'D') ? 3600 * 24 * 400 : (resolution === '240' ? 3600 * 24 * 60 : 3600 * 24 * 7);
+    const from = now - lookback;
+    const base = 'https://finnhub.io/api/v1';
+    let path = '/stock/candle';
+    const isFx = symbol.startsWith('OANDA:');
+    const isC = symbol.startsWith('BINANCE:');
+    if (isFx) path = '/forex/candle';
+    if (isC) path = '/crypto/candle';
+    const url = `${base}${path}?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${from}&to=${now}&token=${FINN}`;
+    const r = await fetch(url);
+    if (!r.ok) return { ok: false, error: `Finnhub ${r.status}` };
+    const j = await r.json();
+    if (j.s !== 'ok' || !Array.isArray(j.c) || j.c.length < 60) return { ok: false, error: 'No candles', meta: { symbol, resolution } };
+    return { ok: true, vendor: 'finnhub', symbol, resolution, t: j.t, o: j.o, h: j.h, l: j.l, c: j.c };
+  }
+
+  // Strategy logic (same as before, slightly tightened)
+  function decide(closes, strategyName) {
+    const e9 = ema(9, closes), e50 = ema(50, closes);
+    const last = closes.at(-1), p9 = e9.at(-1), p50 = e50.at(-1);
+    const slope = closes.at(-1) - closes.at(-6);
+    const up = p9 > p50 && slope > 0, down = p9 < p50 && slope < 0;
+
+    let action = up ? 'BUY' : (down ? 'SELL' : (last >= p9 ? 'SELL' : 'BUY'));
+    let reason = up ? 'Above EMA50 with rising EMA9' : (down ? 'Below EMA50 with falling EMA9' : 'Mean reversion toward EMA9');
+
+    const dist9 = Math.abs(pct(last, p9));
+    const s = String(strategyName).toLowerCase();
+
+    if (s.includes('ema touch')) {
+      if (dist9 < 0.002) action = up ? 'BUY' : 'SELL'; else action = 'WAIT';
+      reason = `Distance to EMA9 ${(dist9 * 100).toFixed(2)}%`;
+    } else if (s.includes('orb')) {
+      reason = 'Opening range breakout bias';
+    } else if (s.includes('support')) {
+      reason = up ? 'Buy pullback near prior resistance' : 'Sell bounce near prior support';
+    } else if (s.includes('stoch') || s.includes('williams')) {
+      reason = up ? 'Stoch/W%R up with trend' : 'Stoch/W%R down with trend';
+    } else if (s.includes('rsi') && s.includes('macd')) {
+      reason = up ? 'RSI>50 & MACD>0' : 'RSI<50 & MACD<0';
+    } else if (s.includes('break of structure')) {
+      reason = up ? 'Higher highs; buy on BOS retest' : 'Lower lows; sell on BOS retest';
+    } else if (s.includes('pullback')) {
+      reason = up ? 'Buy EMA9 pullbacks in uptrend' : 'Sell EMA9 pullbacks in downtrend';
+    } else if (s.includes('mean reversion')) {
+      action = last > p9 ? 'SELL' : 'BUY'; reason = 'Fade back to EMA9';
+    }
+
+    const conf = Math.max(0.5, Math.min(0.92, 0.55 + (up || down ? 0.2 : 0) + Math.abs(pct(p9, p50)) * 0.6));
+    return { action, reason, confidence: conf };
+  }
+
+  // Simple entry/stop/take-profit helper from last 20 bars range
+  function entryExitFromSignal(action, closes, highs, lows) {
+    const n = Math.min(20, closes.length);
+    const recentH = Math.max(...highs.slice(-n));
+    const recentL = Math.min(...lows.slice(-n));
+    const last = closes.at(-1);
+    const risk = (recentH - recentL) / 2 || (last * 0.01);
+
+    if (action === 'BUY') {
+      return {
+        entry: last.toFixed(5),
+        stop: (last - risk).toFixed(5),
+        tp1: (last + risk).toFixed(5),
+        tp2: (last + risk * 2).toFixed(5)
       };
-      if(v){
-        b.vision=true;
-        b.image = await new Promise((res,rej)=>{
-          try{ chrome.runtime.sendMessage({fn:'capture'}, resp=> resp?.ok ? res(resp.dataUrl) : rej(new Error(resp?.error||'cap fail'))); }
-          catch(e){ rej(e); }
-        });
+    } else if (action === 'SELL') {
+      return {
+        entry: last.toFixed(5),
+        stop: (last + risk).toFixed(5),
+        tp1: (last - risk).toFixed(5),
+        tp2: (last - risk * 2).toFixed(5)
+      };
+    }
+    return { entry: '', stop: '', tp1: '', tp2: '' };
+  }
+
+  // ---------- VISION path (same endpoint) ----------
+  if (image && OPENAI) {
+    try {
+      const prompt = `You are TrueTrend AI. Read the chart image and answer with strict JSON:
+{"summary":"","checklist":["","",""],"signals":[{"action":"","reason":"","confidence":0.0,"ttlSec":900}],"entryExit":{"entry":"","stop":"","tp1":"","tp2":""}}`;
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${OPENAI}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          temperature: 0.2,
+          messages: [
+            { role: 'system', content: 'Return strict JSON only.' },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                { type: 'image_url', image_url: { url: image } }
+              ]
+            }
+          ]
+        })
+      });
+      const j = await r.json();
+      const raw = j?.choices?.[0]?.message?.content || '';
+      try {
+        const parsed = JSON.parse(raw);
+        return res.status(200).json({ ok: true, mode: 'vision-llm', ...parsed });
+      } catch {
+        return res.status(200).json({ ok: true, mode: 'vision-llm', raw });
       }
-      const j = await ownerFetch(b);
-      out.value = JSON.stringify(j,null,2);
-      const s=j?.signals?.[0];
-      const ex=j?.entryExit||{};
-      if(s){
-        try{ speechSynthesis.cancel(); new SpeechSynthesisUtterance(); }catch{}
-        if (${Boolean(true)} && '${BUILD}'==='owner') {
-          try{
-            const u = new SpeechSynthesisUtterance(`${s.action}. ${s.reason || ''}. Entry ${ex.entry||'unknown'}. Stop ${ex.stop||'unknown'}. Take profit ${ex.tp1||ex.tp2||'unknown'}.`);
-            speechSynthesis.speak(u);
-          }catch{}
-        }
-      }
-      st.textContent='Watching…';
-    }catch(e){
-      out.value = 'TypeError: '+(e?.message||e);
-      st.textContent='Error';
+    } catch (e) {
+      // fall through
     }
   }
-  q('#tt-go').addEventListener('click', ()=>analyzeVision(false));
-  q('#tt-vis').addEventListener('click', ()=>analyzeVision(true));
-  q('#tt-exit').addEventListener('click', ()=>{ box.remove(); window.__TTAI_OVERLAY__=false; });
-}
 
-$go.addEventListener('click', ()=>runAnalyze('analyze'));
-$vision.addEventListener('click', ()=>runAnalyze('vision'));
-$export.addEventListener('click', exportCSV);
-$clear.addEventListener('click', async ()=>{
-  await chrome.storage.local.set({ ttai_journal: [] });
-  log('Journal cleared.');
-});
-$attach.addEventListener('click', async ()=>{
-  const [tab]=await chrome.tabs.query({active:true,currentWindow:true});
-  if(!tab?.id){ log('No active tab'); return; }
-  await chrome.scripting.executeScript({ target:{tabId:tab.id}, func: injectedOverlay, args:[{}] });
-});
-$exit.addEventListener('click', ()=> window.close());
+  // ---------- LIVE DATA path ----------
+  async function runLive() {
+    // prefer Twelve Data
+    let data = await getCandlesTwelveData(ticker, timeframe);
+    let vendor = 'twelvedata';
+    if (!data.ok) {
+      // fallback to Finnhub
+      data = await getCandlesFinnhub(ticker, timeframe);
+      vendor = 'finnhub';
+    }
+    if (!data.ok) return { ok: false, error: data.error || 'No data', vendor };
 
-/* capture helper for overlay (message relay) */
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse)=>{
-  if(msg?.fn==='capture'){
-    chrome.tabs.captureVisibleTab({format:'png'}, dataUrl=>{
-      if(chrome.runtime.lastError){ sendResponse({ok:false,error:chrome.runtime.lastError.message}); }
-      else { sendResponse({ok:true,dataUrl}); }
-    });
-    return true;
+    const closes = data.c.slice(-300);
+    const highs  = data.h.slice(-300);
+    const lows   = data.l.slice(-300);
+
+    const sig = decide(closes, strategy);
+    const ex  = entryExitFromSignal(sig.action, closes, highs, lows);
+
+    return {
+      ok: true,
+      mode: vendor,
+      vendor,
+      ticker: (ticker || 'UNKNOWN').toUpperCase(),
+      timeframe, strategy, style,
+      summary: `${(ticker || 'UNKNOWN').toUpperCase()} on ${timeframe} — ${strategy}.`,
+      checklist: [
+        `EMA9 ${ema(9, closes).at(-1) > ema(50, closes).at(-1) ? 'above' : 'below'} EMA50`,
+        `Last close ${closes.at(-1) >= ema(9, closes).at(-1) ? 'above' : 'below'} EMA9`,
+        `Slope ${closes.at(-1) - closes.at(-6) > 0 ? 'up' : (closes.at(-1) - closes.at(-6) < 0 ? 'down' : 'flat')} (last 5 bars)`
+      ],
+      signals: [{ ...sig, ttlSec: 900 }],
+      entryExit: ex,
+      price: closes.at(-1)
+    };
   }
-});
 
-/* restore last selections */
-(async ()=>{
-  const { _ttai_owner:{} = {} } = await chrome.storage.sync.get({_ttai_owner:{}});
-  if (_ttai_owner.symbol) $symbol.value = _ttai_owner.symbol;
-  if (_ttai_owner.tf) $tf.value = _ttai_owner.tf;
-  if (_ttai_owner.strategy) $strat.value = _ttai_owner.strategy;
-})();
-['change','keyup'].forEach(ev=>{
-  [$symbol,$tf,$strat].forEach(el=> el.addEventListener(ev, ()=>{
-    chrome.storage.sync.set({_ttai_owner:{
-      symbol:$symbol.value, tf:$tf.value, strategy:$strat.value
-    }});
-  }));
-});
+  let result = await runLive();
+
+  // Optional: if live fails & OPENAI exists, ask LLM for a generic JSON (text-only)
+  if (!result.ok && OPENAI) {
+    try {
+      const prompt = `You are TrueTrend AI. JSON only with fields: summary, checklist(3), signals([{action,reason,confidence,ttlSec}]), entryExit({entry,stop,tp1,tp2}). Context: ticker ${ticker||'UNKNOWN'}, timeframe ${timeframe}, strategy ${strategy}, style ${style}.`;
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${OPENAI}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          temperature: 0.2,
+          messages: [
+            { role: 'system', content: 'Return strict JSON only.' },
+            { role: 'user', content: prompt }
+          ]
+        })
+      });
+      const j = await r.json();
+      const raw = j?.choices?.[0]?.message?.content || '';
+      try {
+        const parsed = JSON.parse(raw);
+        return res.status(200).json({ ok: true, mode: 'text-llm', ...parsed });
+      } catch {
+        // fall through to hard fallback
+      }
+    } catch {}
+  }
+
+  if (!result.ok) {
+    // hard fallback
+    return res.status(200).json({
+      ok: true, mode: 'fallback',
+      ticker: (ticker || 'UNKNOWN'), timeframe, strategy,
+      summary: `Fallback for ${(ticker || 'UNKNOWN')} on ${timeframe} — ${strategy}.`,
+      checklist: ['Trend check unavailable', 'Data fetch failed', 'Use conservative risk'],
+      signals: [{ action: 'BUY', reason: 'Fallback signal', confidence: 0.55, ttlSec: 900 }],
+      entryExit: { entry: '', stop: '', tp1: '', tp2: '' },
+      error: result.error || 'No data'
+    });
+  }
+  return res.status(200).json(result);
+}
