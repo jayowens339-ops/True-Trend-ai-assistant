@@ -1,21 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "TrueTrend AI — All‑in‑One (Owner)",
-  "version": "1.5.0",
-  "description": "Attach‑only overlay with Vision (OpenAI), multi‑strategy router, regime filter, breakeven + trailing, and visual lines.",
-  "action": { "default_title": "TrueTrend AI", "default_popup": "popup.html" },
-  "permissions": ["activeTab","tabs","storage","scripting"],
+  "name": "TrueTrend AI — Pro (Owner, v16)",
+  "version": "1.6.0",
+  "action": { "default_popup": "popup.html" },
+  "permissions": ["activeTab", "tabs", "storage"],
   "host_permissions": [
-    "https://*/*","http://*/*",
+    "https://*/*",
+    "http://*/*",
     "https://api.openai.com/*",
+    "https://vision.googleapis.com/*",
     "https://api.twelvedata.com/*",
-    "https://finnhub.io/*"
+    "https://finnhub.io/*",
+    "https://api.polygon.io/*"
   ],
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["overlay.js"],
-    "run_at": "document_idle",
-    "all_frames": true
-  }],
-  "icons": { "16":"icon16.png","48":"icon48.png","128":"icon128.png" }
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["overlay.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
 }
