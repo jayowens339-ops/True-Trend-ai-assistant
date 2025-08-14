@@ -1,10 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "TrueTrend AI (Owner — Single File)",
-  "version": "2.2.0",
-  "description": "Owner build: Vision + Voice + chart overlay. Twelve Data primary, Finnhub fallback.",
-  "action": { "default_title": "TrueTrend AI (Owner)", "default_popup": "popup.html" },
-  "permissions": ["activeTab", "tabs", "storage", "scripting"],
-  "host_permissions": ["https://*/*", "http://*/*", "https://api.twelvedata.com/*", "https://finnhub.io/*"],
-  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
+  "name": "TrueTrend AI — All‑in‑One (Owner)",
+  "version": "1.5.0",
+  "description": "Attach‑only overlay with Vision (OpenAI), multi‑strategy router, regime filter, breakeven + trailing, and visual lines.",
+  "action": { "default_title": "TrueTrend AI", "default_popup": "popup.html" },
+  "permissions": ["activeTab","tabs","storage","scripting"],
+  "host_permissions": [
+    "https://*/*","http://*/*",
+    "https://api.openai.com/*",
+    "https://api.twelvedata.com/*",
+    "https://finnhub.io/*"
+  ],
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["overlay.js"],
+    "run_at": "document_idle",
+    "all_frames": true
+  }],
+  "icons": { "16":"icon16.png","48":"icon48.png","128":"icon128.png" }
 }
