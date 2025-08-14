@@ -1,21 +1,20 @@
 <!doctype html>
-<meta charset="utf-8" />
-<title>TrueTrend — All‑in‑One</title>
+<meta charset="utf-8">
+<title>TrueTrend Pro v16</title>
 <style>
-  body{font-family:system-ui,Segoe UI,Arial;background:#0a0d16;color:#eaeef5;margin:12px;min-width:520px}
+  body{font-family:system-ui;background:#0a0d16;color:#eaeef5;margin:12px;min-width:560px}
   label{display:block;margin:6px 0 4px;font-size:12px;opacity:.9}
   input,select{width:100%;padding:8px;border-radius:10px;border:1px solid #334;background:#0f1424;color:#eaeef5}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
   button{padding:10px;border:0;border-radius:10px;font-weight:700;cursor:pointer}
-  .attach{background:#2e7bd6}.detach{background:#6c757d}.go{background:#1fc46b}.vision{background:#3a3f53}.test{background:#198754}.exit{background:#f55757}
+  .attach{background:#2e7bd6}.detach{background:#6c757d}.go{background:#1fc46b}.vision{background:#3a3f53}.exit{background:#f55757}.test{background:#198754}
   pre{background:#0f1424;border:1px solid #223;min-height:140px;border-radius:10px;padding:10px;overflow:auto}
-  small{opacity:.8}
 </style>
-<h3 style="margin:0 0 8px">TrueTrend <span style="opacity:.7;font-size:12px">All‑in‑One</span></h3>
+<h3 style="margin:0 0 8px">TrueTrend Pro <span style="opacity:.7">v16</span></h3>
 
 <div class="row">
-  <div><label>Symbol <input id="symbol" placeholder="AAPL" /></label></div>
+  <div><label>Symbol <input id="symbol" placeholder="AAPL"></label></div>
   <div><button id="detect">Detect</button></div>
 </div>
 
@@ -23,7 +22,7 @@
   <div><label>Primary TF
     <select id="timeframe"><option>1min</option><option selected>5min</option><option>15min</option><option>60min</option><option>daily</option></select>
   </label></div>
-  <div><label>Higher TF (bias)
+  <div><label>Higher TF
     <select id="htf"><option value="">— off —</option><option selected>15min</option><option>60min</option><option>daily</option></select>
   </label></div>
 </div>
@@ -38,46 +37,30 @@
       <option value="bos">Breaker Structure</option>
     </select>
   </label></div>
-  <div><label><input type="checkbox" id="voice" checked /> Voice</label></div>
+  <div><label><input type="checkbox" id="voice" checked> Voice</label></div>
 </div>
 
-<details>
-  <summary><b>Strategy settings</b></summary>
+<details open>
+  <summary><b>Keys</b></summary>
   <div class="row">
-    <div><label>ORB mode
-      <select id="orbMode"><option value="minutes" selected>First X minutes</option><option value="bars">First N bars</option></select>
+    <div><label>Polygon Key <input id="polyKey"></label></div>
+    <div><label>Twelve Data Key <input id="tdKey"></label></div>
+  </div>
+  <div class="row">
+    <div><label>Finnhub Key <input id="fhKey"></label></div>
+    <div><label>Vision Provider
+      <select id="visionProv"><option value="google" selected>Google Vision</option><option value="openai">OpenAI</option></select>
     </label></div>
-    <div><label>ORB value <input id="orbValue" type="number" value="30" /></label></div>
   </div>
   <div class="row">
-    <div><label>Session open (HH:MM) <input id="sessionOpen" value="08:30" /></label></div>
-    <div><label>BOS retest % <input id="bosRetest" type="number" step="0.1" value="20" /></label></div>
-  </div>
-</details>
-
-<details>
-  <summary><b>Keys & Vision</b></summary>
-  <div class="row">
-    <div><label>Twelve Data Key <input id="tdKey" placeholder="TWELVEDATA_KEY" /></label></div>
-    <div><label>Finnhub Key <input id="fhKey" placeholder="FINNHUB_KEY" /></label></div>
+    <div><label>Google Vision API Key <input id="gvKey" placeholder="AIza..."></label></div>
+    <div><label>OpenAI URL <input id="oaiUrl" value="https://api.openai.com/v1/chat/completions"></label></div>
   </div>
   <div class="row">
-    <div><label>OpenAI Base URL <input id="oaiUrl" value="https://api.openai.com/v1/chat/completions" /></label></div>
-    <div><label>OpenAI API Key <input id="oaiKey" placeholder="sk-... or sk-proj-..." /></label></div>
+    <div><label>OpenAI Key <input id="oaiKey" placeholder="sk-... or sk-proj-..."></label></div>
+    <div><label>OpenAI Project (opt) <input id="oaiProject" placeholder="proj_..."></label></div>
   </div>
-  <div class="row">
-    <div><label>OpenAI Project ID (optional) <input id="oaiProject" placeholder="proj_..." /></label></div>
-    <div><button class="test" id="visionTest">Test Vision</button></div>
-  </div>
-  <small>Keys are stored locally in your browser.</small>
-</details>
-
-<details>
-  <summary><b>Ticks & Memory</b></summary>
-  <div class="row">
-    <div><label>Tick size override <input id="tickOverride" placeholder="e.g., 0.25" /></label></div>
-    <div><label><input type="checkbox" id="perSymbol" checked /> Remember toolbar per symbol</label></div>
-  </div>
+  <button class="test" id="visionTest">Test Vision</button>
 </details>
 
 <div class="buttons">
@@ -85,9 +68,8 @@
   <button class="detach" id="detach">Detach</button>
   <button class="go" id="analyze">Analyze</button>
   <button class="vision" id="vision">Vision</button>
-  <button id="testVoice">Voice</button>
   <button class="exit" id="exit">Exit</button>
 </div>
 
-<pre id="out">{ "ok": true, "msg": "Attach to chart, then Analyze or Vision." }</pre>
+<pre id="out">{ "ok": true }</pre>
 <script src="popup.js"></script>
