@@ -1,75 +1,93 @@
 <!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>TrueTrend AI — Owner</title>
-  <style>
-    body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:#0a0d16;color:#eaeef5;margin:12px;min-width:380px}
-    h1{font-size:20px;margin:0 0 8px}
-    label{display:block;margin:10px 0 6px;font-size:12px;opacity:.9}
-    input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #334;background:#0f1424;color:#eaeef5}
-    .row{display:flex;gap:10px;align-items:center}.row>div{flex:1}
-    .buttons{display:flex;gap:10px;margin:12px 0}
-    button{flex:1;padding:12px;border:0;border-radius:12px;font-weight:700;cursor:pointer}
-    .go{background:#1fc46b}.vision{background:#3a3f53}.test{background:#6f42c1}.detect{background:#2e7bd6}.save{background:#157347}.exit{background:#f55757}
-    pre{background:#0f1424;border:1px solid #223;min-height:120px;border-radius:12px;padding:12px;overflow:auto}
-    details{margin-top:8px}
-  </style>
-</head>
-<body>
-  <h1>TrueTrend AI <span style="opacity:.7;font-size:12px">(Owner)</span></h1>
+<meta charset="utf-8" />
+<title>TrueTrend — All‑in‑One</title>
+<style>
+  body{font-family:system-ui,Segoe UI,Arial;background:#0a0d16;color:#eaeef5;margin:12px;min-width:520px}
+  label{display:block;margin:6px 0 4px;font-size:12px;opacity:.9}
+  input,select{width:100%;padding:8px;border-radius:10px;border:1px solid #334;background:#0f1424;color:#eaeef5}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+  button{padding:10px;border:0;border-radius:10px;font-weight:700;cursor:pointer}
+  .attach{background:#2e7bd6}.detach{background:#6c757d}.go{background:#1fc46b}.vision{background:#3a3f53}.test{background:#198754}.exit{background:#f55757}
+  pre{background:#0f1424;border:1px solid #223;min-height:140px;border-radius:10px;padding:10px;overflow:auto}
+  small{opacity:.8}
+</style>
+<h3 style="margin:0 0 8px">TrueTrend <span style="opacity:.7;font-size:12px">All‑in‑One</span></h3>
 
-  <label>API Base <input id="apiBase" placeholder="https://true-trend-ai-assistant.vercel.app" /></label>
+<div class="row">
+  <div><label>Symbol <input id="symbol" placeholder="AAPL" /></label></div>
+  <div><button id="detect">Detect</button></div>
+</div>
 
-  <div class="row">
-    <div><label>Timeframe
-      <select id="timeframe">
-        <option value="1min">1m</option><option value="5min" selected>5m</option>
-        <option value="15min">15m</option><option value="60min">60m</option>
-        <option value="daily">Daily</option>
-      </select></label>
-    </div>
-    <div><label>Trade Type
-      <select id="tradeType">
-        <option>Scalp</option><option selected>Day Trade</option><option>Swing</option>
-      </select></label>
-    </div>
-  </div>
+<div class="row">
+  <div><label>Primary TF
+    <select id="timeframe"><option>1min</option><option selected>5min</option><option>15min</option><option>60min</option><option>daily</option></select>
+  </label></div>
+  <div><label>Higher TF (bias)
+    <select id="htf"><option value="">— off —</option><option selected>15min</option><option>60min</option><option>daily</option></select>
+  </label></div>
+</div>
 
-  <label><input type="checkbox" id="voice" checked /> Voice</label>
-
-  <div class="row">
-    <div><label>Symbol <input id="symbol" placeholder="AAPL" /></label></div>
-    <button class="detect" id="detect">Detect</button>
-  </div>
-
-  <label>Strategy
+<div class="row">
+  <div><label>Strategy
     <select id="strategy">
-      <option>Trendline</option><option selected>EMA</option><option>ORB</option><option>PriceAction</option>
+      <option value="router" selected>Router (EMA+ST+ORB+BOS)</option>
+      <option value="ema">EMA(9/21)</option>
+      <option value="supertrend">Supertrend</option>
+      <option value="orb">Opening Range</option>
+      <option value="bos">Breaker Structure</option>
     </select>
-  </label>
-  <label>Style
-    <select id="style">
-      <option selected>Day</option><option>Night</option>
-    </select>
-  </label>
+  </label></div>
+  <div><label><input type="checkbox" id="voice" checked /> Voice</label></div>
+</div>
 
-  <details>
-    <summary><b>API Keys</b></summary>
-    <label>Twelve Data Key <input id="tdKey" placeholder="TWELVEDATA_KEY" /></label>
-    <label>Finnhub Key <input id="fhKey" placeholder="FINNHUB_KEY (optional)" /></label>
-    <button class="save" id="saveKeys">Save Keys</button>
-  </details>
-
-  <div class="buttons">
-    <button class="go" id="go">Go</button>
-    <button class="vision" id="vision">Vision</button>
-    <button class="test" id="testVoice">Test Voice</button>
-    <button class="exit" id="exit">Exit</button>
+<details>
+  <summary><b>Strategy settings</b></summary>
+  <div class="row">
+    <div><label>ORB mode
+      <select id="orbMode"><option value="minutes" selected>First X minutes</option><option value="bars">First N bars</option></select>
+    </label></div>
+    <div><label>ORB value <input id="orbValue" type="number" value="30" /></label></div>
   </div>
+  <div class="row">
+    <div><label>Session open (HH:MM) <input id="sessionOpen" value="08:30" /></label></div>
+    <div><label>BOS retest % <input id="bosRetest" type="number" step="0.1" value="20" /></label></div>
+  </div>
+</details>
 
-  <pre id="output">{ "ok": true, "owner": true, "msg": "Owner build active." }</pre>
+<details>
+  <summary><b>Keys & Vision</b></summary>
+  <div class="row">
+    <div><label>Twelve Data Key <input id="tdKey" placeholder="TWELVEDATA_KEY" /></label></div>
+    <div><label>Finnhub Key <input id="fhKey" placeholder="FINNHUB_KEY" /></label></div>
+  </div>
+  <div class="row">
+    <div><label>OpenAI Base URL <input id="oaiUrl" value="https://api.openai.com/v1/chat/completions" /></label></div>
+    <div><label>OpenAI API Key <input id="oaiKey" placeholder="sk-... or sk-proj-..." /></label></div>
+  </div>
+  <div class="row">
+    <div><label>OpenAI Project ID (optional) <input id="oaiProject" placeholder="proj_..." /></label></div>
+    <div><button class="test" id="visionTest">Test Vision</button></div>
+  </div>
+  <small>Keys are stored locally in your browser.</small>
+</details>
 
-  <script src="popup.js"></script>
-</body>
-</html>
+<details>
+  <summary><b>Ticks & Memory</b></summary>
+  <div class="row">
+    <div><label>Tick size override <input id="tickOverride" placeholder="e.g., 0.25" /></label></div>
+    <div><label><input type="checkbox" id="perSymbol" checked /> Remember toolbar per symbol</label></div>
+  </div>
+</details>
+
+<div class="buttons">
+  <button class="attach" id="attach">Attach</button>
+  <button class="detach" id="detach">Detach</button>
+  <button class="go" id="analyze">Analyze</button>
+  <button class="vision" id="vision">Vision</button>
+  <button id="testVoice">Voice</button>
+  <button class="exit" id="exit">Exit</button>
+</div>
+
+<pre id="out">{ "ok": true, "msg": "Attach to chart, then Analyze or Vision." }</pre>
+<script src="popup.js"></script>
