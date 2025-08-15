@@ -1,33 +1,30 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>TrueTrend Pro v16</title>
+<meta charset="utf-8" />
+<title>TrueTrend Pro v16.5</title>
 <style>
-  body{font-family:system-ui;background:#0a0d16;color:#eaeef5;margin:12px;min-width:560px}
+  body{font-family:system-ui,Segoe UI,Arial;background:#0a0d16;color:#eaeef5;margin:12px;min-width:600px}
   label{display:block;margin:6px 0 4px;font-size:12px;opacity:.9}
   input,select{width:100%;padding:8px;border-radius:10px;border:1px solid #334;background:#0f1424;color:#eaeef5}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tri{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
   button{padding:10px;border:0;border-radius:10px;font-weight:700;cursor:pointer}
   .attach{background:#2e7bd6}.detach{background:#6c757d}.go{background:#1fc46b}.vision{background:#3a3f53}.exit{background:#f55757}.test{background:#198754}
-  pre{background:#0f1424;border:1px solid #223;min-height:140px;border-radius:10px;padding:10px;overflow:auto}
+  pre{background:#0f1424;border:1px solid #223;min-height:160px;border-radius:10px;padding:10px;overflow:auto}
 </style>
-<h3 style="margin:0 0 8px">TrueTrend Pro <span style="opacity:.7">v16</span></h3>
+<h3 style="margin:0 0 8px">TrueTrend Pro <span style="opacity:.6">v16.5</span></h3>
 
 <div class="row">
-  <div><label>Symbol <input id="symbol" placeholder="AAPL"></label></div>
-  <div><button id="detect">Detect</button></div>
-</div>
-
-<div class="row">
+  <div><label>Symbol <input id="symbol" placeholder="AAPL or C:EURUSD"></label></div>
   <div><label>Primary TF
     <select id="timeframe"><option>1min</option><option selected>5min</option><option>15min</option><option>60min</option><option>daily</option></select>
   </label></div>
-  <div><label>Higher TF
-    <select id="htf"><option value="">— off —</option><option selected>15min</option><option>60min</option><option>daily</option></select>
-  </label></div>
 </div>
 
 <div class="row">
+  <div><label>Higher TF
+    <select id="htf"><option value="">— off —</option><option selected>15min</option><option>60min</option><option>daily</option></select>
+  </label></div>
   <div><label>Strategy
     <select id="strategy">
       <option value="router" selected>Router (EMA+ST+ORB+BOS)</option>
@@ -37,28 +34,55 @@
       <option value="bos">Breaker Structure</option>
     </select>
   </label></div>
+</div>
+
+<div class="row">
+  <div><label>Risk Mode
+    <select id="risk"><option value="scalp" selected>Scalp</option><option value="swing">Swing</option><option value="custom">Custom</option></select>
+  </label></div>
   <div><label><input type="checkbox" id="voice" checked> Voice</label></div>
 </div>
 
+<div class="tri" id="customRisk" style="display:none">
+  <div><label>Stop ×ATR <input id="kStop" type="number" step="0.1" value="1.5"></label></div>
+  <div><label>TP1 ×ATR <input id="kTp1"  type="number" step="0.1" value="1.8"></label></div>
+  <div><label>TP2 ×ATR <input id="kTp2"  type="number" step="0.1" value="3.0"></label></div>
+</div>
+<div class="row"><div><label>Trail ×ATR <input id="kTrail" type="number" step="0.1" value="0.8"></label></div></div>
+
 <details open>
-  <summary><b>Keys</b></summary>
+  <summary><b>Keys, Vision & Streaming</b></summary>
   <div class="row">
     <div><label>Polygon Key <input id="polyKey"></label></div>
-    <div><label>Twelve Data Key <input id="tdKey"></label></div>
+    <div><label>TwelveData Key <input id="tdKey"></label></div>
   </div>
   <div class="row">
     <div><label>Finnhub Key <input id="fhKey"></label></div>
     <div><label>Vision Provider
-      <select id="visionProv"><option value="google" selected>Google Vision</option><option value="openai">OpenAI</option></select>
+      <select id="visionProv"><option value="google" selected>Google Vision</option><option value="openai">OpenAI</option><option value="yolo">YOLO (custom)</option></select>
     </label></div>
   </div>
   <div class="row">
+    <div><label>Google Vision Auth
+      <select id="gvAuth"><option value="apiKey" selected>API Key</option><option value="saJson">Service Account JSON</option></select>
+    </label></div>
     <div><label>Google Vision API Key <input id="gvKey" placeholder="AIza..."></label></div>
+  </div>
+  <div class="row">
+    <div><label>Upload SA JSON <input id="gvJson" type="file" accept=".json"></label></div>
     <div><label>OpenAI URL <input id="oaiUrl" value="https://api.openai.com/v1/chat/completions"></label></div>
   </div>
   <div class="row">
     <div><label>OpenAI Key <input id="oaiKey" placeholder="sk-... or sk-proj-..."></label></div>
     <div><label>OpenAI Project (opt) <input id="oaiProject" placeholder="proj_..."></label></div>
+  </div>
+  <div class="row">
+    <div><label>YOLO URL <input id="yoloUrl" placeholder="http://localhost:8000/infer"></label></div>
+    <div><label>YOLO Key (opt) <input id="yoloKey"></label></div>
+  </div>
+  <div class="row">
+    <div><label>Streaming <select id="streamOn"><option value="off">Off</option><option value="stocks" selected>Stocks</option><option value="forex">Forex</option></select></label></div>
+    <div><button class="test" id="streamTest">Test Stream</button></div>
   </div>
   <button class="test" id="visionTest">Test Vision</button>
 </details>
