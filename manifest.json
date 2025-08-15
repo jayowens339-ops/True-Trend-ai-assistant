@@ -1,27 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "TrueTrend Pro — Owner (v16.5)",
-  "version": "1.6.5",
-  "action": { "default_title": "TrueTrend Pro", "default_popup": "popup.html" },
-  "permissions": ["activeTab", "tabs", "storage", "scripting"],
+  "name": "TrueTrend All‑in‑One",
+  "version": "1.8.1",
+  "action": { "default_title": "TrueTrend", "default_popup": "popup.html" },
+  "permissions": ["activeTab", "tabs", "storage", "scripting", "alarms"],
   "host_permissions": [
     "https://*/*",
     "http://*/*",
+    "https://vision.googleapis.com/*",
+    "https://api.openai.com/*",
     "https://api.polygon.io/*",
-    "wss://socket.polygon.io/*",
-    "wss://delayed.polygon.io/*",
     "https://api.twelvedata.com/*",
     "https://finnhub.io/*",
-    "https://vision.googleapis.com/*",
-    "https://api.openai.com/*"
+    "https://paper-api.alpaca.markets/*",
+    "https://api.alpaca.markets/*"
   ],
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["overlay.js"],
-      "run_at": "document_idle",
-      "all_frames": true
-    }
-  ],
-  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
+  "background": { "service_worker": "sw.js" },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["overlay.js"],
+    "run_at": "document_idle",
+    "all_frames": true
+  }],
+  "icons": { "16":"icon16.png","48":"icon48.png","128":"icon128.png" }
 }
