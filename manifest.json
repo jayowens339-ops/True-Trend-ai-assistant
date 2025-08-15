@@ -1,17 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "TrueTrend AI — Pro (Owner, v16)",
-  "version": "1.6.0",
-  "action": { "default_popup": "popup.html" },
-  "permissions": ["activeTab", "tabs", "storage"],
+  "name": "TrueTrend Pro — Owner (v16.5)",
+  "version": "1.6.5",
+  "action": { "default_title": "TrueTrend Pro", "default_popup": "popup.html" },
+  "permissions": ["activeTab", "tabs", "storage", "scripting"],
   "host_permissions": [
     "https://*/*",
     "http://*/*",
-    "https://api.openai.com/*",
-    "https://vision.googleapis.com/*",
+    "https://api.polygon.io/*",
+    "wss://socket.polygon.io/*",
+    "wss://delayed.polygon.io/*",
     "https://api.twelvedata.com/*",
     "https://finnhub.io/*",
-    "https://api.polygon.io/*"
+    "https://vision.googleapis.com/*",
+    "https://api.openai.com/*"
   ],
   "content_scripts": [
     {
