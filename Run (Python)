@@ -1,0 +1,5 @@
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+export YOLO_MODEL=yolov8n.pt
+export POLY_KEY=jd8IhUkgfcFUNpIQgAyy4VB9CVgjZVUp
+uvicorn server:app --host 0.0.0.0 --port 8000
