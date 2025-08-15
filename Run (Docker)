@@ -1,0 +1,2 @@
+docker build -t truetrend-yolo:latest .
+docker run -p 8000:8000 -e YOLO_MODEL=yolov8n.pt -e POLY_KEY=jd8IhUkgfcFUNpIQgAyy4VB9CVgjZVUp truetrend-yolo:latest
