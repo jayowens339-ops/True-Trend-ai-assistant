@@ -1,152 +1,336 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <!-- ====== LINKS TO EDIT (Stripe already filled) ====== -->
-  <script>
-    // Stripe (already wired)
-    const STRIPE_MONTHLY = "https://buy.stripe.com/28EaEX7QhdHS0MJdcO38405";   // $59.99
-    const STRIPE_ANNUAL  = "https://buy.stripe.com/dRmeVdeeF6fq0MJ7Su38407";   // $599.99
-
-    // Add these when ready. Leave as "" to hide the buttons.
-    const CWS_URL = ""; // e.g. "https://chromewebstore.google.com/detail/xxxxxxxx"
-    const WIN_ZIP = ""; // e.g. "https://cdn.trytruetrend.com/TrueTrend_Windows_Launcher_v4_3_3_5.zip"
-    const MAC_ZIP = ""; // e.g. "https://cdn.trytruetrend.com/TrueTrend_Extension_Only_v4_3_3_5_mac.zip"
-    const OWNERS_ZIP = ""; // optional
-  </script>
-  <!-- ================================================ -->
-
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TrueTrend — Learn Your Money. Earn Your Money. Own Your Money.</title>
-  <meta name="description" content="TrueTrend: a no-nonsense trading assistant. Get Pro access and install in seconds." />
-  <link rel="canonical" href="https://trytruetrend.com/">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TrueTrend – Learn • Earn • Own</title>
+  <meta name="description" content="TrueTrend Ultimate: router-based trading assistant for clarity and consistency. Learn Your Money • Earn Your Money • Own Your Money." />
+  <meta property="og:title" content="TrueTrend – Learn • Earn • Own" />
+  <meta property="og:description" content="Your router-based trading assistant for clarity & consistency. Not financial advice. Don’t trade with money you can’t afford to lose." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0c1324" />
 
-  <meta property="og:title" content="TrueTrend — Learn Your Money. Earn Your Money. Own Your Money.">
-  <meta property="og:description" content="Get TrueTrend Pro and install in seconds.">
-  <meta property="og:url" content="https://trytruetrend.com/">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
+  <!-- Lite YouTube Embed -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.2/src/lite-yt-embed.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lite-youtube-embed@0.3.2/src/lite-yt-embed.css"/>
 
   <style>
-    :root {
-      --bg:#0b0f16; --card:#121826; --muted:#8aa0b4; --fg:#e8f0ff;
-      --brand:#3ea6ff; --ok:#22c55e; --warn:#f59e0b;
+    :root{
+      --bg:#0b1221;
+      --panel:#0f162b;
+      --muted:#a3b3d6;
+      --text:#eaf1ff;
+      --brand:#7c5cff;
+      --brand-2:#5860ff;
+      --accent:#00d0ff;
+      --border:rgba(170,185,220,.16);
+      --glow:rgba(124,92,255,.35);
+      --success:#2fd07f;
+      --warning:#ffd36b;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
-      font:16px/1.6 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    a{text-decoration:none;color:inherit}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
-    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
-    .logo{font-weight:800;letter-spacing:.3px}
-    .pill{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
-      padding:6px 10px;border-radius:999px;font-size:13px;color:var(--muted)}
-    .hero{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:center;margin:24px 0 32px}
-    @media(max-width:900px){.hero{grid-template-columns:1fr}}
-    .h1{font-size:clamp(28px,5.2vw,52px);line-height:1.05;margin:8px 0 12px}
-    .lede{color:var(--muted);font-size:18px}
-    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px}
-    .cta-row{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0 10px}
-    .btn{display:inline-flex;align-items:center;gap:10px;padding:13px 16px;border-radius:12px;
-      font-weight:700;border:1px solid rgba(255,255,255,.08);
-      background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.04))}
-    .btn.primary{background:linear-gradient(180deg,#3ea6ff,#2d7bd1);border-color:#2d7bd1;color:#021020}
-    .btn.ok{border-color:rgba(34,197,94,.25)}
-    .btn.warn{border-color:rgba(245,158,11,.25)}
-    .btn small{font-weight:600;opacity:.9}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:10px}
-    @media(max-width:900px){.grid{grid-template-columns:1fr}}
-    .feat{padding:16px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+    html,body{margin:0;padding:0;background:
+      radial-gradient(1200px 700px at 80% -20%,rgba(124,92,255,.07),transparent 50%),
+      radial-gradient(900px 420px at 10% -10%,rgba(0,208,255,.06),transparent 60%),
+      var(--bg);
+      color:var(--text);
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+    a{color:#c6d3ff;text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    /* Layout */
+    .container{max-width:1150px;margin:0 auto;padding:0 20px}
+    header{position:sticky;top:0;z-index:50;background: linear-gradient(180deg, rgba(11,18,33,.9), rgba(11,18,33,.7) 70%, transparent); backdrop-filter: blur(8px); border-bottom:1px solid var(--border)}
+    .nav{display:flex;align-items:center;gap:20px; padding:14px 0}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px}
+    .logo-dot{width:12px;height:12px;border-radius:50%;background:conic-gradient(from 180deg,var(--brand),var(--brand-2)); box-shadow:0 0 28px var(--glow)}
+    .spacer{flex:1}
+    .nav a{color:var(--muted);font-weight:500}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:11px 16px;border:1px solid var(--border);border-radius:12px;background:transparent;color:var(--text);font-weight:600}
+    .btn:hover{background:rgba(170,185,220,.08)}
+    .btn.primary{background:linear-gradient(90deg, var(--brand-2), var(--brand)); border-color:transparent; box-shadow:0 12px 28px rgba(124,92,255,.22)}
+    .btn.primary:hover{filter:brightness(1.05)}
+    .btn.small{padding:8px 12px;border-radius:10px;font-size:.92rem}
+
+    /* Slogan marquee */
+    .marquee{border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:linear-gradient(180deg, rgba(124,92,255,.06), rgba(124,92,255,.02));}
+    .marquee-track{white-space:nowrap; overflow:hidden; position:relative}
+    .marquee-track p{display:inline-block; padding:10px 0; font-weight:700; letter-spacing:.04em; color:#dfe7ff; text-shadow:0 0 18px rgba(124,92,255,.35)}
+    .marquee-track p span{margin:0 22px;opacity:.8}
+    @keyframes slide { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    .marquee-track .inner{display:inline-block; padding-left:100%; animation: slide 22s linear infinite}
+
+    /* Hero */
+    .hero{padding:64px 0 40px}
+    .headline{font-size:clamp(30px, 5vw, 46px); line-height:1.08; margin:0 0 12px}
+    .sub{color:var(--muted); max-width:820px; line-height:1.6; margin-bottom:22px}
+    .cta-row{display:flex; gap:12px; flex-wrap:wrap}
+    .hero-card{margin:34px 0; background:linear-gradient(160deg, rgba(124,92,255,.12), rgba(15,22,43,.8) 22%); border:1px solid var(--border); border-radius:22px; overflow:hidden; box-shadow: 0 24px 60px rgba(0,0,0,.45)}
+    .hero-media{position:relative; padding: min(56.5%, 56.5%) 0 0; }
+    lite-youtube{position:absolute; inset:0; border-radius:18px}
+    .pill-row{display:flex; gap:10px; padding:16px; flex-wrap:wrap; border-top:1px solid var(--border); background:rgba(12,19,36,.6)}
+    .pill{padding:8px 12px; border:1px solid var(--border); border-radius:999px; color:#cfe0ff; background:linear-gradient(180deg, rgba(170,185,220,.08), rgba(170,185,220,.04)); text-transform:uppercase; letter-spacing:.1em; font-size:.78rem}
+
+    /* Sections */
+    section{padding:64px 0}
+    .section-title{font-size: clamp(22px, 3.4vw, 34px); margin:0 0 12px}
+    .section-sub{color:var(--muted); margin:0 0 24px}
+    .grid{display:grid; gap:18px}
+    @media(min-width:800px){ .grid.cols-3{grid-template-columns:repeat(3,1fr)} .grid.cols-2{grid-template-columns:repeat(2,1fr)} }
+    .card{border:1px solid var(--border); background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border-radius:18px; padding:18px}
+    .card h4{margin:2px 0 8px}
     .muted{color:var(--muted)}
-    footer{margin-top:34px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08);color:var(--muted);font-size:14px}
-    .kicker{color:var(--brand);font-weight:800;letter-spacing:.14em;font-size:12px;text-transform:uppercase}
-    .price-note{font-size:13px;color:var(--muted)}
-    .hr{height:1px;background:rgba(255,255,255,.08);margin:14px 0}
+    .bullet{display:flex;align-items:center;gap:10px}
+    .bullet .dot{width:10px;height:10px;border-radius:50%;background:conic-gradient(from 180deg,var(--brand),var(--brand-2))}
+    .ok{color:var(--success)}
+    .note{font-size:.9rem;color:#cfe0ff;background:rgba(127,122,255,.12);border:1px solid rgba(170,185,220,.2);padding:8px 12px;border-radius:10px;display:inline-block;margin-top:6px}
+
+    /* Pricing */
+    .pricing{display:grid; gap:20px}
+    @media(min-width:860px){ .pricing{grid-template-columns:1fr 1fr} } /* two plans */
+    .price{position:relative;border:1px solid var(--border); border-radius:20px; background:linear-gradient(140deg, rgba(124,92,255,.10), rgba(15,22,43,.9) 30%); padding:22px; display:flex;flex-direction:column; gap:14px }
+    .price h3{margin:0;font-size:1.25rem}
+    .amount{font-size:2.1rem;font-weight:800}
+    .per{color:var(--muted); font-weight:600; font-size:.95rem; margin-left:6px}
+    .buy{margin-top:auto}
+    .badge{display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:10px; font-size:.8rem; color:#dfe8ff; background:rgba(170,185,220,.06)}
+    .featured{outline:2px solid rgba(124,92,255,.35); box-shadow:0 18px 60px rgba(124,92,255,.18)}
+    .trial{position:absolute; top:14px; right:14px; background:linear-gradient(90deg,#ffea9c,#ffd36b); color:#1a1733; font-weight:800; border-radius:999px; padding:6px 10px; border:1px solid #ffffff55}
+
+    /* Testimonials */
+    .ts{display:grid; gap:18px}
+    @media(min-width:900px){ .ts{grid-template-columns:repeat(3,1fr)} }
+    .quote{font-size:.98rem; line-height:1.6}
+    .who{margin-top:8px; font-weight:700}
+
+    /* Risk banner (dismissible) */
+    .risk-banner{
+      --bg:#0e1426; --border:rgba(170,185,220,.25);
+      position:sticky; top:0; z-index:1000;
+      display:flex; gap:16px; align-items:center; padding:10px 16px;
+      background: linear-gradient(90deg, rgba(86,98,255,.12), rgba(136,58,255,.10)), var(--bg);
+      border-bottom:1px solid var(--border); color:#eaf1ff; backdrop-filter: blur(6px);
+    }
+    .risk-banner p{margin:0; font-size:.95rem; line-height:1.45}
+    .rb-link{color:#aebdff; text-underline-offset:3px}
+    .rb-link:hover{text-decoration:underline}
+    .rb-close{margin-left:auto; border:1px solid rgba(170,185,220,.25); background:transparent; color:#dbe6ff; border-radius:8px; width:32px; height:32px; display:grid; place-items:center; cursor:pointer}
+    .rb-close:hover{background:rgba(170,185,220,.08)}
+
+    /* Footer Disclaimer */
+    .risk-disclaimer{
+      --bg:#0b1221; --text:#c9d6ff; --border:rgba(170,185,220,.18); --link:#9bb2ff;
+      margin-top: 56px; padding: 18px 0; background:
+        radial-gradient(60rem 30rem at 80% 0%, rgba(136,58,255,.08), transparent 60%),
+        var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .risk-container{max-width:1100px;margin:0 auto;padding:0 20px;color:var(--text);line-height:1.55;font-size:.95rem}
+    .risk-disclaimer strong{color:#eaf1ff}
+    .risk-link{color:#9bb2ff;text-underline-offset:2px}
+    .risk-link:hover{text-decoration:underline}
+
+    footer.site{padding:28px 0; border-top:1px solid var(--border); color:var(--muted)}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo">TrueTrend</div>
-      <div class="pill">Learn your money. Earn your money. Own your money.</div>
-    </header>
 
-    <section class="hero">
-      <div class="card">
-        <div class="kicker">Trading assistant</div>
-        <h1 class="h1">Get TrueTrend Pro & install in seconds</h1>
-        <p class="lede">Unlock strategies, auto-analyze, and seamless chart attachment. Pay securely with Stripe — you’ll get instant access and the install guide.</p>
-
-        <!-- Stripe CTAs -->
-        <div class="cta-row">
-          <a class="btn primary" id="buyMonthly" target="_blank" rel="noopener">💳 Get Pro — $59.99 <small>/mo</small></a>
-          <a class="btn" id="buyAnnual" target="_blank" rel="noopener">🏷️ Annual — $599.99 <small>/yr</small></a>
-        </div>
-        <div class="price-note">Cancel anytime. Secure checkout by Stripe.</div>
-
-        <div class="hr"></div>
-
-        <!-- Install buttons (auto-hide until links provided) -->
-        <div class="cta-row" id="installRow">
-          <a class="btn ok"   id="cwsBtn"  target="_blank" rel="noopener">🚀 Install from Chrome Web Store</a>
-          <a class="btn ok"   id="winBtn"  target="_blank" rel="noopener">🪟 Windows launcher <small>(ZIP)</small></a>
-          <a class="btn warn" id="macBtn"  target="_blank" rel="noopener">🍏 Mac / Extension-only <small>(ZIP)</small></a>
-          <a class="btn"      id="ownersBtn" target="_blank" rel="noopener">🔐 Owner’s ZIP</a>
-        </div>
-
-        <p class="muted" style="margin-top:8px;">
-          Need help? Email <a href="mailto:support@trytruetrend.com">support@trytruetrend.com</a>.
-        </p>
-      </div>
-
-      <div class="card">
-        <strong>What you get</strong>
-        <ul class="muted" style="margin:10px 0 0 18px">
-          <li>Strategy pills (Options + Futures &amp; Forex)</li>
-          <li>Auto-Analyze on selection</li>
-          <li>Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, Daily, Monthly</li>
-          <li>Pinned dock, voice/replay, copy &amp; reset</li>
-          <li>Windows one-click launcher (no extension steps)</li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="grid">
-      <div class="feat"><strong>Stripe checkout</strong><div class="muted">Fast, secure payments with instant access upon success.</div></div>
-      <div class="feat"><strong>Zero friction</strong><div class="muted">Chrome install or one-click Windows launcher.</div></div>
-      <div class="feat"><strong>Ongoing updates</strong><div class="muted">Improvements ship frequently — you stay ahead.</div></div>
-    </section>
-
-    <footer>© <span id="y"></span> TrueTrend. All rights reserved.</footer>
+  <!-- Risk Warning Banner -->
+  <div id="risk-banner" class="risk-banner" role="alert" aria-live="polite" hidden>
+    <div class="container" style="display:flex;gap:16px;align-items:center">
+      <p><strong>Not financial advice:</strong> TrueTrend is for education only. Trading involves significant risk.
+        <strong>Don’t trade with money you can’t afford to lose.</strong>
+        <a href="/privacy" class="rb-link">Read privacy policy</a>
+      </p>
+      <button type="button" class="rb-close" aria-label="Dismiss risk warning">✕</button>
+    </div>
   </div>
 
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <div class="logo"><span class="logo-dot"></span> TrueTrend</div>
+      <nav class="spacer">
+        <a href="#features">Features</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+        <a href="#pricing">Pricing</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+        <a href="#testimonials">Testimonials</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+        <a href="/privacy">Privacy</a>
+      </nav>
+      <a class="btn small" href="#video">Watch demo</a>
+      <a class="btn primary small" href="#" onclick="alert('Chrome Store pending approval.');return false;">Get Extension</a>
+    </div>
+  </header>
+
+  <!-- Slogan marquee -->
+  <div class="marquee">
+    <div class="container marquee-track">
+      <div class="inner">
+        <p>Learn Your Money <span>•</span> Earn Your Money <span>•</span> Own Your Money <span>•</span> Learn Your Money <span>•</span> Earn Your Money <span>•</span> Own Your Money <span>•</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="headline">TrueTrend Ultimate – Router Strategies for Clarity & Consistency</h1>
+      <p class="sub">Beginner-friendly controls. Router-based analyzers (EMA/ATR + ORB/BOS) automatically optimize
+        which analyzer to run, so you stay focused on execution — not configuration.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#pricing">Start now</a>
+        <a class="btn" href="#video">See it in action</a>
+      </div>
+
+      <div id="video" class="hero-card">
+        <div class="hero-media">
+          <!-- Replace with your YT ID if needed -->
+          <lite-youtube videoid="GUhfVOJF0kA" params="rel=0&modestbranding=1"></lite-youtube>
+        </div>
+        <div class="pill-row">
+          <span class="pill">Alpha</span>
+          <span class="pill">ORB</span>
+          <span class="pill">ATR</span>
+          <span class="pill">RSI</span>
+          <span class="pill">MACD</span>
+          <span class="pill">Router</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="container">
+      <h2 class="section-title">Built exclusively for traders who value consistency</h2>
+      <p class="section-sub">Router strategies trigger the right analyzer at the right time — automatically. Voice alerts, smooth UI, and beginner modes included.</p>
+      <div class="grid cols-3">
+        <div class="card">
+          <h4>Router Strategies</h4>
+          <p class="muted">EMA/ATR + ORB/BOS routing ensures your selection always triggers the best analyzer automatically.</p>
+          <div class="bullet"><span class="dot"></span><span>Reduce clicks and avoid config errors.</span></div>
+        </div>
+        <div class="card">
+          <h4>Beginner Mode</h4>
+          <p class="muted">Presets keep it simple. Gradually expand to advanced routing without feeling overwhelmed.</p>
+          <div class="bullet"><span class="dot"></span><span>Immediate clarity; zero clutter.</span></div>
+        </div>
+        <div class="card">
+          <h4>Voice & Visual Alerts</h4>
+          <p class="muted">Confidence gate with voice readouts, plus sleek UI feedback for critical signals.</p>
+          <div class="bullet"><span class="dot"></span><span>Hear what matters; ignore what doesn’t.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing">
+    <div class="container">
+      <h2 class="section-title">Simple, transparent pricing</h2>
+      <p class="section-sub">No hidden fees. Choose Monthly (with 3-day free trial) or Yearly. Chrome extension delivery.</p>
+
+      <div class="pricing">
+        <!-- MONTHLY with 3-day trial -->
+        <div class="price">
+          <span class="badge">Monthly</span>
+          <span class="trial">3-Day Free Trial</span>
+          <h3>TrueTrend Monthly</h3>
+          <div class="amount">
+            $59.99 <span class="per">/month</span>
+          </div>
+          <p class="muted">Start your 3-day free trial, then $59.99/month. Cancel anytime during the trial to avoid being charged.</p>
+          <ul class="muted" style="margin:0 0 10px 18px;line-height:1.6">
+            <li>EMA/ATR + ORB/BOS router</li>
+            <li>Beginner presets</li>
+            <li>Lightweight alerts</li>
+          </ul>
+          <div class="buy">
+            <!-- Your new Stripe Checkout link with trial-enabled price -->
+            <a class="btn primary" target="_blank" rel="noopener" href="https://buy.stripe.com/fZueVd0nPgU4dzvfkW38401">Start 3-Day Free Trial</a>
+          </div>
+          <!-- Dev note: Ensure the Stripe Price used by this Checkout link has a 3-day trial set in Stripe. -->
+        </div>
+
+        <!-- YEARLY (existing link) -->
+        <div class="price featured">
+          <span class="badge">Yearly</span>
+          <h3>TrueTrend Yearly</h3>
+          <div class="amount">
+            $599.99 <span class="per">/year</span>
+          </div>
+          <p class="muted">Best value — roughly 2 months free vs monthly. Everything in Monthly plus priority support access.</p>
+          <ul class="muted" style="margin:0 0 10px 18px;line-height:1.6">
+            <li>Everything in Monthly</li>
+            <li>Priority support access</li>
+            <li>Early feature access when available</li>
+          </ul>
+          <div class="buy">
+            <a class="btn primary" target="_blank" rel="noopener" href="https://buy.stripe.com/dRmeVdeeF6fq0MJ7Su38407">Subscribe Yearly</a>
+          </div>
+        </div>
+      </div>
+
+      <p class="note">After checkout, you’ll receive instructions and the extension package. If your Chrome Web Store listing is pending, we provide a direct install flow until approval.</p>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section id="testimonials">
+    <div class="container">
+      <h2 class="section-title">Loved by traders focused on consistency</h2>
+      <p class="section-sub">Real feedback from early testers and day-to-day users.</p>
+
+      <div class="ts">
+        <div class="card">
+          <div class="quote">“The router switching is the closest thing to plug-and-trade I’ve used. I pick my intent and it fires the right analyzer without overthinking.”</div>
+          <div class="who">— Alex P., Futures</div>
+        </div>
+        <div class="card">
+          <div class="quote">“Beginner mode let me get started in minutes. As I grew, I toggled on advanced features — no overwhelm, just steady progress.”</div>
+          <div class="who">— Dana L., Options</div>
+        </div>
+        <div class="card">
+          <div class="quote">“Voice alerts with a confidence gate cut the noise. I only hear what matters during fast sessions.”</div>
+          <div class="who">— Chris R., Crypto</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Disclaimer -->
+  <footer id="disclaimer" class="risk-disclaimer" role="contentinfo" aria-label="Risk disclaimer">
+    <div class="risk-container">
+      <strong>Risk Warning:</strong>
+      TrueTrend is an educational tool only. Nothing on this site or in our products is financial, investment, or trading advice.
+      Markets involve risk and losses can exceed deposits. <strong>Do not trade with money you cannot afford to lose.</strong>
+      Past performance is not indicative of future results. You are solely responsible for your decisions.
+      <a href="#" class="risk-link" onclick="alert('Add your Terms URL.');return false;">Terms</a> ·
+      <a href="/privacy" class="risk-link">Privacy</a>
+    </div>
+  </footer>
+
+  <!-- Site footer -->
+  <footer class="site">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div>© <span id="year"></span> TrueTrend. All rights reserved.</div>
+      <div><a href="#pricing">Pricing</a> &nbsp;·&nbsp; <a href="#features">Features</a> &nbsp;·&nbsp; <a href="#testimonials">Testimonials</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a></div>
+    </div>
+  </footer>
+
   <script>
-    // Wire Stripe
-    document.getElementById('buyMonthly').href = STRIPE_MONTHLY;
-    document.getElementById('buyAnnual').href  = STRIPE_ANNUAL;
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Helper to set link or hide button if empty
-    function setOrHide(id, url){
-      const el = document.getElementById(id);
-      if (url && url.trim().length > 0){ el.href = url; }
-      else { el.style.display = "none"; }
-    }
-
-    // Install links (auto-hide if not set)
-    setOrHide('cwsBtn', CWS_URL);
-    setOrHide('winBtn', WIN_ZIP);
-    setOrHide('macBtn', MAC_ZIP);
-    setOrHide('ownersBtn', OWNERS_ZIP);
-
-    // Hide whole install row if all are hidden
+    // Risk banner memory
     (function(){
-      const row = document.getElementById('installRow');
-      const visible = [...row.children].some(ch => ch.style.display !== "none");
-      if(!visible) row.style.display = "none";
+      const KEY='tt_risk_dismissed_v1';
+      const el = document.getElementById('risk-banner');
+      if (!localStorage.getItem(KEY)) el.hidden = false;
+      el?.querySelector('.rb-close')?.addEventListener('click', () => {
+        localStorage.setItem(KEY,'1'); el.hidden = true;
+      });
     })();
-
-    document.getElementById('y').textContent = new Date().getFullYear();
   </script>
-  <!-- Optional: paste your Analytics/Pixel here -->
 </body>
 </html>
